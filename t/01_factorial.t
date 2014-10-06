@@ -25,5 +25,6 @@ END
 use MarpaX::Languages::Lua::AST;
 
 my $p = MarpaX::Languages::Lua::AST->new;
+$p->parse($input);
 
 done_testing();
