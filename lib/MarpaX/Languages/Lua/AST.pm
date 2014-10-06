@@ -17,16 +17,17 @@ sub new {
 
     my $parser = bless {}, $class;
 
-    $parser->{grammar} = Marpa::R2::Scanless::G->new(
-        {
-            source         => \(<<'END_OF_SOURCE'),
+    $parser->{grammar} = Marpa::R2::Scanless::G->new( { source         => \(<<'END_OF_SOURCE'),
 
 :default ::= action => [ name, value ]
 lexeme default = action => [ name, value ] latm => 1
 
     # source: 8 – The Complete Syntax of Lua Lua 5.1 Reference Manual, http://www.lua.org/manual/5.1/manual.html
+    # discussion on #marpa -- http://irclog.perlgeek.de/marpa/2014-10-06#i_9463520
     # * -- 0 or more: { ... }
     # + -- 1 or more: [ ... ]
+    # keywords are in <>'s
+
 #    chunk ::= {stat [';']} [laststat [';']]
     chunk ::= {stat [';']} [laststat [';']]
 
@@ -51,16 +52,21 @@ lexeme default = action => [ name, value ] latm => 1
 #         <local> namelist ['=' explist]
          <local> namelist ['=' explist]
 
+#    laststat ::= <return> [explist] | <break>
     laststat ::= <return> [explist] | <break>
 
+#    funcname ::= Name {'.' Name} [':' Name]
     funcname ::= Name {'.' Name} [':' Name]
 
+#    varlist ::= var {',' var}
     varlist ::= var {',' var}
 
     var ::=  Name | prefixexp '[' exp ']' | prefixexp '.' Name
 
+#    namelist ::= Name {',' Name}
     namelist ::= Name {',' Name}
 
+#    explist ::= {exp ','} exp
     explist ::= {exp ','} exp
 
     exp ::=  <nil> | <false> | <true> | Number | String | '...' | function |
@@ -70,18 +76,24 @@ lexeme default = action => [ name, value ] latm => 1
 
     functioncall ::=  prefixexp args | prefixexp ':' Name args
 
+#    args ::=  '(' [explist] ')' | tableconstructor | String
     args ::=  '(' [explist] ')' | tableconstructor | String
 
     function ::= <function> funcbody
 
+#    funcbody ::= '(' [parlist] ')' block <end>
     funcbody ::= '(' [parlist] ')' block <end>
 
+#    parlist ::= namelist [',' '...'] | '...'
     parlist ::= namelist [',' '...'] | '...'
 
+#    tableconstructor ::= '{' [fieldlist] '}'
     tableconstructor ::= '{' [fieldlist] '}'
 
+#    fieldlist ::= field {fieldsep field} [fieldsep]
     fieldlist ::= field {fieldsep field} [fieldsep]
 
+#    field ::= '[' exp ']' '=' exp | Name '=' exp | exp
     field ::= '[' exp ']' '=' exp | Name '=' exp | exp
 
     fieldsep ::= ',' | ';'
@@ -100,15 +112,20 @@ END_OF_SOURCE
 }
 
 sub parse {
-    my ( $parser, $string ) = @_;
+    my ( $parser, $source ) = @_;
 
-    my $re = Marpa::R2::Scanless::R->new(
-        {   grammar           => $parser->{grammar},
-        }
-    );
-    $re->read( \$string );
-    my $ast = ${ $re->value() };
+    my $r = Marpa::R2::Scanless::R->new( {
+        grammar => $parser->{grammar},
+        trace_terminals => 1,
+    });
+    $r->read( \$source );
+    my $ast = ${ $r->value() };
+    return $ast;
 } ## end sub parse
 
+sub serialize{
+    my ($parser) = @_;
+
+}
 
 1;
