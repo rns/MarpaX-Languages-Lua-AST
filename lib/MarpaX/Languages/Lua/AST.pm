@@ -30,14 +30,15 @@ lexeme default = action => [ name, value ] latm => 1
     # original rules are commented if converted; what follows is their converted form
 
 #    chunk ::= {stat [';']} [laststat [';']]
-    chunk ::= stats laststat optional_semicolon_or_newline
+    chunk ::= stats laststat
+    chunk ::= laststat ';'
+    chunk ::= laststat
     chunk ::= stats
-    stats ::= stat* separator => optional_semicolon_or_newline
+    stats ::= stat+ separator => semicolon_or_newlines
 
-    optional_semicolon_or_newline ~ optional_semicolon [\n]
-    optional_semicolon_or_newline ~ [\n]
-    optional_semicolon ~ ';'
-    optional_semicolon ~
+    semicolon_or_newlines ~ ';' newlines
+    semicolon_or_newlines ~ newlines
+    newlines ~ [\n]+
 
     block ::= chunk
 
@@ -66,8 +67,7 @@ lexeme default = action => [ name, value ] latm => 1
 
 #        <local> namelist ['=' explist]
         <local> namelist '=' explist |
-        <local> namelist |
-        comment
+        <local> namelist
 
     elseifs ::= elseif_item*
     elseif_item ::= <elseif> exp <then> block
@@ -174,6 +174,7 @@ lexeme default = action => [ name, value ] latm => 1
     <until> ~ 'until'
     <while> ~ 'while'
 
+:discard ~ comment
 :discard ~ whitespace
 whitespace ~ [\s]+
 
@@ -189,9 +190,9 @@ sub parse {
 
     my $r = Marpa::R2::Scanless::R->new( {
         grammar => $parser->{grammar},
-        trace_terminals => 1,
+        trace_terminals => 99,
     });
-    $r->read( \$source );
+    eval {$r->read(\$source)} || warn "Parse failure, progress report is:\n" . $r->show_progress;
     my $ast = ${ $r->value() };
     return $ast;
 } ## end sub parse

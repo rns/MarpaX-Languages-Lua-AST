@@ -7,6 +7,11 @@ use strict;
 
 use Test::More;
 
+use Data::Dumper;
+$Data::Dumper::Indent = 1;
+$Data::Dumper::Terse = 1;
+$Data::Dumper::Deepcopy = 1;
+
 my $input = <<END;
 -- defines a factorial function
 function fact (n)
@@ -25,6 +30,7 @@ END
 use MarpaX::Languages::Lua::AST;
 
 my $p = MarpaX::Languages::Lua::AST->new;
-$p->parse($input);
+say $p->serialize( $p->parse($input) );
+
 
 done_testing();
