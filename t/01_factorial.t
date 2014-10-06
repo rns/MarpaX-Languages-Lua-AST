@@ -7,11 +7,6 @@ use strict;
 
 use Test::More;
 
-use Data::Dumper;
-$Data::Dumper::Indent = 1;
-$Data::Dumper::Terse = 1;
-$Data::Dumper::Deepcopy = 1;
-
 my $input = <<END;
 -- defines a factorial function
 function fact (n)

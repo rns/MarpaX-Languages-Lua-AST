@@ -9,6 +9,11 @@ use 5.010;
 use strict;
 use warnings;
 
+use Data::Dumper;
+$Data::Dumper::Indent = 1;
+$Data::Dumper::Terse = 1;
+$Data::Dumper::Deepcopy = 1;
+
 use Marpa::R2;
 
 sub new {
@@ -198,8 +203,25 @@ sub parse {
 } ## end sub parse
 
 sub serialize{
-    my ($parser) = @_;
-
+    my ($parser, $ast) = @_;
+    state $depth++;
+    my $s;
+    my $indent = "  " x ($depth - 1);
+    if (ref $ast){
+        my ($node_id, @children) = @$ast;
+        if (@children == 1 and not ref $children[0]){
+            $s .= $indent . "$node_id '$children[0]'" . "\n";
+        }
+        else{
+            $s .= $indent . "$node_id\n";
+            $s .= join '', map { $parser->serialize( $_ ) } @children;
+        }
+    }
+    else{
+        $s .= $indent . "'$ast'"  . "\n";
+    }
+    $depth--;
+    return $s;
 }
 
 1;
