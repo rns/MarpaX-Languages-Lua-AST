@@ -19,7 +19,7 @@ sub new {
 
     $parser->{grammar} = Marpa::R2::Scanless::G->new( { source         => \(<<'END_OF_SOURCE'),
 
-:default ::= action => [ name, value ]
+:default ::= action => [ name, values ]
 lexeme default = action => [ name, value ] latm => 1
 
     # source: 8 – The Complete Syntax of Lua Lua 5.1 Reference Manual, http://www.lua.org/manual/5.1/manual.html
@@ -32,7 +32,7 @@ lexeme default = action => [ name, value ] latm => 1
 #    chunk ::= {stat [';']} [laststat [';']]
     chunk ::= stats laststat optional_semicolon_or_newline
     chunk ::= stats
-    stats ::= stat+ separator => optional_semicolon_or_newline
+    stats ::= stat* separator => optional_semicolon_or_newline
 
     optional_semicolon_or_newline ~ optional_semicolon [\n]
     optional_semicolon_or_newline ~ [\n]
@@ -108,8 +108,7 @@ lexeme default = action => [ name, value ] latm => 1
     funcbody ::= '(' ')' block <end>
 
 #    parlist ::= namelist [',' '...'] | '...'
-    parlist ::= namelist ',' '...' | '...'
-    parlist ::= namelist | '...'
+    parlist ::= namelist | namelist ',' '...' | '...'
 
 #    tableconstructor ::= '{' [fieldlist] '}'
     tableconstructor ::= '{' fieldlist '}'
@@ -132,16 +131,18 @@ lexeme default = action => [ name, value ] latm => 1
     unop ~ '-' | <not> | '#'
 
 # comments
-    comment ~ '--' comment_chars [\n]
-    comment ~ '--' [\n]
+    comment ~ '--' comment_chars
     comment_chars ~ comment_char+
     comment_char ~ [^\n]+
 
 #   lexemes
-    Name ~ [\w]+
-    # 3   3.0   3.1416   314.16e-2   0.31416E1   0xff   0x56
-    Number ~ [\d+]
-    Number ~ [\d+] '.' [\d+]
+    Name ~ [a-zA-Z_] Name_chars
+    Name_chars ~ [\w]*
+    # 3   3.0   3.1416
+    # todo: 314.16e-2   0.31416E1   0xff   0x56
+    Number ~ int | float
+    int ~ [\d]+
+    float ~ int '.' int
 
     String ~ '"' double_quoted_String_chars '"'
     double_quoted_String_chars ~ double_quoted_String_char*
@@ -188,7 +189,7 @@ sub parse {
 
     my $r = Marpa::R2::Scanless::R->new( {
         grammar => $parser->{grammar},
-        trace_terminals => 99,
+        trace_terminals => 1,
     });
     $r->read( \$source );
     my $ast = ${ $r->value() };
