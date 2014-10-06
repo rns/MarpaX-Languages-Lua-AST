@@ -25,11 +25,19 @@ lexeme default = action => [ name, value ] latm => 1
     # source: 8 – The Complete Syntax of Lua Lua 5.1 Reference Manual, http://www.lua.org/manual/5.1/manual.html
     # discussion on #marpa -- http://irclog.perlgeek.de/marpa/2014-10-06#i_9463520
     # * -- 0 or more: { ... }
-    # + -- 1 or more: [ ... ]
+    # ? -- 0 or 1:    [ ... ]
     # keywords are in <>'s
+    # original rules are commented if converted; what follows is their converted form
 
 #    chunk ::= {stat [';']} [laststat [';']]
-    chunk ::= {stat [';']} [laststat [';']]
+    chunk ::= stats laststat optional_semicolon_or_newline
+    chunk ::= stats
+    stats ::= stat+ separator => optional_semicolon_or_newline
+
+    optional_semicolon_or_newline ~ optional_semicolon [\n]
+    optional_semicolon_or_newline ~ [\n]
+    optional_semicolon ~ ';'
+    optional_semicolon ~
 
     block ::= chunk
 
