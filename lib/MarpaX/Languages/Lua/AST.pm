@@ -80,18 +80,23 @@ lexeme default = action => [ name, value ] latm => 1
 #    funcname ::= Name {'.' Name} [':' Name]
     funcname ::= Names ':' Name
     funcname ::= Names
-    Names ::= Name+ separator => [\.]
+#    Names ::= Name+ separator => [\.]
+    Names ::= Name | '.' Name Names
 
 #    varlist ::= var {',' var}
     varlist ::= var+ separator => [,]
+#    varlist ::= var | varlist ',' var
 
     var ::=  Name | prefixexp '[' exp ']' | prefixexp '.' Name
 
 #    namelist ::= Name {',' Name}
     namelist ::= Name+ separator => [,]
+#     namelist ::= Name | ',' Name namelist
 
 #    explist ::= {exp ','} exp
-    explist ::= exp+ separator => [,]
+#    explist ::= exp+ separator => [,]
+   explist ::= exp | explist ',' exp
+
 
     exp ::=  <nil> | <false> | <true> | Number | String | '...' | functionexp |
          prefixexp | tableconstructor | exp binop exp | unop exp

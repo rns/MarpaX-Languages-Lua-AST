@@ -1,5 +1,8 @@
 ﻿# For more parser tests: http://lua-users.org/wiki/LuaGrammar
 
+# keep NAIF separator
+    varlist ::= var+ separator => [,]
+
 Questions to be asked when enough tests will pass
 -------------------------------------------------
 
