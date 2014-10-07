@@ -16,8 +16,8 @@ my @tests;
 BEGIN {
     my @a = (
 # the five literal strings below denote the same string:
-        q{ a = 'alo\n123"' },
-        q{ a = "alo\n123\"" },
+        q{ a = 'alo\n123"'       },
+        q{ a = "alo\n123\""      },
         q{ a = '\97lo\10\04923"' },
         q{  a = [[alo
                123"]]
