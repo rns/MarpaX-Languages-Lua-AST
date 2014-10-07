@@ -11,7 +11,8 @@ use Test::More;
 
 use MarpaX::Languages::Lua::AST;
 
-# evaluate snippet
+# evaluate snippet: it can be arbitrary, just make sure that
+# the return value is in variable a before the function end
 my @tests;
 BEGIN {
     my @a = (
@@ -72,18 +73,15 @@ __END__
 =pod
 
 
-     3   3.0   3.1416   314.16e-2   0.31416E1   0xff   0x56
-
 # The assignment statement first evaluates all its expressions
 # and only then are the assignments performed. Thus the code
-
      i = 3
      i, a[i] = i+1, 20
-sets a[3] to 20, without affecting a[4] because the i in a[i] is evaluated (to 3) before it is assigned 4. Similarly, the line
+sets a[3] to 20, without affecting a[4] because the i in a[i] is evaluated (to 3) before it is assigned 4.
 
+# Similarly, the line
      x, y = y, x
 exchanges the values of x and y, and
-
      x, y, z = y, z, x
 cyclically permutes the values of x, y, and z.
 
