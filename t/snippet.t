@@ -269,6 +269,7 @@ my $p = MarpaX::Languages::Lua::AST->new;
 for my $snippet (@snippets){
     my $ast = $p->parse($snippet);
     say $p->serialize( $ast );
+    say $p->tokens( $ast );
 }
 
 done_testing();

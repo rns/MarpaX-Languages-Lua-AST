@@ -36,15 +36,11 @@ lexeme default = action => [ name, value ] latm => 1
     # original rules are commented if converted; what follows is their converted form
 
 #    chunk ::= {stat [';']} [laststat [';']]
+    chunk ::= stats
     chunk ::= stats laststat
     chunk ::= laststat ';'
     chunk ::= laststat
-    chunk ::= stats
-    stats ::= stat+ separator => semicolon_or_newlines
-
-    semicolon_or_newlines ~ ';' newlines
-    semicolon_or_newlines ~ newlines
-    newlines ~ [\n]+
+    stats ::= stat | stats stat | stats stat ';'
 
     block ::= chunk
 
@@ -173,9 +169,11 @@ lexeme default = action => [ name, value ] latm => 1
     level4_equal_signs ~ '===='
 
     String ~ '"' double_quoted_String_chars '"'
-    double_quoted_String_chars ~ [^"]* #"
+    double_quoted_String_chars ~ double_quoted_String_char*
+    double_quoted_String_char ~ [^"] | '\"' # "
     String ~ ['] single_suoted_String_chars [']
-    single_suoted_String_chars ~ [^']* #'
+    single_suoted_String_chars ~ single_suoted_String_char*
+    single_suoted_String_char ~ [^'] | '\' ['] #'
 
 # keywords
     <and> ~ 'and'
