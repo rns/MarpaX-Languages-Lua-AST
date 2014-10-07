@@ -200,7 +200,6 @@ sub parse {
     });
     eval {$r->read(\$source)} || warn "Parse failure, progress report is:\n" . $r->show_progress;
     my $ast = ${ $r->value() };
-    say Dumper $ast;
     return $ast;
 } ## end sub parse
 
@@ -226,5 +225,18 @@ sub serialize{
     return $s;
 }
 
-
+# quick hack to test against Inline::Lua:
+# serialize $ast to a stream of tokens separated with a space
+sub tokens{
+    my ($parser, $ast) = @_;
+    my $tokens;
+    if (ref $ast){
+        my ($node_id, @children) = @$ast;
+        $tokens .= join "", map { $parser->tokens( $_ ) } @children;
+    }
+    else{
+        $tokens .= ' ' . $ast;
+    }
+    return $tokens;
+}
 1;
