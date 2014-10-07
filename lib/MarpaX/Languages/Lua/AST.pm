@@ -133,9 +133,15 @@ lexeme default = action => [ name, value ] latm => 1
     unop ~ '-' | <not> | '#'
 
 #   comments
+    comment ~ <short comment>
+    comment ~ <long comment>
+
+    <short comment> ~ '--' <short comment chars>
+    <short comment chars> ~ [^\n]+
+
 #   todo: long comments (can be nested)
-    comment ~ '--' <comment chars>
-    <comment chars> ~ [^\n]+
+    <long comment> ~ 'todo'
+
 
 #   identifier
     Name ~ [a-zA-Z_] <Name chars>
@@ -154,26 +160,12 @@ lexeme default = action => [ name, value ] latm => 1
     <hex chars> ~ [A-Fa-f0-9] [A-Fa-f0-9]
 
 #   strings in opening/closing long brackets (LB)todo: use events?
-    String ~ <opening LB L0> <LB characters> <closing LB L0>
-    String ~ <opening LB L1> <LB characters> <closing LB L1>
-    String ~ <opening LB L2> <LB characters> <closing LB L2>
-    String ~ <opening LB L3> <LB characters> <closing LB L3>
-    String ~ <opening LB L4> <LB characters> <closing LB L4>
+    String ~ '[[' <LB characters> ']]'
+    String ~ '[=[' <LB characters> ']=]'
+    String ~ '[==[' <LB characters> ']==]'
+    String ~ '[===[' <LB characters> ']===]'
+    String ~ '[====[' <LB characters> ']====]'
     <LB characters> ~ [^\]]*
-    <opening LB L0> ~ '[['
-    <closing LB L0> ~ ']]'
-    <opening LB L1> ~ '[' <equal signs L1> '['
-    <closing LB L1> ~ ']' <equal signs L1> ']'
-    <opening LB L2> ~ '[' <equal signs L2> '['
-    <closing LB L2> ~ ']' <equal signs L2> ']'
-    <opening LB L3> ~ '[' <equal signs L3> '['
-    <closing LB L3> ~ ']' <equal signs L3> ']'
-    <opening LB L4> ~ '[' <equal signs L4> '['
-    <closing LB L4> ~ ']' <equal signs L4> ']'
-    <equal signs L1> ~ '='
-    <equal signs L2> ~ '=='
-    <equal signs L3> ~ '==='
-    <equal signs L4> ~ '===='
 
     String ~ '"' <double quoted String chars> '"'
     <double quoted String chars> ~ <double quoted String char>*
