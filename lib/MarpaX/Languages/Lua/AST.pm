@@ -144,33 +144,34 @@ lexeme default = action => [ name, value ] latm => 1
 #   lexemes
     Name ~ [a-zA-Z_] Name_chars
     Name_chars ~ [\w]*
-    # 3   3.0   3.1416
-    # todo: 314.16e-2   0.31416E1   0xff   0x56
+    # todo: 0xff   0x56
     Number ~ int | float
     int ~ [\d]+
     float ~ int '.' int
+    float ~ int '.' int 'e' [+-] int
+    float ~ int '.' int 'E' int
 
-#   strings in long brackets todo: use events?
-    String ~ <opening long bracket level 0> <long bracket characters> <closing long bracket level 0>
-    String ~ <opening long bracket level 1> <long bracket characters> <closing long bracket level 1>
-    String ~ <opening long bracket level 2> <long bracket characters> <closing long bracket level 2>
-    String ~ <opening long bracket level 3> <long bracket characters> <closing long bracket level 3>
-    String ~ <opening long bracket level 4> <long bracket characters> <closing long bracket level 4>
-    <long bracket characters> ~ [^\]]*
-    <opening long bracket level 0>  ~ '[['
-    <closing long bracket level 0> ~ ']]'
-    <opening long bracket level 1>  ~ '[' <level 1 equal signs> '['
-    <closing long bracket level 1> ~ ']' <level 1 equal signs> ']'
-    <opening long bracket level 2>  ~ '[' <level 2 equal signs> '['
-    <closing long bracket level 2> ~ ']' <level 2 equal signs> ']'
-    <opening long bracket level 3>  ~ '[' <level 3 equal signs> '['
-    <closing long bracket level 3> ~ ']' <level 3 equal signs> ']'
-    <opening long bracket level 4>  ~ '[' <level 4 equal signs> '['
-    <closing long bracket level 4> ~ ']' <level 4 equal signs> ']'
-    <level 1 equal signs> ~ '='
-    <level 2 equal signs> ~ '=='
-    <level 3 equal signs> ~ '==='
-    <level 4 equal signs> ~ '===='
+#   strings in opening/closing long brackets (LB)todo: use events?
+    String ~ <opening LB L0> <LB characters> <closing LB L0>
+    String ~ <opening LB L1> <LB characters> <closing LB L1>
+    String ~ <opening LB L2> <LB characters> <closing LB L2>
+    String ~ <opening LB L3> <LB characters> <closing LB L3>
+    String ~ <opening LB L4> <LB characters> <closing LB L4>
+    <LB characters> ~ [^\]]*
+    <opening LB L0> ~ '[['
+    <closing LB L0> ~ ']]'
+    <opening LB L1> ~ '[' <equal signs L1> '['
+    <closing LB L1> ~ ']' <equal signs L1> ']'
+    <opening LB L2> ~ '[' <equal signs L2> '['
+    <closing LB L2> ~ ']' <equal signs L2> ']'
+    <opening LB L3> ~ '[' <equal signs L3> '['
+    <closing LB L3> ~ ']' <equal signs L3> ']'
+    <opening LB L4> ~ '[' <equal signs L4> '['
+    <closing LB L4> ~ ']' <equal signs L4> ']'
+    <equal signs L1> ~ '='
+    <equal signs L2> ~ '=='
+    <equal signs L3> ~ '==='
+    <equal signs L4> ~ '===='
 
     String ~ '"' <double quoted String chars> '"'
     <double quoted String chars> ~ <double quoted String char>*
