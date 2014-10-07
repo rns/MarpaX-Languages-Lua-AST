@@ -10,5 +10,30 @@
 cd lua5.1-tests
 export LUA_PATH="./?.lua;;"
 export LUA_INIT="package.path = '?;'..package.path"
-lua all.lua
+# lua all.lua fails at main.lua hence the tests are run
+lua api.lua
+lua attrib.lua
+lua big.lua
+lua calls.lua
+lua checktable.lua
+lua closure.lua
+lua code.lua
+lua constructs.lua
+lua db.lua
+lua errors.lua
+lua events.lua
+lua files.lua
+lua gc.lua
+lua literals.lua
+lua locals.lua
+lua main.lua
+lua math.lua
+lua nextvar.lua
+lua pm.lua
+lua sort.lua
+lua strings.lua
+lua vararg.lua
+lua verybig.lua
+
+
 
