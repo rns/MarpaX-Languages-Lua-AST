@@ -10,7 +10,7 @@
 cd lua5.1-tests
 export LUA_PATH="./?.lua;;"
 export LUA_INIT="package.path = '?;'..package.path"
-# lua all.lua fails at main.lua hence the tests are run
+# lua all.lua fails at main.lua hence the tests are run individually
 lua api.lua
 lua attrib.lua
 lua big.lua
