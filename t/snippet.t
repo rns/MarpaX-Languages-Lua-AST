@@ -2,8 +2,66 @@
 # Copyright 2014 Ruslan Shvedov
 
 # test parsing of lua code snippets from the Reference manual
-# against embedded parse trees
 
+use 5.010;
+use warnings;
+use strict;
+
+use Test::More;
+
+use MarpaX::Languages::Lua::AST;
+
+# -- the five literal strings below denote the same string:
+
+# evaluate snippet
+my @tests;
+BEGIN {
+    my @a = (
+        q{ a = 'alo\n123"' },
+        q{ a = "alo\n123\"" },
+        q{ a = '\97lo\10\04923"' },
+        q{ a = [[alo
+               123"]]
+        },
+        q{  a = [==[
+                alo
+                123"]==]
+        },
+    );
+    for my $i (0..$#a){
+        push @tests, [
+            "function a_inline_$i() " . $a[$i] . ' return a end',
+            "function a_parsed_$i() " . $a[$i] . ' return a end',
+            $a[$i] # snippet
+        ];
+    }
+}
+
+my $test_template = q{
+    use Inline Lua => $tests[{{i}}]->[0];
+    my $expected_a{{i}} = a_inline_{{i}}();
+
+    sub got_a{{i}}{
+        my $p = MarpaX::Languages::Lua::AST->new;
+        my $ast = $p->parse($tests[{{i}}]->[1]);
+        $p->tokens( $ast );
+    }
+
+    use Inline Lua => got_a{{i}};
+    my $got_a{{i}} = a_parsed_{{i}}();
+
+    is $got_a{{i}}, $expected_a{{i}}, $tests[{{i}}]->[2];
+};
+
+for my $i (0..$#tests){
+    my $test_i = $test_template;
+    $test_i =~ s/{{i}}/$i/g;
+    eval $test_i;
+}
+
+done_testing();
+
+__END__
 =pod
 
 # Examples of valid numerical constants are
@@ -236,41 +294,3 @@ To load and run a given string, use the idiom
 When absent, chunkname defaults to the given string.
 
 =cut
-
-use 5.010;
-use warnings;
-use strict;
-
-use Test::More;
-
-use MarpaX::Languages::Lua::AST;
-
-my @snippets = (
-q{
--- the five literal strings below denote the same string:
-
-     a = 'alo\n123"'
-     a = "alo\n123\""
-     a = '\97lo\10\04923"'
-     a = [[alo
-     123"]]
-     a = [==[
-     alo
-     123"]==]
-
-},
-
-);
-
-use MarpaX::Languages::Lua::AST;
-
-my $p = MarpaX::Languages::Lua::AST->new;
-
-for my $snippet (@snippets){
-    my $ast = $p->parse($snippet);
-    say $p->serialize( $ast );
-    say $p->tokens( $ast );
-}
-
-done_testing();
-

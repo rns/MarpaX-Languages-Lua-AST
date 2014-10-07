@@ -217,7 +217,7 @@ sub parse {
 
     my $r = Marpa::R2::Scanless::R->new( {
         grammar => $parser->{grammar},
-        trace_terminals => 99,
+        trace_terminals => 0,
     });
     eval {$r->read(\$source)} || warn "Parse failure, progress report is:\n" . $r->show_progress;
     my $ast = ${ $r->value() };

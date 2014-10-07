@@ -1,7 +1,11 @@
 ﻿# For more parser tests: http://lua-users.org/wiki/LuaGrammar
 
-# escape sequences (2.1 – Lexical Conventions)
+Questions to be asked when enough tests will pass
+-------------------------------------------------
 
+#
+# How to/If we need to -- escape sequences (2.1 – Lexical Conventions) 
+#
     <double quoted String char> ~ <C escape sequence>
     <double quoted String char> ~ <escape sequence of decimal digits>
 
@@ -26,3 +30,8 @@
     <escape sequence of decimal digits> ~ '\' [\d] [\d]
     <escape sequence of decimal digits> ~ '\' [\d] [\d] [\d]
 
+Links
+=====
+
+https://github.com/jddurand/MarpaX-Languages-C-AST/blob/master/lib/MarpaX/Languages/C/AST/Grammar/ISO_ANSI_C_2011.pm
+https://github.com/jeffreykegler/Marpa--R2/blob/master/cpan/lib/Marpa/R2/meta/metag.bnf
