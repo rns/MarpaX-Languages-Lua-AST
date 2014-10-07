@@ -168,12 +168,15 @@ lexeme default = action => [ name, value ] latm => 1
     level3_equal_signs ~ '==='
     level4_equal_signs ~ '===='
 
-    String ~ '"' double_quoted_String_chars '"'
-    double_quoted_String_chars ~ double_quoted_String_char*
-    double_quoted_String_char ~ [^"] | '\"' # "
-    String ~ ['] single_suoted_String_chars [']
-    single_suoted_String_chars ~ single_suoted_String_char*
-    single_suoted_String_char ~ [^'] | '\' ['] #'
+    String ~ '"' <double quoted String chars> '"'
+    <double quoted String chars> ~ <double quoted String char>*
+    <double quoted String char> ~ [^"] #"
+    <double quoted String char> ~ '\"' # "
+
+    String ~ ['] <single quoted String chars> [']
+    <single quoted String chars> ~ <single quoted String char>*
+    <single quoted String char> ~ [^'] #'
+    <single quoted String char> ~ '\' ['] #'
 
 # keywords
     <and> ~ 'and'

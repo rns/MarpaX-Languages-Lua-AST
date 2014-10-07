@@ -1,1 +1,28 @@
 ﻿# For more parser tests: http://lua-users.org/wiki/LuaGrammar
+
+# escape sequences (2.1 – Lexical Conventions)
+
+    <double quoted String char> ~ <C escape sequence>
+    <double quoted String char> ~ <escape sequence of decimal digits>
+
+    <single quoted String char> ~ <C escape sequence>
+    <single quoted String char> ~ <escape sequence of decimal digits>
+
+    <C escape sequence> ~ '\a' # bell
+    <C escape sequence> ~ '\b' # backspace
+    <C escape sequence> ~ '\f' # form feed
+    <C escape sequence> ~ '\n' # newline
+    <C escape sequence> ~ '\r' # carriage return
+    <C escape sequence> ~ '\t' # horizontal tab
+    <C escape sequence> ~ '\v' # vertical tab
+    <C escape sequence> ~ '\\' # backslash
+# A character in a string can also be specified by its numerical value
+# using the escape sequence \ddd, where ddd is a sequence of
+# up to three decimal digits. (Note that if a numerical escape
+# is to be followed by a digit, it must be expressed using
+# exactly three digits.) Strings in Lua can contain any 8-bit value,
+# including embedded zeros, which can be specified as '\0'.
+    <escape sequence of decimal digits> ~ '\' [\d]
+    <escape sequence of decimal digits> ~ '\' [\d] [\d]
+    <escape sequence of decimal digits> ~ '\' [\d] [\d] [\d]
+
