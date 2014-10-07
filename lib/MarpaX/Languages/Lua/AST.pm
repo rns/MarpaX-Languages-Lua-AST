@@ -97,7 +97,7 @@ lexeme default = action => [ name, value ] latm => 1
 #    explist ::= {exp ','} exp
     explist ::= exp+ separator => [,]
 
-    exp ::=  <nil> | <false> | <true> | Number | String | '...' | function_exp |
+    exp ::=  <nil> | <false> | <true> | Number | String | '...' | functionexp |
          prefixexp | tableconstructor | exp binop exp | unop exp
 
     prefixexp ::= var | functioncall | '(' exp ')'
@@ -107,7 +107,7 @@ lexeme default = action => [ name, value ] latm => 1
 #    args ::=  '(' [explist] ')' | tableconstructor | String
     args ::=  '(' ')' | '(' explist ')' | tableconstructor | String
 
-    function_exp ::= <function> funcbody
+    functionexp ::= <function> funcbody
 
 #    funcbody ::= '(' [parlist] ')' block <end>
     funcbody ::= '(' parlist ')' block <end>
@@ -150,12 +150,32 @@ lexeme default = action => [ name, value ] latm => 1
     int ~ [\d]+
     float ~ int '.' int
 
+#   strings in long bracktes todo: use events?
+    String ~ opening_long_bracket_level0 long_bracket_chars closing_long_bracket_level0
+    String ~ opening_long_bracket_level1 long_bracket_chars closing_long_bracket_level1
+    String ~ opening_long_bracket_level2 long_bracket_chars closing_long_bracket_level2
+    String ~ opening_long_bracket_level3 long_bracket_chars closing_long_bracket_level3
+    String ~ opening_long_bracket_level4 long_bracket_chars closing_long_bracket_level4
+    long_bracket_chars ~ [^\]]*
+    opening_long_bracket_level0  ~ '[['
+    closing_long_bracket_level0 ~ ']]'
+    opening_long_bracket_level1  ~ '[' level1_equal_signs '['
+    closing_long_bracket_level1 ~ ']' level1_equal_signs ']'
+    opening_long_bracket_level2  ~ '[' level2_equal_signs '['
+    closing_long_bracket_level2 ~ ']' level2_equal_signs ']'
+    opening_long_bracket_level3  ~ '[' level3_equal_signs '['
+    closing_long_bracket_level3 ~ ']' level3_equal_signs ']'
+    opening_long_bracket_level4  ~ '[' level4_equal_signs '['
+    closing_long_bracket_level4 ~ ']' level4_equal_signs ']'
+    level1_equal_signs ~ '='
+    level2_equal_signs ~ '=='
+    level3_equal_signs ~ '==='
+    level4_equal_signs ~ '===='
+
     String ~ '"' double_quoted_String_chars '"'
-    double_quoted_String_chars ~ double_quoted_String_char*
-    double_quoted_String_char ~ [^"] #"
+    double_quoted_String_chars ~ [^"]* #"
     String ~ ['] single_suoted_String_chars [']
-    single_suoted_String_chars ~ single_suoted_String_char*
-    single_suoted_String_char ~ [^'] #'
+    single_suoted_String_chars ~ [^']* #'
 
 # keywords
     <and> ~ 'and'
@@ -196,7 +216,7 @@ sub parse {
 
     my $r = Marpa::R2::Scanless::R->new( {
         grammar => $parser->{grammar},
-#        trace_terminals => 99,
+        trace_terminals => 99,
     });
     eval {$r->read(\$source)} || warn "Parse failure, progress report is:\n" . $r->show_progress;
     my $ast = ${ $r->value() };

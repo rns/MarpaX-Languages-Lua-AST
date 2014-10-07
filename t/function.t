@@ -4,6 +4,20 @@
 # take a source code of a lua function and test its execution results
 # returned via Inline::Lua for the original source code and
 # for the source code parsed to AST and serialized to a token stream
+# todo: add functions from 2.8 – Metatables
+#       starting at "That is, the access to a metamethod does not invoke other metamethods"
+
+=pod
+
+After the collection, Lua does the equivalent of the following function for each userdata in that list:
+
+     function gc_event (udata)
+       local h = metatable(udata).__gc
+       if h then
+         h(udata)
+       end
+     end
+=cut
 
 use 5.010;
 use warnings;
