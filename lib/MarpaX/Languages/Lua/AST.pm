@@ -133,6 +133,10 @@ lexeme default = action => [ name, value ] latm => 1
     unop ~ '-' | <not> | '#'
 
 # comments
+# The long string/long comment syntax ([[string]]) does not allow nesting.
+# You can use the new syntax ([=[string]=]) in these cases. (See compile-time option LUA_COMPAT_LSTR in luaconf.h.)
+# todo: nested comments
+
     comment ~ '--' comment_chars
     comment_chars ~ comment_char+
     comment_char ~ [^\n]+
@@ -146,27 +150,27 @@ lexeme default = action => [ name, value ] latm => 1
     int ~ [\d]+
     float ~ int '.' int
 
-#   strings in long bracktes todo: use events?
-    String ~ opening_long_bracket_level0 long_bracket_chars closing_long_bracket_level0
-    String ~ opening_long_bracket_level1 long_bracket_chars closing_long_bracket_level1
-    String ~ opening_long_bracket_level2 long_bracket_chars closing_long_bracket_level2
-    String ~ opening_long_bracket_level3 long_bracket_chars closing_long_bracket_level3
-    String ~ opening_long_bracket_level4 long_bracket_chars closing_long_bracket_level4
-    long_bracket_chars ~ [^\]]*
-    opening_long_bracket_level0  ~ '[['
-    closing_long_bracket_level0 ~ ']]'
-    opening_long_bracket_level1  ~ '[' level1_equal_signs '['
-    closing_long_bracket_level1 ~ ']' level1_equal_signs ']'
-    opening_long_bracket_level2  ~ '[' level2_equal_signs '['
-    closing_long_bracket_level2 ~ ']' level2_equal_signs ']'
-    opening_long_bracket_level3  ~ '[' level3_equal_signs '['
-    closing_long_bracket_level3 ~ ']' level3_equal_signs ']'
-    opening_long_bracket_level4  ~ '[' level4_equal_signs '['
-    closing_long_bracket_level4 ~ ']' level4_equal_signs ']'
-    level1_equal_signs ~ '='
-    level2_equal_signs ~ '=='
-    level3_equal_signs ~ '==='
-    level4_equal_signs ~ '===='
+#   strings in long brackets todo: use events?
+    String ~ <opening long bracket level 0> <long bracket characters> <closing long bracket level 0>
+    String ~ <opening long bracket level 1> <long bracket characters> <closing long bracket level 1>
+    String ~ <opening long bracket level 2> <long bracket characters> <closing long bracket level 2>
+    String ~ <opening long bracket level 3> <long bracket characters> <closing long bracket level 3>
+    String ~ <opening long bracket level 4> <long bracket characters> <closing long bracket level 4>
+    <long bracket characters> ~ [^\]]*
+    <opening long bracket level 0>  ~ '[['
+    <closing long bracket level 0> ~ ']]'
+    <opening long bracket level 1>  ~ '[' <level 1 equal signs> '['
+    <closing long bracket level 1> ~ ']' <level 1 equal signs> ']'
+    <opening long bracket level 2>  ~ '[' <level 2 equal signs> '['
+    <closing long bracket level 2> ~ ']' <level 2 equal signs> ']'
+    <opening long bracket level 3>  ~ '[' <level 3 equal signs> '['
+    <closing long bracket level 3> ~ ']' <level 3 equal signs> ']'
+    <opening long bracket level 4>  ~ '[' <level 4 equal signs> '['
+    <closing long bracket level 4> ~ ']' <level 4 equal signs> ']'
+    <level 1 equal signs> ~ '='
+    <level 2 equal signs> ~ '=='
+    <level 3 equal signs> ~ '==='
+    <level 4 equal signs> ~ '===='
 
     String ~ '"' <double quoted String chars> '"'
     <double quoted String chars> ~ <double quoted String char>*
