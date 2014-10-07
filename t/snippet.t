@@ -11,12 +11,11 @@ use Test::More;
 
 use MarpaX::Languages::Lua::AST;
 
-# -- the five literal strings below denote the same string:
-
 # evaluate snippet
 my @tests;
 BEGIN {
     my @a = (
+# the five literal strings below denote the same string:
         q{ a = 'alo\n123"' },
         q{ a = "alo\n123\"" },
         q{ a = '\97lo\10\04923"' },
@@ -27,11 +26,14 @@ BEGIN {
                 alo
                 123"]==]
         },
+# Examples of valid numerical constants are
         q{  a = 3           },
         q{  a = 3.0         },
         q{  a = 3.1416      },
         q{  a = 314.16e-2   },
         q{  a = 0.31416E1   },
+        q{  a = 0xff        },
+        q{  a = 0x56        },
     );
     for my $i (0..$#a){
         push @tests, [
@@ -69,7 +71,6 @@ done_testing();
 __END__
 =pod
 
-# Examples of valid numerical constants are
 
      3   3.0   3.1416   314.16e-2   0.31416E1   0xff   0x56
 

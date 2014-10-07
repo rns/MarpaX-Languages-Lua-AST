@@ -132,24 +132,26 @@ lexeme default = action => [ name, value ] latm => 1
 
     unop ~ '-' | <not> | '#'
 
-# comments
-# The long string/long comment syntax ([[string]]) does not allow nesting.
-# You can use the new syntax ([=[string]=]) in these cases. (See compile-time option LUA_COMPAT_LSTR in luaconf.h.)
-# todo: nested comments
+#   comments
+#   todo: long comments (can be nested)
+    comment ~ '--' <comment chars>
+    <comment chars> ~ [^\n]+
 
-    comment ~ '--' comment_chars
-    comment_chars ~ comment_char+
-    comment_char ~ [^\n]+
+#   identifier
+    Name ~ [a-zA-Z_] <Name chars>
+    <Name chars> ~ [\w]*
 
-#   lexemes
-    Name ~ [a-zA-Z_] Name_chars
-    Name_chars ~ [\w]*
-    # todo: 0xff   0x56
-    Number ~ int | float
-    int ~ [\d]+
+#   numbers todo: 0xff   0x56
+    Number ~ int
+    Number ~ float
+    Number ~ hex
+
+    int   ~ [\d]+
     float ~ int '.' int
     float ~ int '.' int 'e' [+-] int
     float ~ int '.' int 'E' int
+    hex ~ '0x' <hex chars>
+    <hex chars> ~ [A-Fa-f0-9] [A-Fa-f0-9]
 
 #   strings in opening/closing long brackets (LB)todo: use events?
     String ~ <opening LB L0> <LB characters> <closing LB L0>
