@@ -28,6 +28,7 @@ sub new {
 lexeme default = action => [ name, value ] latm => 1
 
     # source: 8 – The Complete Syntax of Lua Lua 5.1 Reference Manual, http://www.lua.org/manual/5.1/manual.html
+    # For more parser tests: http://lua-users.org/wiki/LuaGrammar
     # discussion on #marpa -- http://irclog.perlgeek.de/marpa/2014-10-06#i_9463520
     # * -- 0 or more: { ... }
     # ? -- 0 or 1:    [ ... ]
