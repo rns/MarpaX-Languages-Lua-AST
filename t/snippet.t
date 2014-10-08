@@ -20,6 +20,8 @@ BEGIN {
         q{ a = 'alo\n123"'       },
         q{ a = "alo\n123\""      },
         q{ a = '\97lo\10\04923"' },
+        q{ a = '"\\"нlo\\"\\\n\\\\""нlo"\n\\' },
+        q{ a = '"нlo"\n\\' },
         q{  a = [[alo
                123"]]
         },
@@ -45,7 +47,8 @@ BEGIN {
     }
 }
 
-my $test_template = q{
+my @results;
+my $compile_template = q{
     use Inline Lua => $tests[{{i}}]->[0];
     my $expected_a{{i}} = a_inline_{{i}}();
 
@@ -58,13 +61,17 @@ my $test_template = q{
     use Inline Lua => got_a{{i}};
     my $got_a{{i}} = a_parsed_{{i}}();
 
-    is $got_a{{i}}, $expected_a{{i}}, $tests[{{i}}]->[2];
+    @results = ( $got_a{{i}}, $expected_a{{i}} );
 };
 
 for my $i (0..$#tests){
-    my $test_i = $test_template;
-    $test_i =~ s/{{i}}/$i/g;
-    eval $test_i;
+    my $compile_i = $compile_template;
+    $compile_i =~ s/{{i}}/$i/g;
+    eval $compile_i;
+SKIP: {
+    skip "Can't parse $tests[$i]->[2] yet: $@", 1 if $@;
+    is $results[0], $results[1], $tests[$i]->[2];
+    };
 }
 
 done_testing();
