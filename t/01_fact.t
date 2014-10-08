@@ -20,8 +20,9 @@ function fact (n)
   else
     return n * fact(n-1)
   end
-  a = '\\''
+  a = '\\\'' -- 1 escaped \ 1 escaped '
 end
+#'
 
 print("enter a number:")
 a = io.read("*number")        -- read a number
@@ -39,6 +40,7 @@ unless (defined $ast){
 }
 
 my $fmt = $p->serialize( $ast );
+say $fmt;
 
 TODO: {
     todo_skip "ast serialization to formatted source shelved until lua test suite parsing is done", 1;
