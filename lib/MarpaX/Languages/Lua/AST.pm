@@ -201,11 +201,11 @@ lexeme default = action => [ name, value ] latm => 1
 
     String ~ '"' <double quoted String chars> '"'
     <double quoted String chars> ~ <double quoted String char>*
-    <double quoted String char> ~ [^"] | '\"' # "
+    <double quoted String char> ~ [^"] | '\"' | '\\' # "
 
     String ~ ['] <single quoted String chars> [']
     <single quoted String chars> ~ <single quoted String char>*
-    <single quoted String char> ~ [^'] | '\' ['] #'
+    <single quoted String char> ~ [^'] | '\' ['] | '\\' #'
 
 # keywords
     <and> ~ 'and'
