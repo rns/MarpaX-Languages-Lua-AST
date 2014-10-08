@@ -1,4 +1,11 @@
-﻿# For more parser tests: http://lua-users.org/wiki/LuaGrammar
+﻿# test lua scripts in external files
+	filename => output
+	->parse ->tokens save_to_tempfile stdout_is()
+
+#	diff with token stream
+	slurp a lua file, split /\s+/, join ' ', diff with ast tokens ignoring whitespace
+
+# For more parser tests: http://lua-users.org/wiki/LuaGrammar
 
 # keep NAIF separator
     varlist ::= var+ separator => [,]
