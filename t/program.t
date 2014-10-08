@@ -66,8 +66,13 @@ for my $lua_fn (@lua_prog_files){
 
     # parse and write ast serialized to tokens to a temporary file
     my $ast = $p->parse($lua_slurp);
-    unless (defined $ast){
-        fail $lua_fn;
+    unless (defined $ast){ # parse error, reparse with diagnostics
+        fail "Can't parse $lua_fn";
+        $ast = $p->parse(
+            $lua_slurp,
+            { trace_terminals => 1 },
+            { show_progress => 1 }
+            );
         next;
     }
     my $tokens = $p->tokens($ast);

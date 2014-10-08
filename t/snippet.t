@@ -28,9 +28,10 @@ BEGIN {
                 alo
                 123"]==]
         },
-# strings.lua:103, 104
-        q{ a = '"нlo"\n\\'     }, # original string from is '"нlo"\n\\'
+# strings.lua:103
+        q{ a = '"нlo"\n\\\\'     }, # original string from is '"нlo"\n\\'
                                     # but we have to escape the slashes (but not newlines)
+# strings.lua:104
         q{ a = '"\\"нlo\\"\\\n\\\\""нlo"\n\\' },
 # Examples of valid numerical constants are
         q{ a = 3           },
@@ -75,7 +76,11 @@ for my $i (0..$#tests){
     eval $compile_i;
     if ($@){ # misparsing: reparse to show why
         my $p = MarpaX::Languages::Lua::AST->new;
-        my $ast = $p->parse( $tests[$i]->[2], { trace_terminals => 0 } );
+        my $ast = $p->parse(
+            $tests[$i]->[2],
+            { trace_terminals => 0 },
+            { show_progress => 0 }
+        );
         if (defined $ast){
             fail $tests[$i]->[2];
             my $tokens = $p->tokens( $ast );

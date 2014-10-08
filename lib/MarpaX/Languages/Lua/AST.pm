@@ -245,7 +245,7 @@ END_OF_SOURCE
 }
 
 sub parse {
-    my ( $parser, $source, $recce_opts ) = @_;
+    my ( $parser, $source, $recce_opts, $parse_opts ) = @_;
 
     my %default_recce_opts = (
         grammar => $parser->{grammar},
@@ -257,9 +257,12 @@ sub parse {
         @default_recce_opts{keys %$recce_opts} = values %$recce_opts;
     }
 
-    # parse showing progress on failure
+    # parse showing progress on failure if so requested in $parse_opts
     my $r = Marpa::R2::Scanless::R->new( \%default_recce_opts );
-    eval { $r->read(\$source) } || warn "$@Progress report is:\n" . $r->show_progress;
+    eval { $r->read(\$source) };
+    if ( defined $parse_opts and $parse_opts->{show_progress} ){
+        warn "$@Progress report is:\n" . $r->show_progress;
+    }
 
     # return ast or undef on parse failure
     my $v = $r->value();
