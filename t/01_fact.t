@@ -20,6 +20,7 @@ function fact (n)
   else
     return n * fact(n-1)
   end
+  a = '\\''
 end
 
 print("enter a number:")
@@ -31,7 +32,13 @@ my $expected_fmt = <<END;
 END
 
 my $p = MarpaX::Languages::Lua::AST->new;
-my $fmt = $p->serialize( $p->parse( $input ) );
+my $ast = $p->parse( $input );
+unless (defined $ast){
+    $p->parse( $input, { trace_terminals => 1 } );
+    BAIL_OUT "Can't parse:\n$input";
+}
+
+my $fmt = $p->serialize( $ast );
 
 TODO: {
     todo_skip "ast serialization to formatted source shelved until lua test suite parsing is done", 1;
