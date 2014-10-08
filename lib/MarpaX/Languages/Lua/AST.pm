@@ -41,6 +41,7 @@ lexeme default = action => [ name, value ] latm => 1
     # Capitalized symbols (Name) are from the lua grammar cited above
 
 #    chunk ::= {stat [';']} [laststat [';']]
+    chunk ::=               # e.g. function () end, api.lua:126
     chunk ::= stats
     chunk ::= stats laststat
     chunk ::= laststat ';'
