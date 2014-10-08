@@ -86,11 +86,11 @@ lexeme default = action => [ name, value ] latm => 1
     funcname ::= names ':' Name
     funcname ::= names
 #    Names ::= Name+ separator => [\.]
-    names ::= Name | '.' Name names
+    names ::= Name | names '.' Name
 
 #    varlist ::= var {',' var}
-    varlist ::= var+ separator => [,]
-#    varlist ::= var | varlist ',' var
+#    varlist ::= var+ separator => [,]
+    varlist ::= var | varlist ',' var
 
     var ::=  Name | prefixexp '[' exp ']' | prefixexp '.' Name
 
@@ -130,11 +130,12 @@ lexeme default = action => [ name, value ] latm => 1
     fieldlist ::= fields fieldsep
     fieldlist ::= fields
 
-    fields ::= field+ separator => fieldsep
+#    fields ::= field+ separator => fieldsep
+    fields ::= field | fields fieldsep field
+    fieldsep ~ ',' | ';'
 
     field ::= '[' exp ']' '=' exp | Name '=' exp | exp
 
-    fieldsep ~ ',' | ';'
 
     binop ~ '+' | '-' | '*' | '/' | '^' | '%' | '..' |
          '<' | '<=' | '>' | '>=' | '==' | '~=' |
