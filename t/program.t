@@ -24,7 +24,32 @@ use Cwd qw();
 my $pwd = Cwd::cwd();
 
 my @lua_prog_files = qw{
+
     other-lua-tests/coroutine.lua
+
+    lua5.1-tests/api.lua
+    lua5.1-tests/attrib.lua
+    lua5.1-tests/big.lua
+    lua5.1-tests/calls.lua
+    lua5.1-tests/checktable.lua
+    lua5.1-tests/closure.lua
+    lua5.1-tests/code.lua
+    lua5.1-tests/constructs.lua
+    lua5.1-tests/db.lua
+    lua5.1-tests/errors.lua
+    lua5.1-tests/events.lua
+    lua5.1-tests/files.lua
+    lua5.1-tests/gc.lua
+    lua5.1-tests/literals.lua
+    lua5.1-tests/locals.lua
+    lua5.1-tests/main.lua
+    lua5.1-tests/math.lua
+    lua5.1-tests/nextvar.lua
+    lua5.1-tests/pm.lua
+    lua5.1-tests/sort.lua
+    lua5.1-tests/strings.lua
+    lua5.1-tests/vararg.lua
+    lua5.1-tests/verybig.lua
 };
 
 for my $lua_fn (@lua_prog_files){
@@ -41,15 +66,17 @@ for my $lua_fn (@lua_prog_files){
 
     # parse and write ast serialized to tokens to a temporary file
     my $ast = $p->parse($coroutine);
-    my $lua_file = whip_up_lua_file( $p->tokens($ast) );
 
-    stdout_is sub { system 'lua', $lua_file }, $expected_stdout, $lua_fn;
+SKIP: {
+        skip "Can't parse $lua_fn yet", 1 unless defined $ast;
+        my $lua_file = whip_up_lua_file( $p->tokens($ast) );
+        stdout_is sub { system 'lua', $lua_file }, $expected_stdout, $lua_fn;
+    };
 }
 
 sub slurp_file{
     my ($fn) = @_;
-    open my $fh, "<", $fn or die "Can't open $fn: $@.";
-    binmode( $fh, ":utf8" );
+    open my $fh, $fn or die "Can't open $fn: $@.";
     my $slurp = do { local $/ = undef; <$fh> };
     close $fh;
     return $slurp;
@@ -58,7 +85,6 @@ sub slurp_file{
 sub whip_up_lua_file{
     my ($lua_text) = @_;
     my ($fh, $filename) = tempfile();
-    binmode( $fh, ":utf8" );
     say $fh $lua_text;
     close $fh;
     return $filename;

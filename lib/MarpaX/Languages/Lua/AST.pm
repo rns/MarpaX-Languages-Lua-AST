@@ -252,8 +252,9 @@ sub parse {
         trace_terminals => 0,
     });
     eval {$r->read(\$source)} || warn "Parse failure, progress report is:\n" . $r->show_progress;
-    my $ast = ${ $r->value() };
-    return $ast;
+    my $v = $r->value();
+    return unless defined $v;
+    return ${ $v };
 } ## end sub parse
 
 sub serialize{

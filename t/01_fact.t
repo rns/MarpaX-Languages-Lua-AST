@@ -38,6 +38,5 @@ SKIP: {
     is $fmt, $expected_fmt, 'format by seralizing lua code ast';
 }
 
-
 done_testing();
 
