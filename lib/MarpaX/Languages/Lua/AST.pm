@@ -90,8 +90,8 @@ lexeme default = action => [ name, value ] latm => 1
     var ::=  Name | prefixexp '[' exp ']' | prefixexp '.' Name
 
 #    namelist ::= Name {',' Name}
-    namelist ::= Name+ separator => [,]
-#     namelist ::= Name | ',' Name namelist
+#    namelist ::= Name+ separator => [,]
+    namelist ::= Name | namelist ',' Name
 
 #    explist ::= {exp ','} exp
 #    explist ::= exp+ separator => [,]
