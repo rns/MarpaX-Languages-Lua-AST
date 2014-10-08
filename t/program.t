@@ -70,7 +70,7 @@ for my $lua_fn (@lua_prog_files){
 SKIP: {
         skip "Can't parse $lua_fn yet", 1 unless defined $ast;
         my $lua_file = whip_up_lua_file( $p->tokens($ast) );
-        stdout_is sub { system 'lua', $lua_file }, $expected_stdout, $lua_fn;
+        combined_is sub { system 'lua', $lua_file }, $expected_stdout, $lua_fn;
     };
 }
 
