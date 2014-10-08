@@ -254,7 +254,6 @@ sub parse {
 
     # merge recognizer options passed by the caller, if any
     if (defined $recce_opts and ref $recce_opts eq "HASH"){
-        say %$recce_opts;
         @default_recce_opts{keys %$recce_opts} = values %$recce_opts;
     }
 

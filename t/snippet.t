@@ -17,26 +17,29 @@ my @tests;
 BEGIN {
     my @a = (
 # the five literal strings below denote the same string:
+# todo: test the 5 snippets below for "the same string"
         q{ a = 'alo\n123"'       },
         q{ a = "alo\n123\""      },
         q{ a = '\97lo\10\04923"' },
-        q{ a = '"\\"нlo\\"\\\n\\\\""нlo"\n\\' },
-        q{ a = '"нlo"\n\\' },
-        q{  a = [[alo
+        q{ a = [[alo
                123"]]
         },
-        q{  a = [==[
+        q{ a = [==[
                 alo
                 123"]==]
         },
+# strings.lua:103, 104
+        q{ a = '"нlo"\n\\'     }, # original string from is '"нlo"\n\\'
+                                    # but we have to escape the slashes (but not newlines)
+        q{ a = '"\\"нlo\\"\\\n\\\\""нlo"\n\\' },
 # Examples of valid numerical constants are
-        q{  a = 3           },
-        q{  a = 3.0         },
-        q{  a = 3.1416      },
-        q{  a = 314.16e-2   },
-        q{  a = 0.31416E1   },
-        q{  a = 0xff        },
-        q{  a = 0x56        },
+        q{ a = 3           },
+        q{ a = 3.0         },
+        q{ a = 3.1416      },
+        q{ a = 314.16e-2   },
+        q{ a = 0.31416E1   },
+        q{ a = 0xff        },
+        q{ a = 0x56        },
     );
     for my $i (0..$#a){
         push @tests, [
@@ -70,11 +73,18 @@ for my $i (0..$#tests){
     my $compile_i = $compile_template;
     $compile_i =~ s/{{i}}/$i/g;
     eval $compile_i;
-    if ($@){
+    if ($@){ # misparsing: reparse to show why
         my $p = MarpaX::Languages::Lua::AST->new;
-        my $ast = $p->parse( $tests[$i]->[2], { trace_terminals => 1 } );
-        my $tokens = $p->tokens( $ast );
-        fail $tests[$i]->[2];
+        my $ast = $p->parse( $tests[$i]->[2], { trace_terminals => 0 } );
+        if (defined $ast){
+            fail $tests[$i]->[2];
+            my $tokens = $p->tokens( $ast );
+            print STDERR '# ';
+            my $rc = system "lua", '-e', $tokens;
+            if ($rc != 0){
+                diag "<$tests[$i]->[2]>\nmisparsed as\n<$tokens>";
+            }
+        }
     }
     else{
         is $results[1], $results[2], $tests[$i]->[2];
