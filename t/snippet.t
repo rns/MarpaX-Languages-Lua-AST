@@ -39,7 +39,6 @@ BEGIN {
         q{  a = 0x56        },
     );
     for my $i (0..$#a){
-        say 'function a_parsed_' . $i . '() ' . $a[$i] . ' return a end';
         push @tests, [
             'function a_inline_' . $i . '() ' . $a[$i] . ' return a end',
             'function a_parsed_' . $i . '() ' . $a[$i] . ' return a end',
@@ -71,10 +70,15 @@ for my $i (0..$#tests){
     my $compile_i = $compile_template;
     $compile_i =~ s/{{i}}/$i/g;
     eval $compile_i;
-TODO: {
-        todo_skip "\n$tests[$i]->[2]\nis misparsed as\n" . ($results[0] //= ''), 1 if $@;
+    if ($@){
+        my $p = MarpaX::Languages::Lua::AST->new;
+        my $ast = $p->parse( $tests[$i]->[2], { trace_terminals => 1 } );
+        my $tokens = $p->tokens( $ast );
+        fail $tests[$i]->[2];
+    }
+    else{
         is $results[1], $results[2], $tests[$i]->[2];
-    };
+    }
     @results = ();
 }
 

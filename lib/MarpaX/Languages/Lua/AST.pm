@@ -46,7 +46,7 @@ lexeme default = action => [ name, value ] latm => 1
     chunk ::= stats laststat
     chunk ::= laststat ';'
     chunk ::= laststat
-    stats ::= stat | stats stat | stats stat ';'
+    stats ::= stat | stats stat | stats ';' stat
 
     block ::= chunk
 
@@ -245,20 +245,32 @@ END_OF_SOURCE
 }
 
 sub parse {
-    my ( $parser, $source ) = @_;
-    my $r = Marpa::R2::Scanless::R->new( {
+    my ( $parser, $source, $recce_opts ) = @_;
+
+    my %default_recce_opts = (
         grammar => $parser->{grammar},
         trace_terminals => 0,
-    });
+    );
+
+    # merge recognizer options passed by the caller, if any
+    if (defined $recce_opts and ref $recce_opts eq "HASH"){
+        say %$recce_opts;
+        @default_recce_opts{keys %$recce_opts} = values %$recce_opts;
+    }
+
+    # parse showing progress on failure
+    my $r = Marpa::R2::Scanless::R->new( \%default_recce_opts );
     eval { $r->read(\$source) } || warn "$@Progress report is:\n" . $r->show_progress;
+
+    # return ast or undef on parse failure
     my $v = $r->value();
     return unless defined $v;
     return ${ $v };
+
 } ## end sub parse
 
 sub serialize{
     my ($parser, $ast) = @_;
-    return '' unless defined $ast;
     state $depth++;
     my $s;
     my $indent = "  " x ($depth - 1);
@@ -283,7 +295,6 @@ sub serialize{
 # serialize $ast to a stream of tokens separated with a space
 sub tokens{
     my ($parser, $ast) = @_;
-    return '' unless defined $ast; # todo check for return value in caller
     my $tokens;
     if (ref $ast){
         my ($node_id, @children) = @$ast;
