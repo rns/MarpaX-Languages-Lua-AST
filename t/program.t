@@ -33,26 +33,7 @@ print(fact(a))
 END
 
 # As an example, consider the following code:
-my $coroutine = q{
-     function foo (a)
-       print("foo", a)
-       return coroutine.yield(2*a)
-     end
-
-     co = coroutine.create(function (a,b)
-           print("co-body", a, b)
-           local r = foo(a+1)
-           print("co-body", r)
-           local r, s = coroutine.yield(a+b, a-b)
-           print("co-body", r, s)
-           return b, "end"
-     end)
-
-     print("main", coroutine.resume(co, 1, 10))
-     print("main", coroutine.resume(co, "r"))
-     print("main", coroutine.resume(co, "x", "y"))
-     print("main", coroutine.resume(co, "x", "y"))
-};
+my $coroutine = slurp_lua_file( "other-lua-tests/coroutine.lua" );
 
 # When you run it, it produces the following output:
 my $expected_stdout = qq{
@@ -71,13 +52,28 @@ my $p = MarpaX::Languages::Lua::AST->new;
 my $ast = $p->parse($coroutine);
 
 # write ast serialized to tokens to a temporary file
-my ($fh, $filename) = tempfile();
-binmode( $fh, ":utf8" );
-say $fh $p->tokens($ast);
-close $fh;
+my $lua_file = whip_up_lua_file( $p->tokens($ast) );
 
 use Test::Output;
-stdout_is(sub { system 'lua', $filename }, $expected_stdout, "lus coroutine script test");
+stdout_is(sub { system 'lua', $lua_file }, $expected_stdout, "lus coroutine script test");
+
+sub slurp_lua_file{
+    my ($fn) = @_;
+    open my $fh, "<", $fn or die "Can't open $fn: $@.";
+    binmode( $fh, ":utf8" );
+    my $slurp = do { local $/ = undef; <$fh> };
+    close $fh;
+    return $slurp;
+}
+
+sub whip_up_lua_file{
+    my ($lua_text) = @_;
+    my ($fh, $filename) = tempfile();
+    binmode( $fh, ":utf8" );
+    say $fh $lua_text;
+    close $fh;
+    return $filename;
+}
 
 done_testing();
 
