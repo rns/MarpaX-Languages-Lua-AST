@@ -52,26 +52,23 @@ my $coroutine = q{
      print("main", coroutine.resume(co, "r"))
      print("main", coroutine.resume(co, "x", "y"))
      print("main", coroutine.resume(co, "x", "y"))
-
 };
 
 # When you run it, it produces the following output:
-my $expected_stdout = q{
-     co-body 1       10
-     foo     2
-
-     main    true    4
-     co-body r
-     main    true    11      -9
-     co-body x       y
-     main    true    10      end
-     main    false   cannot resume dead coroutine
+my $expected_stdout = qq{
+co-body\t1\t10
+foo\t2
+main\ttrue\t4
+co-body\tr
+main\ttrue\t11\t-9
+co-body\tx\ty
+main\ttrue\t10\tend
+main\tfalse\tcannot resume dead coroutine
 };
+$expected_stdout =~ s/^\s+//;
 
 my $p = MarpaX::Languages::Lua::AST->new;
 my $ast = $p->parse($coroutine);
-say $p->serialize($ast);
-say $p->tokens($ast);
 
 # write ast serialized to tokens to a temporary file
 my ($fh, $filename) = tempfile();

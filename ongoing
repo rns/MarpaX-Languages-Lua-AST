@@ -3,6 +3,24 @@
 # keep NAIF separator
     varlist ::= var+ separator => [,]
 
+# lua formatter
+https://github.com/batrick/lunadry # most recent
+
+http://codepad.org/vRQx1O8A # block/non-block keywords
+
+http://lua-users.org/wiki/SourceCodeFormatter
+
+https://github.com/LuaDist/luapretty/blob/master/src/lua-formatter.lua
+
+http://notebook.kulchenko.com/programming/lua-beautifier-in-55-lines-of-perl
+
+# style guides
+http://lua-users.org/wiki/LuaStyleGuide
+http://sputnik.freewisdom.org/en/Coding_Standard
+
+# testing framework
+http://olivinelabs.com/busted/
+
 Questions to be asked when enough tests will pass
 -------------------------------------------------
 

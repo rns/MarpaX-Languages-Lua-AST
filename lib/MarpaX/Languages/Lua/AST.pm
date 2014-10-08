@@ -27,13 +27,17 @@ sub new {
 :default ::= action => [ name, values ]
 lexeme default = action => [ name, value ] latm => 1
 
-    # source: 8 – The Complete Syntax of Lua Lua 5.1 Reference Manual, http://www.lua.org/manual/5.1/manual.html
-    # For more parser tests: http://lua-users.org/wiki/LuaGrammar
+    # source: 8 – The Complete Syntax of Lua, Lua 5.1 Reference Manual
     # discussion on #marpa -- http://irclog.perlgeek.de/marpa/2014-10-06#i_9463520
+    #    -- http://www.lua.org/manual/5.1/manual.html
+    # The Lua Book -- http://www.lua.org/pil/contents.html
+    # More parser tests: http://lua-users.org/wiki/LuaGrammar
+
     # * -- 0 or more: { ... }
     # ? -- 0 or 1:    [ ... ]
-    # keywords are in <>'s
     # original rules are commented if converted; what follows is their converted form
+
+    # keywords are symbols in <> having no spaces
 
 #    chunk ::= {stat [';']} [laststat [';']]
     chunk ::= stats
