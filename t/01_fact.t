@@ -34,7 +34,7 @@ my $p = MarpaX::Languages::Lua::AST->new;
 my $fmt = $p->serialize( $p->parse( $input ) );
 
 TODO: {
-    todo_skip "pending test suite parsing done", 1;
+    todo_skip "ast serialization to formatted source shelved until lua test suite parsing is done", 1;
     is $fmt, $expected_fmt, 'format by seralizing lua code ast';
 }
 
