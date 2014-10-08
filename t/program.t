@@ -25,7 +25,7 @@ my $pwd = Cwd::cwd();
 
 #   file name                       flags:  1 default: do nothing
 #                                           2 reparse with diagnostics
-#                                           3
+#                                           3 reparse and show ast
 my %lua_files = qw{
 
     lua-tests/coroutine.lua         1
@@ -72,7 +72,8 @@ LUA_FILE:
 
         # parse
         my $ast = $p->parse($lua_slurp);
-        unless (defined $ast){ # parse error, fail and proceed as flagged
+        # check for parse error, fail and proceed as flagged if any
+        unless (defined $ast){
             fail "parse $lua_fn";
             if ($flag eq 2){ # reparse with diagnostics
                 $ast = $p->parse(
@@ -83,18 +84,22 @@ LUA_FILE:
             }
             next LUA_FILE;
         }
-        # write ast serialized to tokens to a temporary file
+        # serialize ast to tokens and write to temporary file
         my $tokens = $p->tokens($ast);
         my $lua_file = whip_up_lua_file( $tokens );
         # run lua interpreter on ast serialized to tokens
         system("lua $lua_file 1>$lua_file.stdout 2>$lua_file.stderr");
         my ($stdout, $stderr) = map { slurp_file($_) } qq{$lua_file.stdout}, qq{$lua_file.stderr};
-        # check for compilation diagnostics
+        # check for compile error, fail and proceed as flagged if any
         if ($stderr){
             fail "compile $lua_fn:\n$stderr";
+            if ($flag eq 3){ # reparse and show ast
+                $ast = $p->parse( $lua_slurp );
+                warn "# ast of $lua_fn: ", $p->serialize( $ast );
+            }
             next LUA_FILE;
         }
-        # file parses and compiles check its output
+        # file parses and compiles, test against its output
         is $stdout, $expected_stdout, $lua_fn;
     } ## for my $lua_fn (@lua_files){
 

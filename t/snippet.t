@@ -28,10 +28,10 @@ BEGIN {
                 alo
                 123"]==]
         },
-# strings.lua:103
-        q{ a = '"нlo"\n\\\\'     }, # original string from is '"нlo"\n\\'
-                                    # but we have to escape the slashes (but not newlines)
-# strings.lua:104
+# strings.lua:103-104, see pod below
+# \ is escaped to \\ in the below line and passes the test
+        q{ a = '"нlo"\n\\\\'     },
+# \ is NOT escaped to \\ in the below line and fails the test
         q{ a = '"\\"нlo\\"\\\n\\\\""нlo"\n\\' },
 # Examples of valid numerical constants are
         q{ a = 3           },
@@ -50,6 +50,35 @@ BEGIN {
         ];
     }
 }
+
+=pod strings.lua:103-104
+
+   # the last '
+x = '"нlo"\n\\'
+    # is wrongly parsed as escaped \'
+    # to the nearest '
+assert(string.format('%q%s', x, x) == '"\\"нlo\\"\\\n\\\\""нlo"\n\\')
+
+# ast subtree:
+    stat
+      varlist
+        var
+          Name 'x'
+      '='
+      explist
+        exp
+          exp
+            exp
+              String ''"нlo"\n\\' #'
+assert(string.format(''
+            binop '%'
+            exp
+              prefixexp
+                var
+                  Name 'q'
+          binop '%'
+
+=cut
 
 my @results;
 my $compile_template = q{
