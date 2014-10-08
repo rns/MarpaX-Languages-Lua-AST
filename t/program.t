@@ -23,62 +23,80 @@ my $p = MarpaX::Languages::Lua::AST->new;
 use Cwd qw();
 my $pwd = Cwd::cwd();
 
-my @lua_prog_files = qw{
+#   file name                       flags:  1 default: do nothing
+#                                           2 reparse with diagnostics
+#                                           3
+my %lua_files = qw{
 
-    other-lua-tests/coroutine.lua
+    lua-tests/coroutine.lua         1
 
-    lua5.1-tests/api.lua
-    lua5.1-tests/attrib.lua
-    lua5.1-tests/big.lua
-    lua5.1-tests/calls.lua
-    lua5.1-tests/checktable.lua
-    lua5.1-tests/closure.lua
-    lua5.1-tests/code.lua
-    lua5.1-tests/constructs.lua
-    lua5.1-tests/db.lua
-    lua5.1-tests/errors.lua
-    lua5.1-tests/events.lua
-    lua5.1-tests/files.lua
-    lua5.1-tests/gc.lua
-    lua5.1-tests/literals.lua
-    lua5.1-tests/locals.lua
-    lua5.1-tests/main.lua
-    lua5.1-tests/math.lua
-    lua5.1-tests/nextvar.lua
-    lua5.1-tests/pm.lua
-    lua5.1-tests/sort.lua
-    lua5.1-tests/strings.lua
-    lua5.1-tests/vararg.lua
-    lua5.1-tests/verybig.lua
+    lua5.1-tests/api.lua            2
+    lua5.1-tests/attrib.lua         1
+    lua5.1-tests/big.lua            1
+    lua5.1-tests/calls.lua          1
+    lua5.1-tests/checktable.lua     1
+    lua5.1-tests/closure.lua        1
+    lua5.1-tests/code.lua           1
+    lua5.1-tests/constructs.lua     1
+    lua5.1-tests/db.lua             1
+    lua5.1-tests/errors.lua         1
+    lua5.1-tests/events.lua         1
+    lua5.1-tests/files.lua          1
+    lua5.1-tests/gc.lua             1
+    lua5.1-tests/literals.lua       1
+    lua5.1-tests/locals.lua         1
+    lua5.1-tests/main.lua           1
+    lua5.1-tests/math.lua           1
+    lua5.1-tests/nextvar.lua        1
+    lua5.1-tests/pm.lua             1
+    lua5.1-tests/sort.lua           1
+    lua5.1-tests/strings.lua        1
+    lua5.1-tests/vararg.lua         1
+    lua5.1-tests/verybig.lua        1
 };
 
-for my $lua_fn (@lua_prog_files){
-    # prepend t if running under prove
-    $lua_fn = 't/' . $lua_fn unless $pwd =~ m{ /t$ }x;
+LUA_FILE:
+    for my $lua_fn (sort keys %lua_files){
 
-    diag $lua_fn;
+        # get flags
+        my $flag = $lua_files{$lua_fn};
 
-    # As an example, consider the following code:
-    my $lua_slurp = slurp_file( $lua_fn );
+        # prepend t if running under prove
+        $lua_fn = 't/' . $lua_fn unless $pwd =~ m{ /t$ }x;
 
-    # When you run it, it produces the following output:
-    my $expected_stdout = slurp_file( qq{$lua_fn.out} );
+        # As an example, consider the following code:
+        my $lua_slurp = slurp_file( $lua_fn );
 
-    # parse and write ast serialized to tokens to a temporary file
-    my $ast = $p->parse($lua_slurp);
-    unless (defined $ast){ # parse error, reparse with diagnostics
-        fail "Can't parse $lua_fn";
-        $ast = $p->parse(
-            $lua_slurp,
-            { trace_terminals => 1 },
-            { show_progress => 1 }
-            );
-        next;
-    }
-    my $tokens = $p->tokens($ast);
-    my $lua_file = whip_up_lua_file( $tokens );
-    combined_is sub { system 'lua', $lua_file }, $expected_stdout, $lua_fn;
-}
+        # When you run it, it produces the following output:
+        my $expected_stdout = slurp_file( qq{$lua_fn.out} );
+
+        # parse
+        my $ast = $p->parse($lua_slurp);
+        unless (defined $ast){ # parse error, fail and proceed as flagged
+            fail "parse $lua_fn";
+            if ($flag eq 2){ # reparse with diagnostics
+                $ast = $p->parse(
+                    $lua_slurp,
+                    { trace_terminals => 1 },
+                    { show_progress => 1 }
+                    );
+            }
+            next LUA_FILE;
+        }
+        # write ast serialized to tokens to a temporary file
+        my $tokens = $p->tokens($ast);
+        my $lua_file = whip_up_lua_file( $tokens );
+        # run lua interpreter on ast serialized to tokens
+        system("lua $lua_file 1>$lua_file.stdout 2>$lua_file.stderr");
+        my ($stdout, $stderr) = map { slurp_file($_) } qq{$lua_file.stdout}, qq{$lua_file.stderr};
+        # check for compilation diagnostics
+        if ($stderr){
+            fail "compile $lua_fn:\n$stderr";
+            next LUA_FILE;
+        }
+        # file parses and compiles check its output
+        is $stdout, $expected_stdout, $lua_fn;
+    } ## for my $lua_fn (@lua_files){
 
 sub slurp_file{
     my ($fn) = @_;
