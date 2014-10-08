@@ -30,7 +30,7 @@ BEGIN {
         },
 # strings.lua:103-104, see pod below
 # \ is escaped to \\ in the below line and passes the test
-        q{ a = '"нlo"\n\\\\'     },
+        q{ a = '"нlo"\n\\'     },
 # \ is NOT escaped to \\ in the below line and fails the test
         q{ a = '"\\"нlo\\"\\\n\\\\""нlo"\n\\' },
 # Examples of valid numerical constants are
