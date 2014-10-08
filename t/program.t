@@ -33,20 +33,11 @@ print(fact(a))
 END
 
 # As an example, consider the following code:
-my $coroutine = slurp_lua_file( "other-lua-tests/coroutine.lua" );
+my $lua_fn = "other-lua-tests/coroutine.lua";
+my $coroutine = slurp_file( $lua_fn );
 
 # When you run it, it produces the following output:
-my $expected_stdout = qq{
-co-body\t1\t10
-foo\t2
-main\ttrue\t4
-co-body\tr
-main\ttrue\t11\t-9
-co-body\tx\ty
-main\ttrue\t10\tend
-main\tfalse\tcannot resume dead coroutine
-};
-$expected_stdout =~ s/^\s+//;
+my $expected_stdout = slurp_file( qq{$lua_fn.out} );
 
 my $p = MarpaX::Languages::Lua::AST->new;
 my $ast = $p->parse($coroutine);
@@ -57,7 +48,7 @@ my $lua_file = whip_up_lua_file( $p->tokens($ast) );
 use Test::Output;
 stdout_is(sub { system 'lua', $lua_file }, $expected_stdout, "lus coroutine script test");
 
-sub slurp_lua_file{
+sub slurp_file{
     my ($fn) = @_;
     open my $fh, "<", $fn or die "Can't open $fn: $@.";
     binmode( $fh, ":utf8" );
