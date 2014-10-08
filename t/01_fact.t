@@ -33,8 +33,8 @@ END
 my $p = MarpaX::Languages::Lua::AST->new;
 my $fmt = $p->serialize( $p->parse( $input ) );
 
-SKIP: {
-    skip "pending test suite parsing done", 1;
+TODO: {
+    todo_skip "pending test suite parsing done", 1;
     is $fmt, $expected_fmt, 'format by seralizing lua code ast';
 }
 

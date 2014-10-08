@@ -245,12 +245,11 @@ END_OF_SOURCE
 
 sub parse {
     my ( $parser, $source ) = @_;
-
     my $r = Marpa::R2::Scanless::R->new( {
         grammar => $parser->{grammar},
         trace_terminals => 0,
     });
-    eval {$r->read(\$source)} || warn "Parse failure, progress report is:\n" . $r->show_progress;
+    eval { $r->read(\$source) } || warn "$@Progress report is:\n" . $r->show_progress;
     my $v = $r->value();
     return unless defined $v;
     return ${ $v };
@@ -258,6 +257,7 @@ sub parse {
 
 sub serialize{
     my ($parser, $ast) = @_;
+    return '' unless defined $ast;
     state $depth++;
     my $s;
     my $indent = "  " x ($depth - 1);
@@ -282,13 +282,21 @@ sub serialize{
 # serialize $ast to a stream of tokens separated with a space
 sub tokens{
     my ($parser, $ast) = @_;
+    return '' unless defined $ast; # todo check for return value in caller
     my $tokens;
     if (ref $ast){
         my ($node_id, @children) = @$ast;
         $tokens .= join "", map { $parser->tokens( $_ ) } @children;
     }
     else{
-        $tokens .= ' ' . $ast;
+        my $separator = ' ';
+        if ( # no spaces before and after ' and "
+               defined $tokens and $tokens =~ m{['"]$} #'
+            or defined $ast    and $ast    =~ m{^['"]} #'
+        ){
+            $separator = '';
+        }
+        $tokens .= $separator . $ast;
     }
     return $tokens;
 }

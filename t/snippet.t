@@ -39,9 +39,10 @@ BEGIN {
         q{  a = 0x56        },
     );
     for my $i (0..$#a){
+        say 'function a_parsed_' . $i . '() ' . $a[$i] . ' return a end';
         push @tests, [
-            "function a_inline_$i() " . $a[$i] . ' return a end',
-            "function a_parsed_$i() " . $a[$i] . ' return a end',
+            'function a_inline_' . $i . '() ' . $a[$i] . ' return a end',
+            'function a_parsed_' . $i . '() ' . $a[$i] . ' return a end',
             $a[$i] # snippet
         ];
     }
@@ -55,23 +56,26 @@ my $compile_template = q{
     sub got_a{{i}}{
         my $p = MarpaX::Languages::Lua::AST->new;
         my $ast = $p->parse($tests[{{i}}]->[1]);
-        $p->tokens( $ast );
+        my $tokens = $p->tokens( $ast );
+        push @results, $tokens; # save serialized ast to show if test fails
+        return $tokens;
     }
 
-    use Inline Lua => got_a{{i}};
+    use Inline Lua => &got_a{{i}};
     my $got_a{{i}} = a_parsed_{{i}}();
 
-    @results = ( $got_a{{i}}, $expected_a{{i}} );
+    push @results, $got_a{{i}}, $expected_a{{i}}; # save lua execution resutls
 };
 
 for my $i (0..$#tests){
     my $compile_i = $compile_template;
     $compile_i =~ s/{{i}}/$i/g;
     eval $compile_i;
-SKIP: {
-    skip "Can't parse $tests[$i]->[2] yet: $@", 1 if $@;
-    is $results[0], $results[1], $tests[$i]->[2];
+TODO: {
+        todo_skip "\n$tests[$i]->[2]\nis misparsed as\n" . ($results[0] //= ''), 1 if $@;
+        is $results[1], $results[2], $tests[$i]->[2];
     };
+    @results = ();
 }
 
 done_testing();

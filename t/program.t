@@ -25,9 +25,10 @@ my $pwd = Cwd::cwd();
 
 my @lua_prog_files = qw{
 
+    lua5.1-tests/api.lua
+=pod
     other-lua-tests/coroutine.lua
 
-    lua5.1-tests/api.lua
     lua5.1-tests/attrib.lua
     lua5.1-tests/big.lua
     lua5.1-tests/calls.lua
@@ -50,6 +51,8 @@ my @lua_prog_files = qw{
     lua5.1-tests/strings.lua
     lua5.1-tests/vararg.lua
     lua5.1-tests/verybig.lua
+=cut
+
 };
 
 for my $lua_fn (@lua_prog_files){
@@ -59,17 +62,19 @@ for my $lua_fn (@lua_prog_files){
     diag $lua_fn;
 
     # As an example, consider the following code:
-    my $coroutine = slurp_file( $lua_fn );
+    my $lua_slurp = slurp_file( $lua_fn );
 
     # When you run it, it produces the following output:
     my $expected_stdout = slurp_file( qq{$lua_fn.out} );
 
     # parse and write ast serialized to tokens to a temporary file
-    my $ast = $p->parse($coroutine);
+    my $ast = $p->parse($lua_slurp);
+    my $tokens = $p->tokens($ast);
+    warn $tokens;
+    my $lua_file = whip_up_lua_file( $tokens );
 
-SKIP: {
-        skip "Can't parse $lua_fn yet", 1 unless defined $ast;
-        my $lua_file = whip_up_lua_file( $p->tokens($ast) );
+TODO: {
+        todo_skip "Can't parse $lua_fn fully yet; interim result is in $lua_file", 1 unless defined $ast;
         combined_is sub { system 'lua', $lua_file }, $expected_stdout, $lua_fn;
     };
 }
