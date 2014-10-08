@@ -146,11 +146,15 @@ lexeme default = action => [ name, value ] latm => 1
     comment ~ <long comment>
 
     <short comment> ~ '--' <short comment chars>
-    <short comment chars> ~ [^\n]+
+    <short comment chars> ~ [^\n]*
 
-#   todo: long comments (can be nested)
-    <long comment> ~ 'todo'
-
+#   todo: nestable long comments
+#       c.f. https://gist.github.com/jeffreykegler/5015057
+#   The long string/long comment syntax ([[string]]) does not allow nesting. -- refman 7.1
+    <long comment> ~ <long unnestable comment>
+    <long comment> ~ <long nestable comment>
+    <long unnestable comment> ~ '--' <long unnestable string>
+    <long nestable comment> ~ '--' <long nestable string>
 
 #   identifier
     Name ~ [a-zA-Z_] <Name chars>
@@ -168,13 +172,28 @@ lexeme default = action => [ name, value ] latm => 1
     hex ~ '0x' <hex chars>
     <hex chars> ~ [A-Fa-f0-9] [A-Fa-f0-9]
 
-#   strings in opening/closing long brackets (LB)todo: use events?
-    String ~ '[[' <LB characters> ']]'
-    String ~ '[=[' <LB characters> ']=]'
-    String ~ '[==[' <LB characters> ']==]'
-    String ~ '[===[' <LB characters> ']===]'
-    String ~ '[====[' <LB characters> ']====]'
-    <LB characters> ~ [^\]]*
+#   long strings in long brackets (LB) [[ ]] with ='s
+#   todo: long strings can be nested with [=[ ... ]=]
+#         and cannot be nested with [[ .. ]] -- http://lua-users.org/wiki/StringsTutorial
+#         use events?
+#    <opening non-nesting long bracket> ~ '[['
+#    <closing non-nesting long bracket> ~ '[['
+#    <opening long bracket> ~ '[' <equal signs> '['
+#    <equal signs> ~ [=]+
+    String ~ <long string>
+
+    <long string> ~ <long unnestable string>
+    <long string> ~ <long nestable string>
+
+    <long unnestable string> ~ '[[' <long unnestable string characters> ']]'
+    <long unnestable string characters> ~ <long unnestable string character>
+    <long unnestable string character> ~ [^\]]*
+
+    <long nestable string> ~ '[=[' <long nestable string characters> ']=]'
+    <long nestable string> ~ '[==[' <long nestable string characters> ']==]'
+    <long nestable string> ~ '[===[' <long nestable string characters> ']===]'
+    <long nestable string> ~ '[====[' <long nestable string characters> ']====]'
+    <long nestable string characters> ~ [^\]]*
 
     String ~ '"' <double quoted String chars> '"'
     <double quoted String chars> ~ <double quoted String char>*
@@ -208,6 +227,9 @@ lexeme default = action => [ name, value ] latm => 1
     <true> ~ 'true'
     <until> ~ 'until'
     <while> ~ 'while'
+
+# other tokens -- for external lexing
+
 
 :discard ~ comment
 :discard ~ whitespace

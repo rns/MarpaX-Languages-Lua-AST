@@ -3,7 +3,13 @@
 # keep NAIF separator
     varlist ::= var+ separator => [,]
 
+# moving to external lexing 
+	no quoted literals (everything must have a name)
+	
 # lua formatter
+
+http://lua-users.org/wiki/LuaInspect
+
 https://github.com/batrick/lunadry # most recent
 
 http://codepad.org/vRQx1O8A # block/non-block keywords
@@ -20,12 +26,20 @@ http://sputnik.freewisdom.org/en/Coding_Standard
 
 # testing framework
 http://olivinelabs.com/busted/
+# code optimizer
+http://lua-users.org/wiki/SourceOptimizer
+
+# Lua IDE
+http://studio.zerobrane.com/
+
+# AST-based formatter/linter
+subtle comma (Kolesnikov)
 
 Questions to be asked when enough tests will pass
 -------------------------------------------------
 
 #
-# How to/If we need to -- escape sequences (2.1 – Lexical Conventions) 
+# How to/If we need to interpret these escape sequences (2.1 – Lexical Conventions) 
 #
     <double quoted String char> ~ <C escape sequence>
     <double quoted String char> ~ <escape sequence of decimal digits>
@@ -41,6 +55,12 @@ Questions to be asked when enough tests will pass
     <C escape sequence> ~ '\t' # horizontal tab
     <C escape sequence> ~ '\v' # vertical tab
     <C escape sequence> ~ '\\' # backslash
+		\"	double quote #"
+		\'	single quote #'
+		\[	left square bracket
+		\]	right square bracket
+   
+    
 # A character in a string can also be specified by its numerical value
 # using the escape sequence \ddd, where ddd is a sequence of
 # up to three decimal digits. (Note that if a numerical escape
