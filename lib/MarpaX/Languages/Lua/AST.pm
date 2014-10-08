@@ -35,9 +35,10 @@ lexeme default = action => [ name, value ] latm => 1
 
     # * -- 0 or more: { ... }
     # ? -- 0 or 1:    [ ... ]
-    # original rules are commented if converted; what follows is their converted form
 
     # keywords are symbols in <> having no spaces
+    # original rules are commented if converted; what follows is their converted form
+    # Capitalized symbols (Name) are from the lua grammar cited above
 
 #    chunk ::= {stat [';']} [laststat [';']]
     chunk ::= stats
@@ -82,10 +83,10 @@ lexeme default = action => [ name, value ] latm => 1
     laststat ::= <return> | <return> explist | <break>
 
 #    funcname ::= Name {'.' Name} [':' Name]
-    funcname ::= Names ':' Name
-    funcname ::= Names
+    funcname ::= names ':' Name
+    funcname ::= names
 #    Names ::= Name+ separator => [\.]
-    Names ::= Name | '.' Name Names
+    names ::= Name | '.' Name names
 
 #    varlist ::= var {',' var}
     varlist ::= var+ separator => [,]
