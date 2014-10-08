@@ -149,8 +149,7 @@ lexeme default = action => [ name, value ] latm => 1
     <short comment> ~ '--' <short comment chars>
     <short comment chars> ~ [^\n]*
 
-#   todo: nestable long comments
-#       c.f. https://gist.github.com/jeffreykegler/5015057
+#   todo: nestable long comments -- see nestable long strings
 #   The long string/long comment syntax ([[string]]) does not allow nesting. -- refman 7.1
     <long comment> ~ <long unnestable comment>
     <long comment> ~ <long nestable comment>
@@ -161,7 +160,7 @@ lexeme default = action => [ name, value ] latm => 1
     Name ~ [a-zA-Z_] <Name chars>
     <Name chars> ~ [\w]*
 
-#   numbers todo: 0xff   0x56
+#   numbers
     Number ~ int
     Number ~ float
     Number ~ hex
@@ -171,12 +170,13 @@ lexeme default = action => [ name, value ] latm => 1
     float ~ int '.' int 'e' [+-] int
     float ~ int '.' int 'E' int
     hex ~ '0x' <hex chars>
+#   todo: more realistic hexadecimals
     <hex chars> ~ [A-Fa-f0-9] [A-Fa-f0-9]
 
 #   long strings in long brackets (LB) [[ ]] with ='s
 #   todo: long strings can be nested with [=[ ... ]=]
 #         and cannot be nested with [[ .. ]] -- http://lua-users.org/wiki/StringsTutorial
-#         use events?
+#         as external lexing will eventually be used, they are postponed until then
 #    <opening non-nesting long bracket> ~ '[['
 #    <closing non-nesting long bracket> ~ '[['
 #    <opening long bracket> ~ '[' <equal signs> '['
@@ -189,12 +189,13 @@ lexeme default = action => [ name, value ] latm => 1
     <long unnestable string> ~ '[[' <long unnestable string characters> ']]'
     <long unnestable string characters> ~ <long unnestable string character>
     <long unnestable string character> ~ [^\]]*
-
+#   this is not really nestable; nesting will be handled by external lexing
     <long nestable string> ~ '[=[' <long nestable string characters> ']=]'
     <long nestable string> ~ '[==[' <long nestable string characters> ']==]'
     <long nestable string> ~ '[===[' <long nestable string characters> ']===]'
     <long nestable string> ~ '[====[' <long nestable string characters> ']====]'
-    <long nestable string characters> ~ [^\]]*
+    <long nestable string characters> ~ <long nestable string character>*
+    <long nestable string character> ~ [^\]]
 
     String ~ '"' <double quoted String chars> '"'
     <double quoted String chars> ~ <double quoted String char>*

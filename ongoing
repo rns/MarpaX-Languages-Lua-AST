@@ -5,7 +5,14 @@
 
 # moving to external lexing 
 	no quoted literals (everything must have a name)
-	
+	# handle long nestable strings/comments
+		# PEG for nested comments
+			Begin < '(*'
+			End   < '*)'
+			C     < Begin N* End
+			N     < C / (!Begin !End Z)
+			Z     < any single character
+
 # lua formatter
 
 http://lua-users.org/wiki/LuaInspect
