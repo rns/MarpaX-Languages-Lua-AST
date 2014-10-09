@@ -88,7 +88,8 @@ LUA_FILE:
         my $tokens = $p->tokens($ast);
         my $lua_file = whip_up_lua_file( $tokens );
         # run lua interpreter on ast serialized to tokens
-        system("lua $lua_file 1>$lua_file.stdout 2>$lua_file.stderr");
+        my $run_lua_test = 'run_lua_test.sh';
+        system("./$run_lua_test $lua_file 1>$lua_file.stdout 2>$lua_file.stderr");
         my ($stdout, $stderr) = map { slurp_file($_) } qq{$lua_file.stdout}, qq{$lua_file.stderr};
         # check for compile error, fail and proceed as flagged if any
         if ($stderr){

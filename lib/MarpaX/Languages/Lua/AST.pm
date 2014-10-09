@@ -152,8 +152,8 @@ lexeme default = action => [ name, value ] latm => 1
 
 #    fieldlist ::= field {fieldsep field} [fieldsep]
     fieldlist ::= field
-    fieldlist ::= field fieldsep field
-    fieldlist ::= field fieldsep field fieldsep
+    fieldlist ::= fieldlist fieldsep field
+    fieldlist ::= fieldlist fieldsep field fieldsep
 
     fieldsep ::= <comma>
     fieldsep ::= <semicolon>
