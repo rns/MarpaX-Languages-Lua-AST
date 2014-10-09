@@ -50,7 +50,7 @@ lexeme default = action => [ name, value ] latm => 1
 
     block ::= chunk
 
-    stat ::=  varlist '=' explist |
+    stat ::=  varlist <eq> explist |
 
         functioncall |
 
@@ -64,8 +64,8 @@ lexeme default = action => [ name, value ] latm => 1
         <if> exp <then> block elseifs <else> block <end> |
         <if> exp <then> block elseifs <end> |
 
-#        <for> Name '=' exp ',' exp [',' exp] <do> block <end> |
-        <for> Name '=' exp ',' exp [',' exp] <do> block <end> |
+#        <for> Name <eq> exp ',' exp [',' exp] <do> block <end> |
+        <for> Name <eq> exp ',' exp [',' exp] <do> block <end> |
 
         <for> namelist <in> explist <do> block <end> |
 
@@ -73,8 +73,8 @@ lexeme default = action => [ name, value ] latm => 1
 
         <local> <function> Name funcbody |
 
-#        <local> namelist ['=' explist]
-        <local> namelist '=' explist |
+#        <local> namelist [<eq> explist]
+        <local> namelist <eq> explist |
         <local> namelist
 
     elseifs ::= elseif_item*
@@ -135,7 +135,7 @@ lexeme default = action => [ name, value ] latm => 1
     fields ::= field | fields fieldsep field
     fieldsep ~ ',' | ';'
 
-    field ::= '[' exp ']' '=' exp | Name '=' exp | exp
+    field ::= '[' exp ']' <eq> exp | Name <eq> exp | exp
 
 
     binop ~ '+' | '-' | '*' | '/' | '^' | '%' | '..' |
@@ -208,30 +208,31 @@ lexeme default = action => [ name, value ] latm => 1
     <single quoted String char> ~ [^'] | '\' ['] | '\\' #'
 
 # keywords
-    <and> ~ 'and'
-    <break> ~ 'break'
-    <do> ~ 'do'
-    <else> ~ 'else'
-    <elseif> ~ 'elseif'
-    <end> ~ 'end'
-    <false> ~ 'false'
-    <for> ~ 'for'
-    <function> ~ 'function'
-    <if> ~ 'if'
-    <in> ~ 'in'
-    <local> ~ 'local'
-    <nil> ~ 'nil'
-    <not> ~ 'not'
-    <or>  ~ 'or'
-    <repeat> ~ 'repeat'
-    <return> ~ 'return'
-    <then> ~ 'then'
-    <true> ~ 'true'
-    <until> ~ 'until'
-    <while> ~ 'while'
+    <and>       ~ 'and'
+    <break>     ~ 'break'
+    <do>        ~ 'do'
+    <else>      ~ 'else'
+    <elseif>    ~ 'elseif'
+    <end>       ~ 'end'
+    <false>     ~ 'false'
+    <for>       ~ 'for'
+    <function>  ~ 'function'
+    <if>        ~ 'if'
+    <in>        ~ 'in'
+    <local>     ~ 'local'
+    <nil>       ~ 'nil'
+    <not>       ~ 'not'
+    <or>        ~ 'or'
+    <repeat>    ~ 'repeat'
+    <return>    ~ 'return'
+    <then>      ~ 'then'
+    <true>      ~ 'true'
+    <until>     ~ 'until'
+    <while>     ~ 'while'
 
-# other tokens -- for external lexing
-
+# other tokens
+# todo: use them instead of to rpepare for external lexing
+    <eq> ~ '='
 
 :discard ~ comment
 :discard ~ whitespace
