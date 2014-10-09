@@ -63,7 +63,7 @@ lexeme default = action => [ name, value ] latm => 1
 
     block ::= chunk
 
-    stat ::= varlist <eq> explist
+    stat ::= varlist <assignment> explist
 
     stat ::= functioncall
 
@@ -77,17 +77,17 @@ lexeme default = action => [ name, value ] latm => 1
     stat ::= <if> exp <then> block <one or more elseifs> <else> block <end>
     stat ::= <if> exp <then> block <one or more elseifs> <end>
 
-#    <for> Name <eq> exp ',' exp [',' exp] <do> block <end> |
-    stat ::= <for> Name <eq> exp <comma> exp <comma> exp <do> block <end>
-    stat ::= <for> Name <eq> exp <comma> exp <do> block <end>
+#    <for> Name <assignment> exp ',' exp [',' exp] <do> block <end> |
+    stat ::= <for> Name <assignment> exp <comma> exp <comma> exp <do> block <end>
+    stat ::= <for> Name <assignment> exp <comma> exp <do> block <end>
     stat ::= <for> namelist <in> explist <do> block <end>
 
     stat ::= <function> funcname funcbody
 
     stat ::= <local> <function> Name funcbody
 
-#    <local> namelist [<eq> explist]
-    stat ::= <local> namelist <eq> explist
+#    <local> namelist [<assignment> explist]
+    stat ::= <local> namelist <assignment> explist
     stat ::= <local> namelist
 
     <one or more elseifs> ::= <one elseif>
@@ -167,13 +167,25 @@ lexeme default = action => [ name, value ] latm => 1
     fieldsep ::= <comma>
     fieldsep ::= <semicolon>
 
-    field ::= '[' exp ']' <eq> exp | Name <eq> exp | exp
+    field ::= '[' exp ']' <assignment> exp | Name <assignment> exp | exp
 
-    binop ~ '+' | '-' | '*' | '/' | '^' | '%' | '..' |
-         '<' | '<=' | '>' | '>=' | '==' | '~=' |
-         <and> | <or>
+    binop ~ <addition>
+    binop ~ <minus>
+    binop ~ <multiplication>
+    binop ~ <division>
+    binop ~ <exponentiation>
+    binop ~ <percent>
+    binop ~ <concatenation>
+    binop ~ <less than>
+    binop ~ <less or equal>
+    binop ~ <greater than>
+    binop ~ <greater or equal>
+    binop ~ <equality>
+    binop ~ <negation>
+    binop ~ <and>
+    binop ~ <or>
 
-    unop ~ '-' | <not> | '#'
+    unop ~ <minus> | <not> | <length>
 
 #   comments
     comment ~ <short comment>
@@ -215,7 +227,6 @@ lexeme default = action => [ name, value ] latm => 1
 
     <integer part>      ~ int
     <fractional part>   ~ '.' int
-    <exponent>          ~ 'e' | 'E'
     <plus or minus>     ~ [+-]
 
     hex ~ '0x' <hex chars>
@@ -254,7 +265,6 @@ lexeme default = action => [ name, value ] latm => 1
     <single quoted String char> ~ [^'] | '\' ['] | '\\' #'
 
 # keywords
-    <and>       ~ 'and'
     <break>     ~ 'break'
     <do>        ~ 'do'
     <else>      ~ 'else'
@@ -267,8 +277,6 @@ lexeme default = action => [ name, value ] latm => 1
     <in>        ~ 'in'
     <local>     ~ 'local'
     <nil>       ~ 'nil'
-    <not>       ~ 'not'
-    <or>        ~ 'or'
     <repeat>    ~ 'repeat'
     <return>    ~ 'return'
     <then>      ~ 'then'
@@ -276,11 +284,50 @@ lexeme default = action => [ name, value ] latm => 1
     <until>     ~ 'until'
     <while>     ~ 'while'
 
+# operators from lower to higher priority as per refman 2.5.6
+
+    <or>                ~ 'or'
+    <and>               ~ 'and'
+    <less than>         ~ '<'
+    <less or equal>     ~ '<='
+    <greater than>      ~ '>'
+    <greater or equal>  ~ '>='
+    <negation>          ~ '~='
+    <equality>          ~ '=='
+    <concatenation>     ~ '..'
+    <addition>          ~ '+'
+    <minus>             ~ '-'
+    <multiplication>    ~ '*'
+    <division>          ~ '/'
+    <percent>           ~ '%'
+    <not>               ~ 'not'
+    <length>            ~ '#'
+    <exponentiation>    ~ '^'
+
+#   <colon> ~ ':'
+#   <left bracket> '['
+#   <right bracket> ']'
+#   <ellipsis> ~ '...'
+#   <left paren> ~ '('
+#   <right paren> ~ ')'
+#   <left curly> ~ '{'
+#   <right curly> ~ '}'
+#   <comment start> '--'
+
 # other tokens
 # todo: use them instead of to rpepare for external lexing
-    <eq>        ~ '='
-    <semicolon> ~ ';'
-    <comma>     ~ ','
+    <assignment>    ~ '='
+    <semicolon>     ~ ';'
+    <comma>         ~ ','
+
+# strings
+
+#   <double quote> ~ '"'
+#   <single quote> ~ [']
+
+# long strings
+
+    <exponent>  ~ [eE]
 
 :discard ~ comment
 :discard ~ whitespace
@@ -289,9 +336,13 @@ whitespace ~ [\s]+
 END_OF_SOURCE
         }
     );
-
+#   show L0 rules
+#    warn $parser->{grammar}->show_symbols(1, 'L0');
     return $parser;
 }
+
+sub read{
+    my ($self, $recce, $string) = @_;
 
 =pod
 my @terminals = (
@@ -308,8 +359,6 @@ my @terminals = (
 );
 
     my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
-
-    $recce->read( \$string, 0, 0 );
 
     my $length = length $string;
     pos $string = 0;
@@ -335,9 +384,9 @@ my @terminals = (
         die qq{No token found at position $start_of_lexeme, before "},
             substr( $string, pos $string, 40 ), q{"};
     } ## end TOKEN: while (1)
-    my $value_ref = $recce->value();
-
 =cut
+
+}
 
 sub parse {
     my ( $parser, $source, $recce_opts, $parse_opts ) = @_;
@@ -354,15 +403,18 @@ sub parse {
 
     # parse showing progress on failure if so requested in $parse_opts
     my $recce = Marpa::R2::Scanless::R->new( \%default_recce_opts );
+
+#   EL: $self->read($recce, \$string);
+#
     eval { $recce->read(\$source) };
     if ( defined $parse_opts and $parse_opts->{show_progress} ){
         warn "$@Progress report is:\n" . $recce->show_progress;
     }
 
     # return ast or undef on parse failure
-    my $v = $recce->value();
-    return unless defined $v;
-    return ${ $v };
+    my $value_ref = $recce->value();
+    return unless defined $value_ref;
+    return ${ $value_ref };
 
 } ## end sub parse
 
