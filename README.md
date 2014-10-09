@@ -7,7 +7,7 @@ Test Suite Organization
 -----------------------
 
 Testing is now done by serializing ASTs to a stream of tokens `' '`-separated 
-where appropriate (e.g. not before opening ( `'`, `"`, `[` ) or after closing 
+where appropriate (e.g. not after opening ( `'`, `"`, `[` ) or before closing 
 (`'`, `"`, `]`) string quotes.
 
 Tests of Lua code are split to executable snippets (code fragments 
