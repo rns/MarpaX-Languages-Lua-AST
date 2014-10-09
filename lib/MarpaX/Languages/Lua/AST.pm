@@ -192,8 +192,16 @@ lexeme default = action => [ name, value ] latm => 1
 
     int   ~ [\d]+
     float ~ int '.' int
-    float ~ int '.' int 'e' [+-] int
-    float ~ int '.' int 'E' int
+#   We can write numeric constants with an optional decimal part,
+#   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
+    float ~ int '.' int <exponent> <plus or minus> int
+    float ~ int         <exponent> <plus or minus> int
+    float ~ int '.' int <exponent> int
+    float ~ int         <exponent> int
+
+    <exponent> ~ 'e' | 'E'
+    <plus or minus> ~ [+-]
+
     hex ~ '0x' <hex chars>
     <hex chars> ~ [A-Fa-f0-9] [A-Fa-f0-9]
 
@@ -338,8 +346,8 @@ sub tokens{
         if (defined $ast and $ast =~ /^function|while|repeat|do|if|else|elseif|for|local$/){
             $separator = "\n";
         }
-        $tokens .= $separator . $ast;
-        $tokens .= "\n" if $ast eq 'end';
+        $tokens .= $separator . $ast if defined $ast;
+        $tokens .= "\n" if defined $ast and $ast eq 'end';
     }
     return $tokens;
 }
