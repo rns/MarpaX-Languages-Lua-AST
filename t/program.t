@@ -35,10 +35,10 @@ my %lua_files = qw{
 
     lua5.1-tests/api.lua            1
     lua5.1-tests/attrib.lua         1
-    lua5.1-tests/big.lua            5
+    lua5.1-tests/big.lua            1
     lua5.1-tests/calls.lua          1
     lua5.1-tests/checktable.lua     1
-    lua5.1-tests/closure.lua        5
+    lua5.1-tests/closure.lua        1
     lua5.1-tests/code.lua           1
     lua5.1-tests/constructs.lua     1
     lua5.1-tests/db.lua             1
