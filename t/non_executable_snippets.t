@@ -10,22 +10,13 @@ use Test::More;
 
 use MarpaX::Languages::Lua::AST;
 
-# fact is lua's hellow world -- this nonexecutable snippet
-# will be tested by serialized ast comparison
+# non-executable snippets which can't be wrapped to a function
+# will be tested by comparison with formatted ast
 
 my $input = <<END;
-function fact (n)
-  if n == 0 then
-    return 1
-  else
-    return n * fact(n-1)
-  end
-end
-
-print("enter a number:")
-a = io.read("*number")        -- read a number
-print(fact(a))
+a = '\\\'' -- 1 escaped \ 1 escaped '
 END
+#'
 
 my $expected_fmt = <<END;
 END
