@@ -10,7 +10,7 @@ use Test::More;
 
 use MarpaX::Languages::Lua::AST;
 
-# fact is lua's hellow world -- this nonexecutable snippet
+# fact is lua's hello world -- this nonexecutable snippet
 # will be tested by serialized ast comparison
 
 my $input = <<END;

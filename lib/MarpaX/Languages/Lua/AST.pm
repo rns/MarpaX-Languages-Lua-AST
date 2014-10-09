@@ -305,8 +305,8 @@ sub tokens{
     else{
         my $separator = ' ';
         if ( # no spaces before and after ' and "
-               defined $tokens and $tokens =~ m{['"]$} #'
-            or defined $ast    and $ast    =~ m{^['"]} #'
+               defined $tokens and $tokens =~ m{['"\[]$} #'
+            or defined $ast    and $ast    =~ m{^['"\]]} #'
         ){
             $separator = '';
         }
