@@ -100,16 +100,16 @@ lexeme default = action => [ name, value ] latm => 1
     laststat ::= <break>
 
 #    funcname ::= Name {'.' Name} [':' Name]
-    funcname ::= names ':' Name
+    funcname ::= names <colon> Name
     funcname ::= names
 #    Names ::= Name+ separator => [\.]
-    names ::= Name | names '.' Name
+    names ::= Name | names <period> Name
 
 #    varlist ::= var {',' var}
 #    varlist ::= var+ separator => [,]
     varlist ::= var | varlist <comma> var
 
-    var ::=  Name | prefixexp '[' exp ']' | prefixexp '.' Name
+    var ::=  Name | prefixexp <left bracket> exp <right bracket> | prefixexp <period> Name
 
 #    namelist ::= Name {',' Name}
 #    namelist ::= Name+ separator => [,]
@@ -127,37 +127,37 @@ lexeme default = action => [ name, value ] latm => 1
     exp ::= <true>
     exp ::= Number
     exp ::= String
-    exp ::= '...'
+    exp ::= <ellipsis>
     exp ::= functionexp
     exp ::= prefixexp
     exp ::= tableconstructor
     exp ::= exp binop exp
     exp ::= unop exp
 
-    prefixexp ::= var | functioncall | '(' exp ')'
+    prefixexp ::= var | functioncall | <left paren> exp <right paren>
 
-    functioncall ::=  prefixexp args | prefixexp ':' Name args
+    functioncall ::=  prefixexp args | prefixexp <colon> Name args
 
 #    args ::=  '(' [explist] ')' | tableconstructor | String
-    args ::= '(' ')'
-    args ::= '(' explist ')'
+    args ::= <left paren> <right paren>
+    args ::= <left paren> explist <right paren>
     args ::= tableconstructor
     args ::= String
 
     functionexp ::= <function> funcbody
 
 #    funcbody ::= '(' [parlist] ')' block <end>
-    funcbody ::= '(' parlist ')' block <end>
-    funcbody ::= '(' ')' block <end>
+    funcbody ::= <left paren> parlist <right paren> block <end>
+    funcbody ::= <left paren> <right paren> block <end>
 
 #    parlist ::= namelist [',' '...'] | '...'
     parlist ::= namelist
-    parlist ::= namelist <comma> '...'
-    parlist ::= '...'
+    parlist ::= namelist <comma> <ellipsis>
+    parlist ::= <ellipsis>
 
 #    tableconstructor ::= '{' [fieldlist] '}'
-    tableconstructor ::= '{' fieldlist '}'
-    tableconstructor ::= '{' '}'
+    tableconstructor ::= <left curly> fieldlist <right curly>
+    tableconstructor ::= <left curly> <right curly>
 
 #    fieldlist ::= field {fieldsep field} [fieldsep]
     fieldlist ::= field
@@ -167,7 +167,7 @@ lexeme default = action => [ name, value ] latm => 1
     fieldsep ::= <comma>
     fieldsep ::= <semicolon>
 
-    field ::= '[' exp ']' <assignment> exp | Name <assignment> exp | exp
+    field ::= <left bracket> exp <right bracket> <assignment> exp | Name <assignment> exp | exp
 
     binop ~ <addition>
     binop ~ <minus>
@@ -191,15 +191,15 @@ lexeme default = action => [ name, value ] latm => 1
     comment ~ <short comment>
     comment ~ <long comment>
 
-    <short comment> ~ '--' <short comment chars>
+    <short comment> ~ <comment start> <short comment chars>
     <short comment chars> ~ [^\n]*
 
 #   todo: nestable long comments -- see nestable long strings
 #   The long string/long comment syntax ([[string]]) does not allow nesting. -- refman 7.1
     <long comment> ~ <long unnestable comment>
     <long comment> ~ <long nestable comment>
-    <long unnestable comment> ~ '--' <long unnestable string>
-    <long nestable comment> ~ '--' <long nestable string>
+    <long unnestable comment> ~ <comment start> <long unnestable string>
+    <long nestable comment> ~ <comment start> <long nestable string>
 
 #   identifier
     Name ~ [a-zA-Z_] <Name chars>
@@ -213,7 +213,7 @@ lexeme default = action => [ name, value ] latm => 1
 
     int   ~ [\d]+
 # todo: use <integer part> and <fractional part>
-    float ~ <integer part> '.'
+    float ~ <integer part> [\.]
     float ~ <integer part> <fractional part>
     float ~ <fractional part>
 #   We can write numeric constants with an optional decimal part,
@@ -226,11 +226,10 @@ lexeme default = action => [ name, value ] latm => 1
     float ~ <integer part> <exponent> int
 
     <integer part>      ~ int
-    <fractional part>   ~ '.' int
+    <fractional part>   ~ [\.] int
     <plus or minus>     ~ [+-]
 
-    hex ~ '0x' <hex chars>
-    <hex chars> ~ [A-Fa-f0-9] [A-Fa-f0-9]
+    hex ~ '0x' [A-Fa-f0-9] [A-Fa-f0-9]
 
 #   long strings in long brackets (LB) [[ ]] with ='s
 #   todo: long strings can be nested with [=[ ... ]=]
@@ -238,7 +237,7 @@ lexeme default = action => [ name, value ] latm => 1
 #         as external lexing will eventually be used, they are postponed until then
 #    <opening non-nesting long bracket> ~ '[['
 #    <closing non-nesting long bracket> ~ '[['
-#    <opening long bracket> ~ '[' <equal signs> '['
+#    <opening long bracket> ~ <left bracket> <equal signs> <left bracket>
 #    <equal signs> ~ [=]+
     String ~ <long string>
 
@@ -256,11 +255,11 @@ lexeme default = action => [ name, value ] latm => 1
     <long nestable string characters> ~ <long nestable string character>*
     <long nestable string character> ~ [^\]]
 
-    String ~ '"' <double quoted String chars> '"'
+    String ~ <double quote> <double quoted String chars> <double quote>
     <double quoted String chars> ~ <double quoted String char>*
     <double quoted String char> ~ [^"] | '\"' | '\\' # "
 
-    String ~ ['] <single quoted String chars> [']
+    String ~ <single quote> <single quoted String chars> <single quote>
     <single quoted String chars> ~ <single quoted String char>*
     <single quoted String char> ~ [^'] | '\' ['] | '\\' #'
 
@@ -304,26 +303,25 @@ lexeme default = action => [ name, value ] latm => 1
     <length>            ~ '#'
     <exponentiation>    ~ '^'
 
-#   <colon> ~ ':'
-#   <left bracket> '['
-#   <right bracket> ']'
-#   <ellipsis> ~ '...'
-#   <left paren> ~ '('
-#   <right paren> ~ ')'
-#   <left curly> ~ '{'
-#   <right curly> ~ '}'
-#   <comment start> '--'
-
-# other tokens
-# todo: use them instead of to rpepare for external lexing
-    <assignment>    ~ '='
-    <semicolon>     ~ ';'
-    <comma>         ~ ','
+#   punctuation
+    <colon>             ~ ':'
+    <left bracket>      ~ '['
+    <right bracket>     ~ ']'
+    <ellipsis>          ~ '...'
+    <left paren>        ~ '('
+    <right paren>       ~ ')'
+    <left curly>        ~ '{'
+    <right curly>       ~ '}'
+    <comment start>     ~ '--'
+    <assignment>        ~ '='
+    <semicolon>         ~ ';'
+    <comma>             ~ ','
+    <period>            ~ '.'
 
 # strings
 
-#   <double quote> ~ '"'
-#   <single quote> ~ [']
+    <double quote> ~ '"'
+    <single quote> ~ ['] #'
 
 # long strings
 
