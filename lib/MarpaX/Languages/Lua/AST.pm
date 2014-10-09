@@ -355,21 +355,135 @@ END_OF_SOURCE
 sub read{
     my ($self, $recce, $string) = @_;
 
-=pod
 my @terminals = (
-    [ Number   => qr/\d+/xms,    "Number" ],
-    [ 'op pow' => qr/[\^]/xms,   'Exponentiation operator' ],
-    [ 'op pow' => qr/[*][*]/xms, 'Exponentiation' ],          # order matters!
-    [ 'op times' => qr/[*]/xms, 'Multiplication operator' ],  # order matters!
-    [ 'op divide'   => qr/[\/]/xms, 'Division operator' ],
-    [ 'op add'      => qr/[+]/xms,  'Addition operator' ],
-    [ 'op subtract' => qr/[-]/xms,  'Subtraction operator' ],
-    [ 'op lparen'   => qr/[(]/xms,  'Left parenthesis' ],
-    [ 'op rparen'   => qr/[)]/xms,  'Right parenthesis' ],
-    [ 'op comma'    => qr/[,]/xms,  'Comma operator' ],
-);
+#    [ Number   => qr/\d+/xms,    "Number" ],
+#    [ 'op pow' => qr/[\^]/xms,   'Exponentiation operator' ],
+#    [ 'op pow' => qr/[*][*]/xms, 'Exponentiation' ],          # order matters!
+#    [ 'op times' => qr/[*]/xms, 'Multiplication operator' ],  # order matters!
+#    [ 'op divide'   => qr/[\/]/xms, 'Division operator' ],
+#    [ 'op add'      => qr/[+]/xms,  'Addition operator' ],
+#    [ 'op subtract' => qr/[-]/xms,  'Subtraction operator' ],
+#    [ 'op lparen'   => qr/[(]/xms,  'Left parenthesis' ],
+#    [ 'op rparen'   => qr/[)]/xms,  'Right parenthesis' ],
+#    [ 'op comma'    => qr/[,]/xms,  'Comma operator' ],
 
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+#   long nestable comment/string
+#    <long nestable comment> ~ <comment start> <long nestable string>
+    [ 'long nestable comment' => qr/__TO_BE_DEFINED__/xms, "long nestable comment" ],
+
+#   strings -- long string, double and single quoted, _with escaping_
+#    <long nestable string> ~ '[=[' <long nestable string characters> ']=]'
+#    <long nestable string> ~ '[==[' <long nestable string characters> ']==]'
+#    <long nestable string> ~ '[===[' <long nestable string characters> ']===]'
+#    <long nestable string> ~ '[====[' <long nestable string characters> ']====]'
+#    <long nestable string characters> ~ <long nestable string character>*
+#    <long nestable string character> ~ [^\]]
+
+#   long unnestable comment/string
+#    <long unnestable comment> ~ <comment start> <long unnestable string>
+    [ 'long unnestable comment' => qr/__TO_BE_DEFINED__/xms, "long unnestable comment" ],
+
+#    <long unnestable string> ~ '[[' <long unnestable string characters> ']]'
+    [ 'long unnestable string' => qr/__TO_BE_DEFINED__/xms, "long unnestable string" ],
+#    <long unnestable string characters> ~ <long unnestable string character>
+#    <long unnestable string character> ~ [^\]]*
+
+#   double and single quoted
+    [ 'double quoted string' => qr/"(?:[^\\"]|\\.)*"/xms, "double quoted string" ], #"
+#    <double quoted string chars> ~ <double quoted string char>*
+#    <double quoted string char> ~ [^"] | '\"' | '\\' # "
+
+    [ 'single quoted string' => qr/'(?:[^\\']|\\.)*'/xms, "single quoted string" ], #'
+#    <single quoted string chars> ~ <single quoted string char>*
+#    <single quoted string char> ~ [^'] | '\' ['] | '\\' #'
+
+#    <double quote> ~ '"'
+#    <single quote> ~ ['] #'
+
+#   short comments
+    [ 'short comment' => qr/--[^\n]*\n/xms, "short comment" ],
+
+# keywords
+    [ 'break'       => qr/\bbreak\b/xms,    "break"     ],
+    [ 'do'          => qr/\bdo\b/xms,       "do"        ],
+    [ 'else'        => qr/\belse\b/xms,     "else"      ],
+    [ 'elseif'      => qr/\belseif\b/xms,   "elseif"    ],
+    [ 'end'         => qr/\bend\b/xms,      "end"       ],
+    [ 'false'       => qr/\bfalse\b/xms,    "false"     ],
+    [ 'for'         => qr/\bfor\b/xms,      "for"       ],
+    [ 'function'    => qr/\bfunction\b/xms, "function"  ],
+    [ 'if'          => qr/\bif\b/xms,       "if"        ],
+    [ 'in'          => qr/\bin\b/xms,       "in"        ],
+    [ 'local'       => qr/\blocal\b/xms,    "local"     ],
+    [ 'nil'         => qr/\bnil\b/xms,      "nil"       ],
+    [ 'repeat'      => qr/\brepeat\b/xms,   "repeat"    ],
+    [ 'return'      => qr/\breturn\b/xms,   "return"    ],
+    [ 'then'        => qr/\bthen\b/xms,     "then"      ],
+    [ 'true'        => qr/\btrue\b/xms,     "true"      ],
+    [ 'until'       => qr/\buntil\b/xms,    "until"     ],
+    [ 'while'       => qr/\bwhile\b/xms,    "while"     ],
+
+#   Name
+    [ 'name'        => qr/\b[a-zA-Z_][\w]*\b/xms, "name" ],
+
+#   Number
+    [ 'int' => qr/[\d]+/xms, "Integer number" ],
+    [ 'hex' => qr/0[x][0-9a-fA-F]+/xms, "Hexadecimal number" ],
+#   We can write numeric constants with an optional decimal part,
+#   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
+#   todo: check if this is ensured
+    [ 'float' => qr/[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?/xms, "Floating-point number" ],
+
+#    float ~ <integer part> <fractional part>
+#    float ~ <fractional part>
+#    float ~ <fractional part> <exponent> <plus or minus> int
+#    float ~ <integer part> <fractional part> <exponent> <plus or minus> int
+#    float ~ <integer part> <exponent> <plus or minus> int
+#    float ~ <integer part> <fractional part> <exponent> int
+#    float ~ <fractional part> <exponent> int
+#    float ~ <integer part> <exponent> int
+
+#    <integer part>      ~ int
+#    <fractional part>   ~ [\.] int
+#    <plus or minus>     ~ [+-]
+#    <exponent>          ~ [eE]
+
+# operators from lower to higher priority as per refman 2.5.6
+
+    [ 'or'                  => qr/\bor\b/xms,   "or"    ],
+    [ 'and'                 => qr/\band\b/xms,  "and"   ],
+    [ 'less than'           => qr/</xms,        ""      ],
+    [ 'less or equal'       => qr/<=/xms,       ""      ],
+    [ 'greater than'        => qr/>/xms,        ""      ],
+    [ 'greater or equal'    => qr/>=/xms,       ""      ],
+    [ 'negation'            => qr/~=/xms,       ""      ],
+    [ 'equality'            => qr/==/xms,       ""      ],
+    [ 'concatenation'       => qr/\.\./xms,       ""      ],
+    [ 'addition'            => qr/\+/xms,        ""      ],
+    [ 'minus'               => qr/-/xms,        ""      ],
+    [ 'multiplication'      => qr/\*/xms,        ""      ],
+    [ 'division'            => qr/\//xms,       ""      ],
+    [ 'percent'             => qr/%/xms,        ""      ],
+    [ 'not'                 => qr/\bnot\b/xms,      ""      ],
+    [ 'length'              => qr/\#/xms,        ""      ],
+    [ 'exponentiation'      => qr/\^/xms,        ""      ],
+
+#   punctuation
+    [ 'colon'               => qr/:/xms,        ""      ],
+    [ 'left bracket'        => qr/\[/xms,        ""      ],
+    [ 'right bracket'       => qr/\]/xms,        ""      ],
+    [ 'ellipsis'            => qr/\.\.\./xms,      ""      ],
+    [ 'left paren'          => qr/\(/xms,        ""      ],
+    [ 'right paren'         => qr/\)/xms,        ""      ],
+    [ 'left curly'          => qr/\{/xms,        ""      ],
+    [ 'right curly'         => qr/\}/xms,        ""      ],
+#    [ 'comment start'  => qr/--/xms,   ""    ],
+    [ 'assignment'          => qr/=/xms,        ""      ],
+    [ 'semicolon'           => qr/;/xms,        ""      ],
+    [ 'comma'               => qr/,/xms,        ""      ],
+    [ 'period'              => qr/\./xms,       ""      ],
+
+);
 
     my $length = length $string;
     pos $string = 0;
@@ -382,6 +496,10 @@ my @terminals = (
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
 
+            warn "$token_name: <$lexeme> at $start_of_lexeme";
+            next TOKEN
+
+=pod do not feed to recce at the moment
             if ( not defined $recce->lexeme_alternative($token_name) ) {
                 die
                     qq{Parser rejected token "$long_name" at position $start_of_lexeme, before "},
@@ -390,12 +508,12 @@ my @terminals = (
             next TOKEN
                 if $recce->lexeme_complete( $start_of_lexeme,
                         ( length $lexeme ) );
+=cut
 
         } ## end TOKEN_TYPE: for my $t (@terminals)
         die qq{No token found at position $start_of_lexeme, before "},
             substr( $string, pos $string, 40 ), q{"};
     } ## end TOKEN: while (1)
-=cut
 
 }
 
@@ -415,7 +533,7 @@ sub parse {
     # parse showing progress on failure if so requested in $parse_opts
     my $recce = Marpa::R2::Scanless::R->new( \%default_recce_opts );
 
-#   EL: $self->read($recce, \$string);
+#   EL: $self->read($recce, $source);
 #
     eval { $recce->read(\$source) };
     if ( defined $parse_opts and $parse_opts->{show_progress} ){
