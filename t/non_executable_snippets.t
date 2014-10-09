@@ -14,6 +14,8 @@ use MarpaX::Languages::Lua::AST;
 # will be tested by comparison with formatted ast
 
 my @tests = (
+
+# strings.lua:103-104
 [ q{
 -- the below line parses ok
 a = '\\\'' -- 1 escaped \ 1 escaped '
@@ -23,8 +25,13 @@ a = '\\\'' -- 1 escaped \ 1 escaped '
 x = '"нlo"\n\\'
 assert(string.format('%q%s', x, x) == '"\\"нlo\\"\\\n\\\\""нlo"\n\\')
 },
-q{
-}
+# expected
+q{} ],
+# api.lua:l63
+[
+q{ function (a) assert(a==nil); return 3 end },
+# expected
+q{}
 ],
 
 );
@@ -35,12 +42,12 @@ for my $test (@tests){
     my ($snippet, $expected_fmt) = @{ $test };
     my $ast = $p->parse( $snippet );
     unless (defined $ast){
-        $p->parse( $snippet, { trace_terminals => 1 } );
+        $p->parse( $snippet, { trace_terminals => 1 }, { show_progress => 1 } );
         BAIL_OUT "Can't parse:\n$snippet";
     }
 
     my $fmt = $p->serialize( $ast );
-    say $fmt;
+#    say $fmt;
 
     TODO: {
         todo_skip "ast serialization to formatted source shelved until lua test suite parsing is done", 1;

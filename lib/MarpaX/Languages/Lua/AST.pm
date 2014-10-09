@@ -163,6 +163,7 @@ lexeme default = action => [ name, value ] latm => 1
     <Name chars> ~ [\w]*
 
 #   numbers
+#   todo: more realistic numbers
     Number ~ int
     Number ~ float
     Number ~ hex
@@ -172,7 +173,6 @@ lexeme default = action => [ name, value ] latm => 1
     float ~ int '.' int 'e' [+-] int
     float ~ int '.' int 'E' int
     hex ~ '0x' <hex chars>
-#   todo: more realistic hexadecimals
     <hex chars> ~ [A-Fa-f0-9] [A-Fa-f0-9]
 
 #   long strings in long brackets (LB) [[ ]] with ='s
