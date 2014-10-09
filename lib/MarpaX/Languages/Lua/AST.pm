@@ -33,6 +33,7 @@ lexeme default = action => [ name, value ] latm => 1
     # The Lua Book -- http://www.lua.org/pil/contents.html
     # More parser tests: http://lua-users.org/wiki/LuaGrammar
 
+    # {a} means 0 or more a's, and [a] means an optional a
     # * -- 0 or more: { ... }
     # ? -- 0 or 1:    [ ... ]
 
@@ -226,9 +227,8 @@ lexeme default = action => [ name, value ] latm => 1
 # External lexing starts here
 # tokens sorted longest possible to shortest possible
 
-#   long comment ([[string]]) does not allow nesting. -- refman 7.1
+#   long nestable comment/string
     <long nestable comment> ~ <comment start> <long nestable string>
-    <long unnestable comment> ~ <comment start> <long unnestable string>
 
 #   strings -- long string, double and single quoted, with escaping
     <long nestable string> ~ '[=[' <long nestable string characters> ']=]'
@@ -237,11 +237,15 @@ lexeme default = action => [ name, value ] latm => 1
     <long nestable string> ~ '[====[' <long nestable string characters> ']====]'
     <long nestable string characters> ~ <long nestable string character>*
     <long nestable string character> ~ [^\]]
-#   unnestable
+
+#   long unnestable comment/string
+    <long unnestable comment> ~ <comment start> <long unnestable string>
+
     <long unnestable string> ~ '[[' <long unnestable string characters> ']]'
     <long unnestable string characters> ~ <long unnestable string character>
     <long unnestable string character> ~ [^\]]*
 
+#   double and single quoted
     <double quoted string> ~ <double quote> <double quoted string chars> <double quote>
     <double quoted string chars> ~ <double quoted string char>*
     <double quoted string char> ~ [^"] | '\"' | '\\' # "
@@ -253,13 +257,33 @@ lexeme default = action => [ name, value ] latm => 1
     <double quote> ~ '"'
     <single quote> ~ ['] #'
 
-#   Comment
+#   short comments
     <short comment> ~ <comment start> <short comment chars>
     <short comment chars> ~ [^\n]*
 
 #   Name
     <name> ~ [a-zA-Z_] <Name chars>
     <Name chars> ~ [\w]*
+
+# keywords (Name can't be
+    <break>     ~ 'break'
+    <do>        ~ 'do'
+    <else>      ~ 'else'
+    <elseif>    ~ 'elseif'
+    <end>       ~ 'end'
+    <false>     ~ 'false'
+    <for>       ~ 'for'
+    <function>  ~ 'function'
+    <if>        ~ 'if'
+    <in>        ~ 'in'
+    <local>     ~ 'local'
+    <nil>       ~ 'nil'
+    <repeat>    ~ 'repeat'
+    <return>    ~ 'return'
+    <then>      ~ 'then'
+    <true>      ~ 'true'
+    <until>     ~ 'until'
+    <while>     ~ 'while'
 
 #   Number
     int   ~ [\d]+
@@ -280,26 +304,6 @@ lexeme default = action => [ name, value ] latm => 1
     <fractional part>   ~ [\.] int
     <plus or minus>     ~ [+-]
     <exponent>          ~ [eE]
-
-# keywords
-    <break>     ~ 'break'
-    <do>        ~ 'do'
-    <else>      ~ 'else'
-    <elseif>    ~ 'elseif'
-    <end>       ~ 'end'
-    <false>     ~ 'false'
-    <for>       ~ 'for'
-    <function>  ~ 'function'
-    <if>        ~ 'if'
-    <in>        ~ 'in'
-    <local>     ~ 'local'
-    <nil>       ~ 'nil'
-    <repeat>    ~ 'repeat'
-    <return>    ~ 'return'
-    <then>      ~ 'then'
-    <true>      ~ 'true'
-    <until>     ~ 'until'
-    <while>     ~ 'while'
 
 # operators from lower to higher priority as per refman 2.5.6
 
