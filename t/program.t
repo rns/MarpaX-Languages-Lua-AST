@@ -33,13 +33,13 @@ my %lua_files = qw{
     lua-tests/coroutine.lua         1
 
     lua5.1-tests/api.lua            1
-    lua5.1-tests/attrib.lua         2
+    lua5.1-tests/attrib.lua         1
     lua5.1-tests/big.lua            5
     lua5.1-tests/calls.lua          1
     lua5.1-tests/checktable.lua     1
     lua5.1-tests/closure.lua        5
     lua5.1-tests/code.lua           1
-    lua5.1-tests/constructs.lua     1
+    lua5.1-tests/constructs.lua     2
     lua5.1-tests/db.lua             1
     lua5.1-tests/errors.lua         1
     lua5.1-tests/events.lua         1
@@ -98,7 +98,7 @@ LUA_FILE:
         }
 
         # serialize ast to tokens and write to temporary file
-$DOWARN = 0;
+$DOWARN = 0; # see above
         my $tokens = $p->tokens($ast);
 $DOWARN = 1;
         my $lua_file = whip_up_lua_file( $tokens );

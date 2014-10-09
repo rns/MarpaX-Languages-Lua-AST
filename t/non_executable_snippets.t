@@ -34,6 +34,19 @@ q{} ],
 # expected
 q{} ],
 
+# constructs.lua:58
+[ q{
+local f = function (i)
+  if i < 10 then return 'a';
+  elseif i < 20 then return 'b';
+  elseif i < 30 then return 'c';
+  end;
+end
+},
+# expected
+q{} ],
+
+#[ q{}, q{} ],
 );
 
 my $p = MarpaX::Languages::Lua::AST->new;

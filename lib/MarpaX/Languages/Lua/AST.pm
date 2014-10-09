@@ -53,9 +53,11 @@ lexeme default = action => [ name, value ] latm => 1
     statements ::= statements stat
     statements ::= statements <semicolon> stat
 #   [';'] from {stat [';']}
-#   not inline with "There are no empty statements and thus ';;' is not legal"
+#   not in line with "There are no empty statements and thus ';;' is not legal"
 #   in http://www.lua.org/manual/5.1/manual.html#2.4.1, but api.lua:163
 #   doesn't parse without that
+#   there is also constructs.lua:58 -- end;
+#
 #   possible todo: better optional semicolon
     stat ::= <semicolon>
 
@@ -71,7 +73,9 @@ lexeme default = action => [ name, value ] latm => 1
 
 #    <if> exp <then> block {<elseif> exp <then> block} [<else> block] <end> |
     stat ::= <if> exp <then> block <end>
+    stat ::= <if> exp <then> block <else> block <end>
     stat ::= <if> exp <then> block <one or more elseifs> <else> block <end>
+    stat ::= <if> exp <then> block <one or more elseifs> <end>
 
 #    <for> Name <eq> exp ',' exp [',' exp] <do> block <end> |
     stat ::= <for> Name <eq> exp <comma> exp <comma> exp <do> block <end>
@@ -86,7 +90,8 @@ lexeme default = action => [ name, value ] latm => 1
     stat ::= <local> namelist <eq> explist
     stat ::= <local> namelist
 
-    <one or more elseifs> ::= <one elseif>*
+    <one or more elseifs> ::= <one elseif>
+    <one or more elseifs> ::= <one or more elseifs> <one elseif>
     <one elseif> ::= <elseif> exp <then> block
 
 #    laststat ::= <return> [explist] | <break>
@@ -108,11 +113,13 @@ lexeme default = action => [ name, value ] latm => 1
 
 #    namelist ::= Name {',' Name}
 #    namelist ::= Name+ separator => [,]
-    namelist ::= Name | namelist <comma> Name
+    namelist ::= Name
+    namelist ::= namelist <comma> Name
 
 #    explist ::= {exp ','} exp
 #    explist ::= exp+ separator => [,]
-    explist ::= exp | explist <comma> exp
+    explist ::= exp
+    explist ::= explist <comma> exp
 
 
     exp ::= <nil>
@@ -144,7 +151,9 @@ lexeme default = action => [ name, value ] latm => 1
     funcbody ::= '(' ')' block <end>
 
 #    parlist ::= namelist [',' '...'] | '...'
-    parlist ::= namelist | namelist <comma> '...' | '...'
+    parlist ::= namelist
+    parlist ::= namelist <comma> '...'
+    parlist ::= '...'
 
 #    tableconstructor ::= '{' [fieldlist] '}'
     tableconstructor ::= '{' fieldlist '}'
