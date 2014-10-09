@@ -200,16 +200,23 @@ lexeme default = action => [ name, value ] latm => 1
     Number ~ hex
 
     int   ~ [\d]+
-    float ~ int '.' int
+# todo: use <integer part> and <fractional part>
+    float ~ <integer part> '.'
+    float ~ <integer part> <fractional part>
+    float ~ <fractional part>
 #   We can write numeric constants with an optional decimal part,
 #   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
-    float ~ int '.' int <exponent> <plus or minus> int
-    float ~ int         <exponent> <plus or minus> int
-    float ~ int '.' int <exponent> int
-    float ~ int         <exponent> int
+    float ~ <fractional part> <exponent> <plus or minus> int
+    float ~ <integer part> <fractional part> <exponent> <plus or minus> int
+    float ~ <integer part> <exponent> <plus or minus> int
+    float ~ <integer part> <fractional part> <exponent> int
+    float ~ <fractional part> <exponent> int
+    float ~ <integer part> <exponent> int
 
-    <exponent> ~ 'e' | 'E'
-    <plus or minus> ~ [+-]
+    <integer part>      ~ int
+    <fractional part>   ~ '.' int
+    <exponent>          ~ 'e' | 'E'
+    <plus or minus>     ~ [+-]
 
     hex ~ '0x' <hex chars>
     <hex chars> ~ [A-Fa-f0-9] [A-Fa-f0-9]
