@@ -26,6 +26,7 @@ my $pwd = Cwd::cwd();
 #   file name                       flags:  1 default: do nothing
 #                                           2 reparse with diagnostics
 #                                           3 reparse and show ast
+#                                           4 test with like()
 my %lua_files = qw{
 
     lua-tests/coroutine.lua         1
@@ -49,7 +50,7 @@ my %lua_files = qw{
     lua5.1-tests/math.lua           1
     lua5.1-tests/nextvar.lua        1
     lua5.1-tests/pm.lua             1
-    lua5.1-tests/sort.lua           1
+    lua5.1-tests/sort.lua           4
     lua5.1-tests/strings.lua        1
     lua5.1-tests/vararg.lua         1
     lua5.1-tests/verybig.lua        1
@@ -104,6 +105,14 @@ LUA_FILE:
             next LUA_FILE;
         }
         # file parses and compiles, test against its output
+        if ($flag == 4){
+            if ( $lua_fn =~ m{ lua5.1-tests/sort.lua$ }x ){
+                # turn $expected_stdout to a regex and test against it
+                $expected_stdout =~ s{[\d\.]+}{[\\d\\.]+}gx;
+                like  ($stdout, qr/$expected_stdout/, $lua_fn);
+                next LUA_FILE;
+            }
+        }
         is $stdout, $expected_stdout, $lua_fn;
     } ## for my $lua_fn (@lua_files){
 
