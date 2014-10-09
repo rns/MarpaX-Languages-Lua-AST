@@ -55,6 +55,11 @@ my %lua_files = qw{
     lua5.1-tests/verybig.lua        1
 };
 
+# shell script run lua interpreter on ast serialized to tokens
+my $run_lua_test = 'run_lua_test.sh';
+# prepend t if running under prove
+$run_lua_test = 't/' . $run_lua_test unless $pwd =~ m{ /t$ }x;
+
 LUA_FILE:
     for my $lua_fn (sort keys %lua_files){
 
@@ -87,8 +92,6 @@ LUA_FILE:
         # serialize ast to tokens and write to temporary file
         my $tokens = $p->tokens($ast);
         my $lua_file = whip_up_lua_file( $tokens );
-        # run lua interpreter on ast serialized to tokens
-        my $run_lua_test = 'run_lua_test.sh';
         system("./$run_lua_test $lua_file 1>$lua_file.stdout 2>$lua_file.stderr");
         my ($stdout, $stderr) = map { slurp_file($_) } qq{$lua_file.stdout}, qq{$lua_file.stderr};
         # check for compile error, fail and proceed as flagged if any

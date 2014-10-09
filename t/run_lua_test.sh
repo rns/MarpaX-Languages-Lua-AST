@@ -1,4 +1,4 @@
-#! /usr/bin/sh
+#! /usr/bin/bash
 # run a file from Lua 5.1 test suite
 
 # Lua Test Suite's README:
@@ -7,7 +7,13 @@
 # and LUA_INIT to "package.path = '?;'..package.path")
 # run "lua all.lua"
 
-cd lua5.1-tests
+
+DIRECTORY=lua5.1-tests
+if [ -d "$DIRECTORY" ]; then
+	cd "$DIRECTORY"
+else
+	cd "./t/$DIRECTORY"
+fi
 export LUA_PATH="./?.lua;;"
 export LUA_INIT="package.path = '?;'..package.path"
 lua $1
