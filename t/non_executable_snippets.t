@@ -28,7 +28,7 @@ assert(string.format('%q%s', x, x) == '"\\"нlo\\"\\\n\\\\""нlo"\n\\')
 # expected
 q{} ],
 
-# api.lua:l63
+# api.lua:163
 # this parses ok without semicolon after ==nil)
 [ q{ function (a) assert(a==nil); return 3 end },
 # expected
@@ -50,9 +50,14 @@ for my $test (@tests){
 
     my $fmt = $p->serialize( $ast );
 
+    my $tokens = $p->tokens( $ast );
+
     TODO: {
-        todo_skip "ast serialization to formatted source shelved until lua test suite parsing is done", 1;
-        is $fmt, $expected_fmt, 'format by seralizing lua code ast';
+        todo_skip <<END, 1 unless $expected_fmt;
+AST serialization to formatted source shelved until
+lua test suite parsing is done. In a meanwhile, AST serialized to token stream is:\n\n$tokens
+END
+        is $fmt, $expected_fmt, 'format by serailizing lua code ast';
     }
 }
 

@@ -41,12 +41,23 @@ lexeme default = action => [ name, value ] latm => 1
     # Capitalized symbols (Name) are from the lua grammar cited above
 
 #    chunk ::= {stat [';']} [laststat [';']]
-    chunk ::=               # e.g. function () end, api.lua:126
-    chunk ::= stats
-    chunk ::= stats laststat
+# e.g. function () end, api.lua:126
+    chunk ::=
+    chunk ::= statements
+    chunk ::= statements laststat
+    chunk ::= statements laststat <semicolon>
     chunk ::= laststat <semicolon>
     chunk ::= laststat
-    stats ::= stat | stats stat | stats <semicolon> stat
+#    {stat [';']}
+    statements ::= stat
+    statements ::= statements stat
+    statements ::= statements <semicolon> stat
+#   [';'] from {stat [';']}
+#   not inline with "There are no empty statements and thus ';;' is not legal"
+#   in http://www.lua.org/manual/5.1/manual.html#2.4.1, but api.lua:163
+#   doesn't parse without that
+#   possible todo: better optional semicolon
+    stat ::= <semicolon>
 
     block ::= chunk
 
@@ -55,9 +66,7 @@ lexeme default = action => [ name, value ] latm => 1
     stat ::= functioncall
 
     stat ::= <do> block <end>
-
     stat ::= <while> exp <do> block <end>
-
     stat ::= <repeat> block <until> exp
 
 #    <if> exp <then> block {<elseif> exp <then> block} [<else> block] <end> |
@@ -103,18 +112,30 @@ lexeme default = action => [ name, value ] latm => 1
 
 #    explist ::= {exp ','} exp
 #    explist ::= exp+ separator => [,]
-   explist ::= exp | explist <comma> exp
+    explist ::= exp | explist <comma> exp
 
 
-    exp ::=  <nil> | <false> | <true> | Number | String | '...' | functionexp |
-         prefixexp | tableconstructor | exp binop exp | unop exp
+    exp ::= <nil>
+    exp ::= <false>
+    exp ::= <true>
+    exp ::= Number
+    exp ::= String
+    exp ::= '...'
+    exp ::= functionexp
+    exp ::= prefixexp
+    exp ::= tableconstructor
+    exp ::= exp binop exp
+    exp ::= unop exp
 
     prefixexp ::= var | functioncall | '(' exp ')'
 
     functioncall ::=  prefixexp args | prefixexp ':' Name args
 
 #    args ::=  '(' [explist] ')' | tableconstructor | String
-    args ::=  '(' ')' | '(' explist ')' | tableconstructor | String
+    args ::= '(' ')'
+    args ::= '(' explist ')'
+    args ::= tableconstructor
+    args ::= String
 
     functionexp ::= <function> funcbody
 
