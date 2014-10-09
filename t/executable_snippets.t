@@ -36,9 +36,13 @@ BEGIN {
 # Examples of valid numerical constants are
         q{ a = 3           },
         q{ a = 3.0         },
+        q{ a = 3.          },
         q{ a = 3.1416      },
+        q{ a = .14         },
+        q{ a = 10e30       },
         q{ a = 314.16e-2   },
         q{ a = 0.31416E1   },
+
         q{ a = 0xff        },
         q{ a = 0x56        },
     );

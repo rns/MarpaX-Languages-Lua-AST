@@ -260,11 +260,17 @@ END_OF_SOURCE
 
 my @terminals = (
 
-    [ 'Comment' => qr/--\[(=*)\[.*?\]\1\]/xms,  "long nestable comment" ],
+    [ 'Comment' => qr/--\[=\[.*?\]=\]/xms,         "long nestable comment" ],
+    [ 'Comment' => qr/--\[==\[.*?\]==\]/xms,         "long nestable comment" ],
+    [ 'Comment' => qr/--\[===\[.*?\]===\]/xms,         "long nestable comment" ],
+    [ 'Comment' => qr/--\[(={3,})\[.*?\]\1\]/xms,  "long nestable comment" ],
     [ 'Comment' => qr/--\[\[.*?\]\]/xms,        "long unnestable comment" ],
     [ 'Comment' => qr/--[^\n]*\n/xms,           "short comment" ],
 
-    [ 'String' => qr/\[(=*)\[.*?\]\1\]/xms,     "long nestable string" ],
+    [ 'String' => qr/\[=\[.*?\]=\]/xms,         "long nestable string" ],
+    [ 'String' => qr/\[==\[.*?\]==\]/xms,         "long nestable string" ],
+    [ 'String' => qr/\[===\[.*?\]===\]/xms,         "long nestable string" ],
+    [ 'String' => qr/\[(={3,})\[.*?\]\1\]/xms,     "long nestable string" ],
     [ 'String' => qr/\[\[.*?\]\]/xms,           "long unnestable string" ],
 
     [ 'String' => qr/(?<!\\)"((?:\\"|[^"])*)(?<!\\)"/xms, "double quoted string" ], #"
@@ -301,8 +307,11 @@ my @terminals = (
 #   We can write numeric constants with an optional decimal part,
 #   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
 #   todo: check if this is ensured
-    [ 'Number' => qr/[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?/xms, "Floating-point number" ],
-    [ 'Number' => qr/0[x][0-9a-fA-F]+/xms, "Hexadecimal number" ],
+    [ 'Number' => qr/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/xms, "Floating-point number" ],
+    [ 'Number' => qr/[0-9]+[eE][-+]?[0-9]+/xms, "Floating-point number" ],
+    [ 'Number' => qr/[0-9]+\./xms, "Floating-point number" ],
+    [ 'Number' => qr/\.[0-9]+/xms, "Floating-point number" ],
+    [ 'Number' => qr/0x[0-9a-fA-F]+/xms, "Hexadecimal number" ],
     [ 'Number' => qr/[\d]+/xms, "Integer number" ],
 
 #   operators
@@ -355,7 +364,7 @@ sub read{
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
 
-#            warn "$token_name, <$lexeme>";
+#            say STDERR "$token_name, <$lexeme>";
 
             next TOKEN if $token_name =~ /comment/i; # skip comments
 
@@ -370,42 +379,24 @@ sub read{
                         ( length $lexeme ) );
 
         } ## end TOKEN_TYPE: for my $t (@terminals)
-        return qq{No token found at position $start_of_lexeme, before "},
+        warn qq{No token found at position $start_of_lexeme, before "},
             substr( $string, pos $string, 40 ), q{"};
+        return
     } ## end TOKEN: while (1)
-
+    # return ast or undef on parse failure
+    my $value_ref = $recce->value();
+    if ( not defined $value_ref ) {
+        warn "No parse was found, after reading the entire input.\n";
+        warn $recce->show_progress();
+        return
+    }
+    return ${$value_ref};
 }
 
 sub parse {
-    my ( $parser, $source, $recce_opts, $parse_opts ) = @_;
-
-    my %default_recce_opts = (
-        grammar => $parser->{grammar},
-        trace_terminals => 0,
-    );
-
-    # merge recognizer options passed by the caller, if any
-    if (defined $recce_opts and ref $recce_opts eq "HASH"){
-        @default_recce_opts{keys %$recce_opts} = values %$recce_opts;
-    }
-
-    # parse showing progress on failure if so requested in $parse_opts
-    my $recce = Marpa::R2::Scanless::R->new( \%default_recce_opts );
-
-    $parser->read($recce, $source);
-#
-=pod internal lexing
-    eval { $recce->read(\$source) };
-    if ( defined $parse_opts and $parse_opts->{show_progress} ){
-        warn "$@Progress report is:\n" . $recce->show_progress;
-    }
-=cut
-
-    # return ast or undef on parse failure
-    my $value_ref = $recce->value();
-    return unless defined $value_ref;
-    return ${ $value_ref };
-
+    my ( $parser, $source ) = @_;
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $parser->{grammar} } );
+    return $parser->read($recce, $source);
 } ## end sub parse
 
 sub serialize{

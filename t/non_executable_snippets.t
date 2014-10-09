@@ -45,6 +45,30 @@ end
 },
 # expected
 q{} ],
+# main.lua:113
+[ q{
+s = [=[ --
+function f ( x )
+  local a = [[
+xuxu
+]]
+  local b = "\
+xuxu\n"
+  if x == 11 then return 1 , 2 end  --[[ test multiple returns ]]
+  return x + 1
+  --\\
+end
+=( f( 10 ) )
+assert( a == b )
+=f( 11 )  ]=]
+}, q{} ],
+
+#literals.lua:9
+[ q{
+assert('\n\"\'\\' == [[
+
+"'\]]) -- "
+}, q{} ],
 
 #[ q{}, q{} ],
 );
