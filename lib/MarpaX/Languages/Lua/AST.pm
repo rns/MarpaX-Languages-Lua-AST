@@ -333,7 +333,7 @@ sub tokens{
     my $tokens;
     if (ref $ast){
         my ($node_id, @children) = @$ast;
-        $tokens .= join q{}, map { $parser->tokens( $_ ) } @children;
+        $tokens .= join q{}, grep { defined } map { $parser->tokens( $_ ) } @children;
     }
     else{
         my $separator = ' ';
