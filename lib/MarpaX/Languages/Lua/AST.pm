@@ -265,7 +265,7 @@ lexeme default = action => [ name, value ] latm => 1
     <name> ~ [a-zA-Z_] <Name chars>
     <Name chars> ~ [\w]*
 
-# keywords (Name can't be
+# keywords
     <break>     ~ 'break'
     <do>        ~ 'do'
     <else>      ~ 'else'
