@@ -260,18 +260,18 @@ END_OF_SOURCE
 
 my @terminals = (
 
+    [ 'Comment' => qr/--\[\[.*?\]\]/xms,        "long unnestable comment" ],
     [ 'Comment' => qr/--\[=\[.*?\]=\]/xms,         "long nestable comment" ],
     [ 'Comment' => qr/--\[==\[.*?\]==\]/xms,         "long nestable comment" ],
     [ 'Comment' => qr/--\[===\[.*?\]===\]/xms,         "long nestable comment" ],
     [ 'Comment' => qr/--\[(={3,})\[.*?\]\1\]/xms,  "long nestable comment" ],
-    [ 'Comment' => qr/--\[\[.*?\]\]/xms,        "long unnestable comment" ],
     [ 'Comment' => qr/--[^\n]*\n/xms,           "short comment" ],
 
+    [ 'String' => qr/\[\[.*?\]\]/xms,           "long unnestable string" ],
     [ 'String' => qr/\[=\[.*?\]=\]/xms,         "long nestable string" ],
     [ 'String' => qr/\[==\[.*?\]==\]/xms,         "long nestable string" ],
     [ 'String' => qr/\[===\[.*?\]===\]/xms,         "long nestable string" ],
     [ 'String' => qr/\[(={3,})\[.*?\]\1\]/xms,     "long nestable string" ],
-    [ 'String' => qr/\[\[.*?\]\]/xms,           "long unnestable string" ],
 
     [ 'String' => qr/(?<!\\)"((?:\\"|[^"])*)(?<!\\)"/xms, "double quoted string" ], #"
     [ 'String' => qr/(?<!\\)'((?:\\'|[^'])*)(?<!\\)'/xms, "single quoted string" ], #'
@@ -358,13 +358,11 @@ sub read{
     TOKEN: while (1) {
         my $start_of_lexeme = pos $string;
         last TOKEN if $start_of_lexeme >= $length;
-        next TOKEN if $string =~ m/\G\s+/gcxms;    # skip whitespace
+        next TOKEN if $string =~ m/\G\s+/gcxms;     # skip whitespace
         TOKEN_TYPE: for my $t (@terminals) {
             my ( $token_name, $regex, $long_name ) = @{$t};
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
-
-#            say STDERR "$token_name, <$lexeme>";
 
             next TOKEN if $token_name =~ /comment/i; # skip comments
 
