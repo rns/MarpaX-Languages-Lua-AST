@@ -175,6 +175,9 @@ lexeme default = action => [ name, value ] latm => 1
     field ::= Name <assignment> exp
     field ::= exp
 
+# for the moment, don't strip comments in the external lexer
+:discard ~ Comment
+
 # G1 Lexemes
 # ==========
 
@@ -340,7 +343,6 @@ lexeme default = action => [ name, value ] latm => 1
     <comma>             ~ ','
     <period>            ~ '.'
 
-:discard ~ Comment
 :discard ~ whitespace
 whitespace ~ [\s]+
 
