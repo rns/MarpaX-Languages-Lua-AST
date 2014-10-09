@@ -6,9 +6,9 @@ Lua 5.1 Parser in barebones SLIF
 Test Suite Organization
 -----------------------
 
-Testing is now done by serializing ASTs to a stream of tokens ' '-separated 
-where appropriate (e.g. not before opening ( ', ", [ ) or after closing 
-(', ", ]) string quotes.
+Testing is now done by serializing ASTs to a stream of tokens `' '`-separated 
+where appropriate (e.g. not before opening ( `'`, `"`, `[` ) or after closing 
+(`'`, `"`, `]`) string quotes.
 
 Tests of Lua code are split to executable snippets (code fragments 
 that can be wrapped to a function returning single scalar value, e.g. 
