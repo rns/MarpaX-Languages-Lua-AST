@@ -133,7 +133,8 @@ lexeme default = action => [ name, value ] latm => 1
 
 #    fields ::= field+ separator => fieldsep
     fields ::= field | fields fieldsep field
-    fieldsep ~ ',' | ';'
+    fieldsep ~ ','
+    fieldsep ~ ';'
 
     field ::= '[' exp ']' <eq> exp | Name <eq> exp | exp
 

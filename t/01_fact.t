@@ -34,7 +34,7 @@ my $p = MarpaX::Languages::Lua::AST->new;
 my $ast = $p->parse( $input );
 unless (defined $ast){
     $p->parse( $input, { trace_terminals => 1 } );
-    BAIL_OUT "Can't parse:\n$input";
+    fail "Can't parse:\n$input";
 }
 
 my $fmt = $p->serialize( $ast );
