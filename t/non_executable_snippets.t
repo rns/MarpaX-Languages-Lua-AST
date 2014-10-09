@@ -15,12 +15,6 @@ use MarpaX::Languages::Lua::AST;
 
 my @tests = (
 
-# api.lua:l63
-# this parses ok without semicolon after ==nil)
-[ q{ function (a) assert(a==nil); return 3 end },
-# expected
-q{} ],
-
 # strings.lua:103-104
 [ q{
 -- the below line parses ok
@@ -34,21 +28,27 @@ assert(string.format('%q%s', x, x) == '"\\"нlo\\"\\\n\\\\""нlo"\n\\')
 # expected
 q{} ],
 
+# api.lua:l63
+# this parses ok without semicolon after ==nil)
+[ q{ function (a) assert(a==nil); return 3 end },
+# expected
+q{} ],
+
 );
 
 my $p = MarpaX::Languages::Lua::AST->new;
 
+TEST:
 for my $test (@tests){
     my ($snippet, $expected_fmt) = @{ $test };
     my $ast = $p->parse( $snippet );
     unless (defined $ast){
         $p->parse( $snippet, { trace_terminals => 1 }, { show_progress => 1 } );
         fail "Can't parse:\n$snippet";
-        next
+        next TEST;
     }
 
     my $fmt = $p->serialize( $ast );
-    say $fmt;
 
     TODO: {
         todo_skip "ast serialization to formatted source shelved until lua test suite parsing is done", 1;

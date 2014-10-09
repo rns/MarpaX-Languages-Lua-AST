@@ -36,7 +36,7 @@ lexeme default = action => [ name, value ] latm => 1
     # * -- 0 or more: { ... }
     # ? -- 0 or 1:    [ ... ]
 
-    # keywords are symbols in <> having no spaces
+    # keywords and lexemes are symbols in <> having no spaces
     # original rules are commented if converted; what follows is their converted form
     # Capitalized symbols (Name) are from the lua grammar cited above
 
@@ -44,9 +44,9 @@ lexeme default = action => [ name, value ] latm => 1
     chunk ::=               # e.g. function () end, api.lua:126
     chunk ::= stats
     chunk ::= stats laststat
-    chunk ::= laststat ';'
+    chunk ::= laststat <semicolon>
     chunk ::= laststat
-    stats ::= stat | stats stat | stats ';' stat
+    stats ::= stat | stats stat | stats <semicolon> stat
 
     block ::= chunk
 
@@ -65,7 +65,8 @@ lexeme default = action => [ name, value ] latm => 1
         <if> exp <then> block elseifs <end> |
 
 #        <for> Name <eq> exp ',' exp [',' exp] <do> block <end> |
-        <for> Name <eq> exp ',' exp [',' exp] <do> block <end> |
+        <for> Name <eq> exp <comma> exp <comma> exp <do> block <end> |
+        <for> Name <eq> exp <comma> exp <do> block <end> |
 
         <for> namelist <in> explist <do> block <end> |
 
@@ -91,17 +92,17 @@ lexeme default = action => [ name, value ] latm => 1
 
 #    varlist ::= var {',' var}
 #    varlist ::= var+ separator => [,]
-    varlist ::= var | varlist ',' var
+    varlist ::= var | varlist <comma> var
 
     var ::=  Name | prefixexp '[' exp ']' | prefixexp '.' Name
 
 #    namelist ::= Name {',' Name}
 #    namelist ::= Name+ separator => [,]
-    namelist ::= Name | namelist ',' Name
+    namelist ::= Name | namelist <comma> Name
 
 #    explist ::= {exp ','} exp
 #    explist ::= exp+ separator => [,]
-   explist ::= exp | explist ',' exp
+   explist ::= exp | explist <comma> exp
 
 
     exp ::=  <nil> | <false> | <true> | Number | String | '...' | functionexp |
@@ -121,23 +122,21 @@ lexeme default = action => [ name, value ] latm => 1
     funcbody ::= '(' ')' block <end>
 
 #    parlist ::= namelist [',' '...'] | '...'
-    parlist ::= namelist | namelist ',' '...' | '...'
+    parlist ::= namelist | namelist <comma> '...' | '...'
 
 #    tableconstructor ::= '{' [fieldlist] '}'
     tableconstructor ::= '{' fieldlist '}'
     tableconstructor ::= '{' '}'
 
 #    fieldlist ::= field {fieldsep field} [fieldsep]
-    fieldlist ::= fields fieldsep
-    fieldlist ::= fields
+    fieldlist ::= field
+    fieldlist ::= field fieldsep field
+    fieldlist ::= field fieldsep field fieldsep
 
-#    fields ::= field+ separator => fieldsep
-    fields ::= field | fields fieldsep field
-    fieldsep ~ ','
-    fieldsep ~ ';'
+    fieldsep ::= <comma>
+    fieldsep ::= <semicolon>
 
     field ::= '[' exp ']' <eq> exp | Name <eq> exp | exp
-
 
     binop ~ '+' | '-' | '*' | '/' | '^' | '%' | '..' |
          '<' | '<=' | '>' | '>=' | '==' | '~=' |
@@ -233,7 +232,9 @@ lexeme default = action => [ name, value ] latm => 1
 
 # other tokens
 # todo: use them instead of to rpepare for external lexing
-    <eq> ~ '='
+    <eq>        ~ '='
+    <semicolon> ~ ';'
+    <comma>     ~ ','
 
 :discard ~ comment
 :discard ~ whitespace
