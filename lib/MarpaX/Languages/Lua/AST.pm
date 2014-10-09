@@ -50,39 +50,40 @@ lexeme default = action => [ name, value ] latm => 1
 
     block ::= chunk
 
-    stat ::=  varlist <eq> explist |
+    stat ::= varlist <eq> explist
 
-        functioncall |
+    stat ::= functioncall
 
-        <do> block <end> |
+    stat ::= <do> block <end>
 
-        <while> exp <do> block <end> |
+    stat ::= <while> exp <do> block <end>
 
-        <repeat> block <until> exp |
+    stat ::= <repeat> block <until> exp
 
-#        <if> exp <then> block {<elseif> exp <then> block} [<else> block] <end> |
-        <if> exp <then> block elseifs <else> block <end> |
-        <if> exp <then> block elseifs <end> |
+#    <if> exp <then> block {<elseif> exp <then> block} [<else> block] <end> |
+    stat ::= <if> exp <then> block <end>
+    stat ::= <if> exp <then> block <one or more elseifs> <else> block <end>
 
-#        <for> Name <eq> exp ',' exp [',' exp] <do> block <end> |
-        <for> Name <eq> exp <comma> exp <comma> exp <do> block <end> |
-        <for> Name <eq> exp <comma> exp <do> block <end> |
+#    <for> Name <eq> exp ',' exp [',' exp] <do> block <end> |
+    stat ::= <for> Name <eq> exp <comma> exp <comma> exp <do> block <end>
+    stat ::= <for> Name <eq> exp <comma> exp <do> block <end>
+    stat ::= <for> namelist <in> explist <do> block <end>
 
-        <for> namelist <in> explist <do> block <end> |
+    stat ::= <function> funcname funcbody
 
-        <function> funcname funcbody |
+    stat ::= <local> <function> Name funcbody
 
-        <local> <function> Name funcbody |
+#    <local> namelist [<eq> explist]
+    stat ::= <local> namelist <eq> explist
+    stat ::= <local> namelist
 
-#        <local> namelist [<eq> explist]
-        <local> namelist <eq> explist |
-        <local> namelist
-
-    elseifs ::= elseif_item*
-    elseif_item ::= <elseif> exp <then> block
+    <one or more elseifs> ::= <one elseif>*
+    <one elseif> ::= <elseif> exp <then> block
 
 #    laststat ::= <return> [explist] | <break>
-    laststat ::= <return> | <return> explist | <break>
+    laststat ::= <return>
+    laststat ::= <return> explist
+    laststat ::= <break>
 
 #    funcname ::= Name {'.' Name} [':' Name]
     funcname ::= names ':' Name
