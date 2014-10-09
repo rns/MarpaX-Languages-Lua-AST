@@ -293,6 +293,52 @@ END_OF_SOURCE
     return $parser;
 }
 
+=pod
+my @terminals = (
+    [ Number   => qr/\d+/xms,    "Number" ],
+    [ 'op pow' => qr/[\^]/xms,   'Exponentiation operator' ],
+    [ 'op pow' => qr/[*][*]/xms, 'Exponentiation' ],          # order matters!
+    [ 'op times' => qr/[*]/xms, 'Multiplication operator' ],  # order matters!
+    [ 'op divide'   => qr/[\/]/xms, 'Division operator' ],
+    [ 'op add'      => qr/[+]/xms,  'Addition operator' ],
+    [ 'op subtract' => qr/[-]/xms,  'Subtraction operator' ],
+    [ 'op lparen'   => qr/[(]/xms,  'Left parenthesis' ],
+    [ 'op rparen'   => qr/[)]/xms,  'Right parenthesis' ],
+    [ 'op comma'    => qr/[,]/xms,  'Comma operator' ],
+);
+
+    my $recce = Marpa::R2::Scanless::R->new( { grammar => $grammar } );
+
+    $recce->read( \$string, 0, 0 );
+
+    my $length = length $string;
+    pos $string = 0;
+    TOKEN: while (1) {
+        my $start_of_lexeme = pos $string;
+        last TOKEN if $start_of_lexeme >= $length;
+        next TOKEN if $string =~ m/\G\s+/gcxms;    # skip whitespace
+        TOKEN_TYPE: for my $t (@terminals) {
+            my ( $token_name, $regex, $long_name ) = @{$t};
+            next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
+            my $lexeme = $1;
+
+            if ( not defined $recce->lexeme_alternative($token_name) ) {
+                die
+                    qq{Parser rejected token "$long_name" at position $start_of_lexeme, before "},
+                    substr( $string, $start_of_lexeme, 40 ), q{"};
+            }
+            next TOKEN
+                if $recce->lexeme_complete( $start_of_lexeme,
+                        ( length $lexeme ) );
+
+        } ## end TOKEN_TYPE: for my $t (@terminals)
+        die qq{No token found at position $start_of_lexeme, before "},
+            substr( $string, pos $string, 40 ), q{"};
+    } ## end TOKEN: while (1)
+    my $value_ref = $recce->value();
+
+=cut
+
 sub parse {
     my ( $parser, $source, $recce_opts, $parse_opts ) = @_;
 
@@ -307,14 +353,14 @@ sub parse {
     }
 
     # parse showing progress on failure if so requested in $parse_opts
-    my $r = Marpa::R2::Scanless::R->new( \%default_recce_opts );
-    eval { $r->read(\$source) };
+    my $recce = Marpa::R2::Scanless::R->new( \%default_recce_opts );
+    eval { $recce->read(\$source) };
     if ( defined $parse_opts and $parse_opts->{show_progress} ){
-        warn "$@Progress report is:\n" . $r->show_progress;
+        warn "$@Progress report is:\n" . $recce->show_progress;
     }
 
     # return ast or undef on parse failure
-    my $v = $r->value();
+    my $v = $recce->value();
     return unless defined $v;
     return ${ $v };
 
