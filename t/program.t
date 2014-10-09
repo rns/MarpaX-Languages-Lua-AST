@@ -95,16 +95,16 @@ LUA_FILE:
         my $lua_file = whip_up_lua_file( $tokens );
         system("./$run_lua_test $lua_file 1>$lua_file.stdout 2>$lua_file.stderr");
         my ($stdout, $stderr) = map { slurp_file($_) } qq{$lua_file.stdout}, qq{$lua_file.stderr};
-        # check for compile error, fail and proceed as flagged if any
+        # check for run error, fail and proceed as flagged if any
         if ($stderr){
-            fail "compile $lua_fn:\n$stderr";
+            fail "run $lua_fn:\n$stderr";
             if ($flag eq 3){ # reparse and show ast
                 $ast = $p->parse( $lua_slurp );
                 warn "# ast of $lua_fn: ", $p->serialize( $ast );
             }
             next LUA_FILE;
         }
-        # file parses and compiles, test against its output
+        # file parses and runs, test against its output
         if ($flag == 4){
             if ( $lua_fn =~ m{ lua5.1-tests/sort.lua$ }x ){
                 # turn $expected_stdout to a regex and test against it
