@@ -28,13 +28,7 @@ END
 
 my $p = MarpaX::Languages::Lua::AST->new;
 my $ast = $p->parse( $input );
-unless (defined $ast){
-    $p->parse( $input, { trace_terminals => 1 } );
-    fail "Can't parse:\n$input";
-}
-
-say "# lexing:\n", $input;
-$p->read( undef, $input );
+say $p->tokens( $ast );
 
 done_testing();
 

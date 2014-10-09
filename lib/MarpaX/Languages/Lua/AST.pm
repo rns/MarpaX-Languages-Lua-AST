@@ -179,47 +179,104 @@ lexeme default = action => [ name, value ] latm => 1
 # ==========
 
 #   binary operators
-    binop ~ <addition>
-    binop ~ <minus>
-    binop ~ <multiplication>
-    binop ~ <division>
-    binop ~ <exponentiation>
-    binop ~ <percent>
-    binop ~ <concatenation>
-    binop ~ <less than>
-    binop ~ <less or equal>
-    binop ~ <greater than>
-    binop ~ <greater or equal>
-    binop ~ <equality>
-    binop ~ <negation>
-    binop ~ <and>
-    binop ~ <or>
+    binop ::= <addition>
+    binop ::= <minus>
+    binop ::= <multiplication>
+    binop ::= <division>
+    binop ::= <exponentiation>
+    binop ::= <percent>
+    binop ::= <concatenation>
+    binop ::= <less than>
+    binop ::= <less or equal>
+    binop ::= <greater than>
+    binop ::= <greater or equal>
+    binop ::= <equality>
+    binop ::= <negation>
+    binop ::= <and>
+    binop ::= <or>
 
 #   unary operators
-    unop ~ <minus>
-    unop ~ <not>
-    unop ~ <length>
+    unop ::= <minus>
+    unop ::= <not>
+    unop ::= <length>
 
 #   numbers todo: more realistic numbers
-    Number ~ int
-    Number ~ float
-    Number ~ hex
+    Number ::= int
+    Number ::= float
+    Number ::= hex
 
 #   identifier
-    Name ~ <name>
+    Name ::= <name>
 
 #   String
-    String ~ <single quoted string>
-    String ~ <double quoted string>
-    String ~ <long unnestable string>
-    String ~ <long nestable string>
+    String ::= <single quoted string>
+    String ::= <double quoted string>
+    String ::= <long unnestable string>
+    String ::= <long nestable string>
 
-#   Comment
-    Comment ~ <short comment>
-    Comment ~ <long nestable comment>
-    Comment ~ <long unnestable comment>
+    <greater or equal> ~ unicorn
+    <percent> ~ unicorn
+    <double quoted string> ~ unicorn
+    <single quoted string> ~ unicorn
+    <not> ~ unicorn
+    <less or equal> ~ unicorn
+    <name> ~ unicorn
+    <and> ~ unicorn
+    <int> ~ unicorn
+    <division> ~ unicorn
+    <float> ~ unicorn
+    <long unnestable string> ~ unicorn
+    <length> ~ unicorn
+    <or> ~ unicorn
+    <exponentiation> ~ unicorn
+    <greater than> ~ unicorn
+    <multiplication> ~ unicorn
+    <addition> ~ unicorn
+    <less than> ~ unicorn
+    <hex> ~ unicorn
+    <long nestable string> ~ unicorn
+    <equality> ~ unicorn
+    <concatenation> ~ unicorn
+    <minus> ~ unicorn
+    <negation> ~ unicorn
+    <semicolon> ~ unicorn
+    <if> ~ unicorn
+    <break> ~ unicorn
+    <period> ~ unicorn
+    <comma> ~ unicorn
+    <colon> ~ unicorn
+    <repeat> ~ unicorn
+    <function> ~ unicorn
+    <left curly> ~ unicorn
+    <do> ~ unicorn
+    <true> ~ unicorn
+    <local> ~ unicorn
+    <left bracket> ~ unicorn
+    <then> ~ unicorn
+    <ellipsis> ~ unicorn
+    <false> ~ unicorn
+    <in> ~ unicorn
+    <nil> ~ unicorn
+    <assignment> ~ unicorn
+    <for> ~ unicorn
+    <else> ~ unicorn
+    <right bracket> ~ unicorn
+    <left paren> ~ unicorn
+    <end> ~ unicorn
+    <right curly> ~ unicorn
+    <elseif> ~ unicorn
+    <right paren> ~ unicorn
+    <return> ~ unicorn
+    <until> ~ unicorn
+    <while> ~ unicorn
 
+    unicorn ~ [^\s\S]
 
+END_OF_SOURCE
+        }
+    );
+
+my $tokens = q{
 # ===>============ cut here after external lexer is implemented =====>======
 # Tokens
 # ======
@@ -343,10 +400,8 @@ lexeme default = action => [ name, value ] latm => 1
 :discard ~ Comment
 :discard ~ whitespace
 whitespace ~ [\s]+
+};
 
-END_OF_SOURCE
-        }
-    );
 #   show L0 rules
 #    warn $parser->{grammar}->show_symbols(1, 'L0');
     return $parser;
@@ -369,10 +424,10 @@ my @terminals = (
 
 #   long nestable comment/string
 #    <long nestable comment> ~ <comment start> <long nestable string>
-    [ 'long nestable comment' => qr/__TO_BE_DEFINED__/xms, "long nestable comment" ],
+    [ 'long nestable comment' => qr/--\[(=*)\[.*?\]\1\]/xms, "long nestable comment" ],
 
 #   strings -- long string, double and single quoted, _with escaping_
-#    <long nestable string> ~ '[=[' <long nestable string characters> ']=]'
+    [ 'long nestable string' => qr/\[(=*)\[.*?\]\1\]/xms, "long nestable string" ],
 #    <long nestable string> ~ '[==[' <long nestable string characters> ']==]'
 #    <long nestable string> ~ '[===[' <long nestable string characters> ']===]'
 #    <long nestable string> ~ '[====[' <long nestable string characters> ']====]'
@@ -381,10 +436,10 @@ my @terminals = (
 
 #   long unnestable comment/string
 #    <long unnestable comment> ~ <comment start> <long unnestable string>
-    [ 'long unnestable comment' => qr/__TO_BE_DEFINED__/xms, "long unnestable comment" ],
+    [ 'long unnestable comment' => qr/--\[\[.*?\]\]/xms, "long unnestable comment" ],
 
 #    <long unnestable string> ~ '[[' <long unnestable string characters> ']]'
-    [ 'long unnestable string' => qr/__TO_BE_DEFINED__/xms, "long unnestable string" ],
+    [ 'long unnestable string' => qr/\[\[.*?\]\]/xms, "long unnestable string" ],
 #    <long unnestable string characters> ~ <long unnestable string character>
 #    <long unnestable string character> ~ [^\]]*
 
@@ -401,7 +456,7 @@ my @terminals = (
 #    <single quote> ~ ['] #'
 
 #   short comments
-    [ 'short comment' => qr/--[^\n]*\n/xms, "short comment" ],
+    [ 'Comment' => qr/--[^\n]*\n/xms, "short comment" ],
 
 # keywords
     [ 'break'       => qr/\bbreak\b/xms,    "break"     ],
@@ -485,6 +540,8 @@ my @terminals = (
 
 );
 
+    $recce->read( \$string, 0, 0 );
+
     my $length = length $string;
     pos $string = 0;
     TOKEN: while (1) {
@@ -496,10 +553,8 @@ my @terminals = (
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
 
-            warn "$token_name: <$lexeme> at $start_of_lexeme";
-            next TOKEN
+            next TOKEN if $token_name =~ /comment/i; # skip comments
 
-=pod do not feed to recce at the moment
             if ( not defined $recce->lexeme_alternative($token_name) ) {
                 die
                     qq{Parser rejected token "$long_name" at position $start_of_lexeme, before "},
@@ -508,7 +563,6 @@ my @terminals = (
             next TOKEN
                 if $recce->lexeme_complete( $start_of_lexeme,
                         ( length $lexeme ) );
-=cut
 
         } ## end TOKEN_TYPE: for my $t (@terminals)
         die qq{No token found at position $start_of_lexeme, before "},
@@ -533,12 +587,14 @@ sub parse {
     # parse showing progress on failure if so requested in $parse_opts
     my $recce = Marpa::R2::Scanless::R->new( \%default_recce_opts );
 
-#   EL: $self->read($recce, $source);
+    $parser->read($recce, $source);
 #
+=pod internal lexing
     eval { $recce->read(\$source) };
     if ( defined $parse_opts and $parse_opts->{show_progress} ){
         warn "$@Progress report is:\n" . $recce->show_progress;
     }
+=cut
 
     # return ast or undef on parse failure
     my $value_ref = $recce->value();
