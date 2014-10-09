@@ -335,7 +335,11 @@ sub tokens{
         ){
             $separator = '';
         }
+        if (defined $ast and $ast =~ /^function|while|repeat|do|if|else|elseif|for|local$/){
+            $separator = "\n";
+        }
         $tokens .= $separator . $ast;
+        $tokens .= "\n" if $ast eq 'end';
     }
     return $tokens;
 }

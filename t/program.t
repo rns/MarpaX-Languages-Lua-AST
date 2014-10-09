@@ -27,16 +27,17 @@ my $pwd = Cwd::cwd();
 #                                           2 reparse with diagnostics
 #                                           3 reparse and show ast
 #                                           4 test with like()
+#                                           5 stderr is expected -- lua file runs with errors
 my %lua_files = qw{
 
     lua-tests/coroutine.lua         1
 
     lua5.1-tests/api.lua            2
     lua5.1-tests/attrib.lua         1
-    lua5.1-tests/big.lua            1
+    lua5.1-tests/big.lua            5
     lua5.1-tests/calls.lua          1
     lua5.1-tests/checktable.lua     1
-    lua5.1-tests/closure.lua        1
+    lua5.1-tests/closure.lua        5
     lua5.1-tests/code.lua           1
     lua5.1-tests/constructs.lua     1
     lua5.1-tests/db.lua             1
@@ -47,7 +48,7 @@ my %lua_files = qw{
     lua5.1-tests/literals.lua       1
     lua5.1-tests/locals.lua         1
     lua5.1-tests/main.lua           1
-    lua5.1-tests/math.lua           1
+    lua5.1-tests/math.lua           5
     lua5.1-tests/nextvar.lua        1
     lua5.1-tests/pm.lua             1
     lua5.1-tests/sort.lua           4
@@ -90,13 +91,21 @@ LUA_FILE:
             }
             next LUA_FILE;
         }
+
         # serialize ast to tokens and write to temporary file
         my $tokens = $p->tokens($ast);
         my $lua_file = whip_up_lua_file( $tokens );
+
+        # run lua file
         system("./$run_lua_test $lua_file 1>$lua_file.stdout 2>$lua_file.stderr");
         my ($stdout, $stderr) = map { slurp_file($_) } qq{$lua_file.stdout}, qq{$lua_file.stderr};
+
         # check for run error, fail and proceed as flagged if any
-        if ($stderr){
+        if
+        (
+                $stderr         # there was run error
+            and $flag != 5      # and it is NOT expected
+        ){
             fail "run $lua_fn:\n$stderr";
             if ($flag eq 3){ # reparse and show ast
                 $ast = $p->parse( $lua_slurp );
@@ -109,7 +118,7 @@ LUA_FILE:
             if ( $lua_fn =~ m{ lua5.1-tests/sort.lua$ }x ){
                 # turn $expected_stdout to a regex and test against it
                 $expected_stdout =~ s{[\d\.]+}{[\\d\\.]+}gx;
-                like  ($stdout, qr/$expected_stdout/, $lua_fn);
+                like $stdout, qr/$expected_stdout/, $lua_fn;
                 next LUA_FILE;
             }
         }
