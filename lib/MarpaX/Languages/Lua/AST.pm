@@ -134,9 +134,12 @@ lexeme default = action => [ name, value ] latm => 1
     exp ::= exp binop exp
     exp ::= unop exp
 
-    prefixexp ::= var | functioncall | <left paren> exp <right paren>
+    prefixexp ::= var
+    prefixexp ::= functioncall
+    prefixexp ::= <left paren> exp <right paren>
 
-    functioncall ::=  prefixexp args | prefixexp <colon> Name args
+    functioncall ::= prefixexp args
+    functioncall ::= prefixexp <colon> Name args
 
 #    args ::=  '(' [explist] ')' | tableconstructor | String
     args ::= <left paren> <right paren>
@@ -167,8 +170,14 @@ lexeme default = action => [ name, value ] latm => 1
     fieldsep ::= <comma>
     fieldsep ::= <semicolon>
 
-    field ::= <left bracket> exp <right bracket> <assignment> exp | Name <assignment> exp | exp
+    field ::= <left bracket> exp <right bracket> <assignment> exp
+    field ::= Name <assignment> exp
+    field ::= exp
 
+# G1 Lexemes
+# ==========
+
+#   binary operators
     binop ~ <addition>
     binop ~ <minus>
     binop ~ <multiplication>
@@ -185,34 +194,50 @@ lexeme default = action => [ name, value ] latm => 1
     binop ~ <and>
     binop ~ <or>
 
-    unop ~ <minus> | <not> | <length>
+#   unary operators
+    unop ~ <minus>
+    unop ~ <not>
+    unop ~ <length>
 
-#   comments
-    comment ~ <short comment>
-    comment ~ <long comment>
+#   numbers todo: more realistic numbers
+    Number ~ int
+    Number ~ float
+    Number ~ hex
 
+#   identifier
+    Name ~ <name>
+
+#   String
+    String ~ <single quoted string>
+    String ~ <double quoted string>
+    String ~ <long unnestable string>
+    String ~ <long nestable string>
+
+#   Comment
+    Comment ~ <short comment>
+    Comment ~ <long comment>
+
+# Tokens
+# ======
+# Lexeme name are shown in comments before their token groups
+# External lexing starts here
+
+#   Comment
     <short comment> ~ <comment start> <short comment chars>
     <short comment chars> ~ [^\n]*
 
-#   todo: nestable long comments -- see nestable long strings
 #   The long string/long comment syntax ([[string]]) does not allow nesting. -- refman 7.1
     <long comment> ~ <long unnestable comment>
     <long comment> ~ <long nestable comment>
     <long unnestable comment> ~ <comment start> <long unnestable string>
     <long nestable comment> ~ <comment start> <long nestable string>
 
-#   identifier
-    Name ~ [a-zA-Z_] <Name chars>
+#   Name
+    <name> ~ [a-zA-Z_] <Name chars>
     <Name chars> ~ [\w]*
 
-#   numbers
-#   todo: more realistic numbers
-    Number ~ int
-    Number ~ float
-    Number ~ hex
-
+#   Number
     int   ~ [\d]+
-# todo: use <integer part> and <fractional part>
     float ~ <integer part> [\.]
     float ~ <integer part> <fractional part>
     float ~ <fractional part>
@@ -228,25 +253,15 @@ lexeme default = action => [ name, value ] latm => 1
     <integer part>      ~ int
     <fractional part>   ~ [\.] int
     <plus or minus>     ~ [+-]
+    <exponent>          ~ [eE]
 
     hex ~ '0x' [A-Fa-f0-9] [A-Fa-f0-9]
 
-#   long strings in long brackets (LB) [[ ]] with ='s
-#   todo: long strings can be nested with [=[ ... ]=]
-#         and cannot be nested with [[ .. ]] -- http://lua-users.org/wiki/StringsTutorial
-#         as external lexing will eventually be used, they are postponed until then
-#    <opening non-nesting long bracket> ~ '[['
-#    <closing non-nesting long bracket> ~ '[['
-#    <opening long bracket> ~ <left bracket> <equal signs> <left bracket>
-#    <equal signs> ~ [=]+
-    String ~ <long string>
-
-    <long string> ~ <long unnestable string>
-    <long string> ~ <long nestable string>
-
+#   String -- long, double and single quoted, with escaping
     <long unnestable string> ~ '[[' <long unnestable string characters> ']]'
     <long unnestable string characters> ~ <long unnestable string character>
     <long unnestable string character> ~ [^\]]*
+
 #   this is not really nestable; nesting will be handled by external lexing
     <long nestable string> ~ '[=[' <long nestable string characters> ']=]'
     <long nestable string> ~ '[==[' <long nestable string characters> ']==]'
@@ -255,13 +270,16 @@ lexeme default = action => [ name, value ] latm => 1
     <long nestable string characters> ~ <long nestable string character>*
     <long nestable string character> ~ [^\]]
 
-    String ~ <double quote> <double quoted String chars> <double quote>
-    <double quoted String chars> ~ <double quoted String char>*
-    <double quoted String char> ~ [^"] | '\"' | '\\' # "
+    <double quoted string> ~ <double quote> <double quoted string chars> <double quote>
+    <double quoted string chars> ~ <double quoted string char>*
+    <double quoted string char> ~ [^"] | '\"' | '\\' # "
 
-    String ~ <single quote> <single quoted String chars> <single quote>
-    <single quoted String chars> ~ <single quoted String char>*
-    <single quoted String char> ~ [^'] | '\' ['] | '\\' #'
+    <single quoted string> ~ <single quote> <single quoted string chars> <single quote>
+    <single quoted string chars> ~ <single quoted string char>*
+    <single quoted string char> ~ [^'] | '\' ['] | '\\' #'
+
+    <double quote> ~ '"'
+    <single quote> ~ ['] #'
 
 # keywords
     <break>     ~ 'break'
@@ -318,16 +336,7 @@ lexeme default = action => [ name, value ] latm => 1
     <comma>             ~ ','
     <period>            ~ '.'
 
-# strings
-
-    <double quote> ~ '"'
-    <single quote> ~ ['] #'
-
-# long strings
-
-    <exponent>  ~ [eE]
-
-:discard ~ comment
+:discard ~ Comment
 :discard ~ whitespace
 whitespace ~ [\s]+
 
