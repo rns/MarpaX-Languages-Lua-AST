@@ -44,7 +44,7 @@ my %lua_files = qw{
     lua5.1-tests/db.lua             1
     lua5.1-tests/errors.lua         6
     lua5.1-tests/events.lua         1
-    lua5.1-tests/files.lua          1
+    lua5.1-tests/files.lua          4
     lua5.1-tests/gc.lua             1
     lua5.1-tests/literals.lua       6
     lua5.1-tests/locals.lua         1
@@ -130,10 +130,18 @@ $DOWARN = 1;
         }
         # file parses and runs, test against its output
         if ($flag == 4){
+            # turn $expected_stdout to a regex and test against it
             if ( $lua_fn =~ m{ lua5.1-tests/sort.lua$ }x ){
-                # turn $expected_stdout to a regex and test against it
                 $expected_stdout =~ s{[\d\.]+}{[\\d\\.]+}gx;
                 like $stdout, qr/$expected_stdout/, $lua_fn;
+                next LUA_FILE;
+            }
+            elsif ( $lua_fn =~ m{ lua5.1-tests/files.lua$ }x ){
+                $expected_stdout =~ s{\d{2}/\d{2}/\d{4}}{__DATE__}gx;
+                $expected_stdout =~ s{\d{2}:\d{2}:\d{2}}{__TIME__}gx;
+                $stdout =~ s{\d{2}/\d{2}/\d{4}}{__DATE__}gx;
+                $stdout =~ s{\d{2}:\d{2}:\d{2}}{__TIME__}gx;
+                is $stdout, $expected_stdout, $lua_fn;
                 next LUA_FILE;
             }
         }
