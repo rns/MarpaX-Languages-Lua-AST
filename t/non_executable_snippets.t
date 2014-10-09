@@ -64,6 +64,7 @@ for my $test (@tests){
     my $fmt = $p->serialize( $ast );
 
     my $tokens = $p->tokens( $ast );
+    say $tokens;
 
     TODO: {
         todo_skip <<END, 1 unless $expected_fmt;

@@ -209,15 +209,16 @@ lexeme default = action => [ name, value ] latm => 1
     Name ::= <name>
 
 #   String
-    String ::= <single quoted string>
-    String ::= <double quoted string>
-    String ::= <long unnestable string>
-    String ::= <long nestable string>
+#    String ::= <single quoted string>
+#    String ::= <double quoted string>
+#    String ::= <long unnestable string>
+#    String ::= <long nestable string>
 
+    String ~ unicorn
     <greater or equal> ~ unicorn
     <percent> ~ unicorn
-    <double quoted string> ~ unicorn
-    <single quoted string> ~ unicorn
+#    <double quoted string> ~ unicorn
+#    <single quoted string> ~ unicorn
     <not> ~ unicorn
     <less or equal> ~ unicorn
     <name> ~ unicorn
@@ -225,7 +226,7 @@ lexeme default = action => [ name, value ] latm => 1
     <int> ~ unicorn
     <division> ~ unicorn
     <float> ~ unicorn
-    <long unnestable string> ~ unicorn
+#    <long unnestable string> ~ unicorn
     <length> ~ unicorn
     <or> ~ unicorn
     <exponentiation> ~ unicorn
@@ -234,7 +235,7 @@ lexeme default = action => [ name, value ] latm => 1
     <addition> ~ unicorn
     <less than> ~ unicorn
     <hex> ~ unicorn
-    <long nestable string> ~ unicorn
+#    <long nestable string> ~ unicorn
     <equality> ~ unicorn
     <concatenation> ~ unicorn
     <minus> ~ unicorn
@@ -427,7 +428,7 @@ my @terminals = (
     [ 'long nestable comment' => qr/--\[(=*)\[.*?\]\1\]/xms, "long nestable comment" ],
 
 #   strings -- long string, double and single quoted, _with escaping_
-    [ 'long nestable string' => qr/\[(=*)\[.*?\]\1\]/xms, "long nestable string" ],
+    [ 'String' => qr/\[(=*)\[.*?\]\1\]/xms, "long nestable string" ],
 #    <long nestable string> ~ '[==[' <long nestable string characters> ']==]'
 #    <long nestable string> ~ '[===[' <long nestable string characters> ']===]'
 #    <long nestable string> ~ '[====[' <long nestable string characters> ']====]'
@@ -439,16 +440,16 @@ my @terminals = (
     [ 'long unnestable comment' => qr/--\[\[.*?\]\]/xms, "long unnestable comment" ],
 
 #    <long unnestable string> ~ '[[' <long unnestable string characters> ']]'
-    [ 'long unnestable string' => qr/\[\[.*?\]\]/xms, "long unnestable string" ],
+    [ 'String' => qr/\[\[.*?\]\]/xms, "long unnestable string" ],
 #    <long unnestable string characters> ~ <long unnestable string character>
 #    <long unnestable string character> ~ [^\]]*
 
 #   double and single quoted
-    [ 'double quoted string' => qr/"(?:[^\\"]|\\.)*"/xms, "double quoted string" ], #"
+    [ 'String' => qr/"(?>(?:(?>[^"\\]+)|\\.)*)"/xms, "double quoted string" ], #"
 #    <double quoted string chars> ~ <double quoted string char>*
 #    <double quoted string char> ~ [^"] | '\"' | '\\' # "
 
-    [ 'single quoted string' => qr/'(?:[^\\']|\\.)*'/xms, "single quoted string" ], #'
+    [ 'String' => qr/'(?>(?:(?>[^'\\]+)|\\.)*)'/xms, "single quoted string" ], #'
 #    <single quoted string chars> ~ <single quoted string char>*
 #    <single quoted string char> ~ [^'] | '\' ['] | '\\' #'
 
@@ -456,7 +457,7 @@ my @terminals = (
 #    <single quote> ~ ['] #'
 
 #   short comments
-    [ 'Comment' => qr/--[^\n]*\n/xms, "short comment" ],
+    [ 'Comment' => qr/--[^\n]*\n/xms, "Comment" ],
 
 # keywords
     [ 'break'       => qr/\bbreak\b/xms,    "break"     ],
@@ -553,19 +554,22 @@ my @terminals = (
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
 
+            warn "$token_name, <$lexeme>";
+
             next TOKEN if $token_name =~ /comment/i; # skip comments
 
             if ( not defined $recce->lexeme_alternative($token_name) ) {
-                die
+                warn
                     qq{Parser rejected token "$long_name" at position $start_of_lexeme, before "},
                     substr( $string, $start_of_lexeme, 40 ), q{"};
+                return
             }
             next TOKEN
                 if $recce->lexeme_complete( $start_of_lexeme,
                         ( length $lexeme ) );
 
         } ## end TOKEN_TYPE: for my $t (@terminals)
-        die qq{No token found at position $start_of_lexeme, before "},
+        return qq{No token found at position $start_of_lexeme, before "},
             substr( $string, pos $string, 40 ), q{"};
     } ## end TOKEN: while (1)
 
