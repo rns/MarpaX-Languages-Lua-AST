@@ -53,7 +53,7 @@ my %lua_files = qw{
     lua5.1-tests/nextvar.lua        1
     lua5.1-tests/pm.lua             1
     lua5.1-tests/sort.lua           4
-    lua5.1-tests/strings.lua        1
+    lua5.1-tests/strings.lua        6
     lua5.1-tests/vararg.lua         6
     lua5.1-tests/verybig.lua        6
 };
