@@ -215,22 +215,47 @@ lexeme default = action => [ name, value ] latm => 1
 
 #   Comment
     Comment ~ <short comment>
-    Comment ~ <long comment>
+    Comment ~ <long nestable comment>
+    Comment ~ <long unnestable comment>
 
+
+# ===>============ cut here after external lexer is implemented =====>======
 # Tokens
 # ======
 # Lexeme name are shown in comments before their token groups
 # External lexing starts here
+# tokens sorted longest possible to shortest possible
+
+#   long comment ([[string]]) does not allow nesting. -- refman 7.1
+    <long nestable comment> ~ <comment start> <long nestable string>
+    <long unnestable comment> ~ <comment start> <long unnestable string>
+
+#   strings -- long string, double and single quoted, with escaping
+    <long nestable string> ~ '[=[' <long nestable string characters> ']=]'
+    <long nestable string> ~ '[==[' <long nestable string characters> ']==]'
+    <long nestable string> ~ '[===[' <long nestable string characters> ']===]'
+    <long nestable string> ~ '[====[' <long nestable string characters> ']====]'
+    <long nestable string characters> ~ <long nestable string character>*
+    <long nestable string character> ~ [^\]]
+#   unnestable
+    <long unnestable string> ~ '[[' <long unnestable string characters> ']]'
+    <long unnestable string characters> ~ <long unnestable string character>
+    <long unnestable string character> ~ [^\]]*
+
+    <double quoted string> ~ <double quote> <double quoted string chars> <double quote>
+    <double quoted string chars> ~ <double quoted string char>*
+    <double quoted string char> ~ [^"] | '\"' | '\\' # "
+
+    <single quoted string> ~ <single quote> <single quoted string chars> <single quote>
+    <single quoted string chars> ~ <single quoted string char>*
+    <single quoted string char> ~ [^'] | '\' ['] | '\\' #'
+
+    <double quote> ~ '"'
+    <single quote> ~ ['] #'
 
 #   Comment
     <short comment> ~ <comment start> <short comment chars>
     <short comment chars> ~ [^\n]*
-
-#   The long string/long comment syntax ([[string]]) does not allow nesting. -- refman 7.1
-    <long comment> ~ <long unnestable comment>
-    <long comment> ~ <long nestable comment>
-    <long unnestable comment> ~ <comment start> <long unnestable string>
-    <long nestable comment> ~ <comment start> <long nestable string>
 
 #   Name
     <name> ~ [a-zA-Z_] <Name chars>
@@ -238,6 +263,7 @@ lexeme default = action => [ name, value ] latm => 1
 
 #   Number
     int   ~ [\d]+
+    hex ~ '0x' [A-Fa-f0-9] [A-Fa-f0-9]
     float ~ <integer part> [\.]
     float ~ <integer part> <fractional part>
     float ~ <fractional part>
@@ -254,32 +280,6 @@ lexeme default = action => [ name, value ] latm => 1
     <fractional part>   ~ [\.] int
     <plus or minus>     ~ [+-]
     <exponent>          ~ [eE]
-
-    hex ~ '0x' [A-Fa-f0-9] [A-Fa-f0-9]
-
-#   String -- long, double and single quoted, with escaping
-    <long unnestable string> ~ '[[' <long unnestable string characters> ']]'
-    <long unnestable string characters> ~ <long unnestable string character>
-    <long unnestable string character> ~ [^\]]*
-
-#   this is not really nestable; nesting will be handled by external lexing
-    <long nestable string> ~ '[=[' <long nestable string characters> ']=]'
-    <long nestable string> ~ '[==[' <long nestable string characters> ']==]'
-    <long nestable string> ~ '[===[' <long nestable string characters> ']===]'
-    <long nestable string> ~ '[====[' <long nestable string characters> ']====]'
-    <long nestable string characters> ~ <long nestable string character>*
-    <long nestable string character> ~ [^\]]
-
-    <double quoted string> ~ <double quote> <double quoted string chars> <double quote>
-    <double quoted string chars> ~ <double quoted string char>*
-    <double quoted string char> ~ [^"] | '\"' | '\\' # "
-
-    <single quoted string> ~ <single quote> <single quoted string chars> <single quote>
-    <single quoted string chars> ~ <single quoted string char>*
-    <single quoted string char> ~ [^'] | '\' ['] | '\\' #'
-
-    <double quote> ~ '"'
-    <single quote> ~ ['] #'
 
 # keywords
     <break>     ~ 'break'
