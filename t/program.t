@@ -62,7 +62,7 @@ my $run_lua_test = 'run_lua_test.sh';
 # prepend t if running under prove
 $run_lua_test = 't/' . $run_lua_test unless $pwd =~ m{ /t$ }x;
 
-# this silences "Deep recursion warning ... on tokens()"
+# this is used below to silence "Deep recursion warning ... on tokens()"
 # todo: check if the recursion is really deep
 my $DOWARN;
 BEGIN { $SIG{'__WARN__'} = sub { warn $_[0] if $DOWARN } }
@@ -98,7 +98,9 @@ LUA_FILE:
         }
 
         # serialize ast to tokens and write to temporary file
+$DOWARN = 0;
         my $tokens = $p->tokens($ast);
+$DOWARN = 1;
         my $lua_file = whip_up_lua_file( $tokens );
 
         # run lua file
