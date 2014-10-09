@@ -42,20 +42,20 @@ my %lua_files = qw{
     lua5.1-tests/code.lua           1
     lua5.1-tests/constructs.lua     1
     lua5.1-tests/db.lua             1
-    lua5.1-tests/errors.lua         6
+    lua5.1-tests/errors.lua         1
     lua5.1-tests/events.lua         1
     lua5.1-tests/files.lua          4
     lua5.1-tests/gc.lua             1
-    lua5.1-tests/literals.lua       6
+    lua5.1-tests/literals.lua       1
     lua5.1-tests/locals.lua         1
-    lua5.1-tests/main.lua           6
+    lua5.1-tests/main.lua           1
     lua5.1-tests/math.lua           1
     lua5.1-tests/nextvar.lua        1
     lua5.1-tests/pm.lua             1
     lua5.1-tests/sort.lua           4
-    lua5.1-tests/strings.lua        6
-    lua5.1-tests/vararg.lua         6
-    lua5.1-tests/verybig.lua        6
+    lua5.1-tests/strings.lua        1
+    lua5.1-tests/vararg.lua         1
+    lua5.1-tests/verybig.lua        1
 };
 
 # shell script run lua interpreter on ast serialized to tokens

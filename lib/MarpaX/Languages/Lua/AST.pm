@@ -175,9 +175,6 @@ lexeme default = action => [ name, value ] latm => 1
     field ::= Name <assignment> exp
     field ::= exp
 
-# G1 Lexemes
-# ==========
-
 #   binary operators
     binop ::= <addition>
     binop ::= <minus>
@@ -200,74 +197,56 @@ lexeme default = action => [ name, value ] latm => 1
     unop ::= <not>
     unop ::= <length>
 
-#   numbers todo: more realistic numbers
-    Number ::= int
-    Number ::= float
-    Number ::= hex
-
-#   identifier
-    Name ::= <name>
-
-#   String
-#    String ::= <single quoted string>
-#    String ::= <double quoted string>
-#    String ::= <long unnestable string>
-#    String ::= <long nestable string>
-
+#   unicorns
     String ~ unicorn
-    <greater or equal> ~ unicorn
-    <percent> ~ unicorn
-#    <double quoted string> ~ unicorn
-#    <single quoted string> ~ unicorn
-    <not> ~ unicorn
-    <less or equal> ~ unicorn
-    <name> ~ unicorn
-    <and> ~ unicorn
-    <int> ~ unicorn
-    <division> ~ unicorn
-    <float> ~ unicorn
-#    <long unnestable string> ~ unicorn
-    <length> ~ unicorn
-    <or> ~ unicorn
-    <exponentiation> ~ unicorn
-    <greater than> ~ unicorn
-    <multiplication> ~ unicorn
+    Number ~ unicorn
+    Name ~ unicorn
+
     <addition> ~ unicorn
-    <less than> ~ unicorn
-    <hex> ~ unicorn
-#    <long nestable string> ~ unicorn
-    <equality> ~ unicorn
-    <concatenation> ~ unicorn
-    <minus> ~ unicorn
-    <negation> ~ unicorn
-    <semicolon> ~ unicorn
-    <if> ~ unicorn
-    <break> ~ unicorn
-    <period> ~ unicorn
-    <comma> ~ unicorn
-    <colon> ~ unicorn
-    <repeat> ~ unicorn
-    <function> ~ unicorn
-    <left curly> ~ unicorn
-    <do> ~ unicorn
-    <true> ~ unicorn
-    <local> ~ unicorn
-    <left bracket> ~ unicorn
-    <then> ~ unicorn
-    <ellipsis> ~ unicorn
-    <false> ~ unicorn
-    <in> ~ unicorn
-    <nil> ~ unicorn
+    <and> ~ unicorn
     <assignment> ~ unicorn
-    <for> ~ unicorn
+    <break> ~ unicorn
+    <colon> ~ unicorn
+    <comma> ~ unicorn
+    <concatenation> ~ unicorn
+    <division> ~ unicorn
+    <do> ~ unicorn
+    <ellipsis> ~ unicorn
     <else> ~ unicorn
-    <right bracket> ~ unicorn
-    <left paren> ~ unicorn
-    <end> ~ unicorn
-    <right curly> ~ unicorn
     <elseif> ~ unicorn
-    <right paren> ~ unicorn
+    <end> ~ unicorn
+    <equality> ~ unicorn
+    <exponentiation> ~ unicorn
+    <false> ~ unicorn
+    <for> ~ unicorn
+    <function> ~ unicorn
+    <greater or equal> ~ unicorn
+    <greater than> ~ unicorn
+    <if> ~ unicorn
+    <in> ~ unicorn
+    <left bracket> ~ unicorn
+    <left curly> ~ unicorn
+    <left paren> ~ unicorn
+    <length> ~ unicorn
+    <less or equal> ~ unicorn
+    <less than> ~ unicorn
+    <local> ~ unicorn
+    <minus> ~ unicorn
+    <multiplication> ~ unicorn
+    <negation> ~ unicorn
+    <nil> ~ unicorn
+    <not> ~ unicorn
+    <or> ~ unicorn
+    <percent> ~ unicorn
+    <period> ~ unicorn
+    <repeat> ~ unicorn
     <return> ~ unicorn
+    <right bracket> ~ unicorn
+    <right curly> ~ unicorn
+    <right paren> ~ unicorn
+    <semicolon> ~ unicorn
+    <then> ~ unicorn
+    <true> ~ unicorn
     <until> ~ unicorn
     <while> ~ unicorn
 
@@ -276,188 +255,20 @@ lexeme default = action => [ name, value ] latm => 1
 END_OF_SOURCE
         }
     );
-
-my $tokens = q{
-# ===>============ cut here after external lexer is implemented =====>======
-# Tokens
-# ======
-# Lexeme name are shown in comments before their token groups
-# External lexing starts here
-# tokens sorted longest possible to shortest possible
-
-#   long nestable comment/string
-    <long nestable comment> ~ <comment start> <long nestable string>
-
-#   strings -- long string, double and single quoted, with escaping
-    <long nestable string> ~ '[=[' <long nestable string characters> ']=]'
-    <long nestable string> ~ '[==[' <long nestable string characters> ']==]'
-    <long nestable string> ~ '[===[' <long nestable string characters> ']===]'
-    <long nestable string> ~ '[====[' <long nestable string characters> ']====]'
-    <long nestable string characters> ~ <long nestable string character>*
-    <long nestable string character> ~ [^\]]
-
-#   long unnestable comment/string
-    <long unnestable comment> ~ <comment start> <long unnestable string>
-
-    <long unnestable string> ~ '[[' <long unnestable string characters> ']]'
-    <long unnestable string characters> ~ <long unnestable string character>
-    <long unnestable string character> ~ [^\]]*
-
-#   double and single quoted
-    <double quoted string> ~ <double quote> <double quoted string chars> <double quote>
-    <double quoted string chars> ~ <double quoted string char>*
-    <double quoted string char> ~ [^"] | '\"' | '\\' # "
-
-    <single quoted string> ~ <single quote> <single quoted string chars> <single quote>
-    <single quoted string chars> ~ <single quoted string char>*
-    <single quoted string char> ~ [^'] | '\' ['] | '\\' #'
-
-    <double quote> ~ '"'
-    <single quote> ~ ['] #'
-
-#   short comments
-    <short comment> ~ <comment start> <short comment chars>
-    <short comment chars> ~ [^\n]*
-
-#   Name
-    <name> ~ [a-zA-Z_] <Name chars>
-    <Name chars> ~ [\w]*
-
-# keywords
-    <break>     ~ 'break'
-    <do>        ~ 'do'
-    <else>      ~ 'else'
-    <elseif>    ~ 'elseif'
-    <end>       ~ 'end'
-    <false>     ~ 'false'
-    <for>       ~ 'for'
-    <function>  ~ 'function'
-    <if>        ~ 'if'
-    <in>        ~ 'in'
-    <local>     ~ 'local'
-    <nil>       ~ 'nil'
-    <repeat>    ~ 'repeat'
-    <return>    ~ 'return'
-    <then>      ~ 'then'
-    <true>      ~ 'true'
-    <until>     ~ 'until'
-    <while>     ~ 'while'
-
-#   Number
-    int   ~ [\d]+
-    hex ~ '0x' [A-Fa-f0-9] [A-Fa-f0-9]
-    float ~ <integer part> [\.]
-    float ~ <integer part> <fractional part>
-    float ~ <fractional part>
-#   We can write numeric constants with an optional decimal part,
-#   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
-    float ~ <fractional part> <exponent> <plus or minus> int
-    float ~ <integer part> <fractional part> <exponent> <plus or minus> int
-    float ~ <integer part> <exponent> <plus or minus> int
-    float ~ <integer part> <fractional part> <exponent> int
-    float ~ <fractional part> <exponent> int
-    float ~ <integer part> <exponent> int
-
-    <integer part>      ~ int
-    <fractional part>   ~ [\.] int
-    <plus or minus>     ~ [+-]
-    <exponent>          ~ [eE]
-
-# operators from lower to higher priority as per refman 2.5.6
-
-    <or>                ~ 'or'
-    <and>               ~ 'and'
-    <less than>         ~ '<'
-    <less or equal>     ~ '<='
-    <greater than>      ~ '>'
-    <greater or equal>  ~ '>='
-    <negation>          ~ '~='
-    <equality>          ~ '=='
-    <concatenation>     ~ '..'
-    <addition>          ~ '+'
-    <minus>             ~ '-'
-    <multiplication>    ~ '*'
-    <division>          ~ '/'
-    <percent>           ~ '%'
-    <not>               ~ 'not'
-    <length>            ~ '#'
-    <exponentiation>    ~ '^'
-
-#   punctuation
-    <colon>             ~ ':'
-    <left bracket>      ~ '['
-    <right bracket>     ~ ']'
-    <ellipsis>          ~ '...'
-    <left paren>        ~ '('
-    <right paren>       ~ ')'
-    <left curly>        ~ '{'
-    <right curly>       ~ '}'
-    <comment start>     ~ '--'
-    <assignment>        ~ '='
-    <semicolon>         ~ ';'
-    <comma>             ~ ','
-    <period>            ~ '.'
-
-:discard ~ Comment
-:discard ~ whitespace
-whitespace ~ [\s]+
-};
-
-#   show L0 rules
-#    warn $parser->{grammar}->show_symbols(1, 'L0');
     return $parser;
 }
 
-sub read{
-    my ($self, $recce, $string) = @_;
-
 my @terminals = (
-#    [ Number   => qr/\d+/xms,    "Number" ],
-#    [ 'op pow' => qr/[\^]/xms,   'Exponentiation operator' ],
-#    [ 'op pow' => qr/[*][*]/xms, 'Exponentiation' ],          # order matters!
-#    [ 'op times' => qr/[*]/xms, 'Multiplication operator' ],  # order matters!
-#    [ 'op divide'   => qr/[\/]/xms, 'Division operator' ],
-#    [ 'op add'      => qr/[+]/xms,  'Addition operator' ],
-#    [ 'op subtract' => qr/[-]/xms,  'Subtraction operator' ],
-#    [ 'op lparen'   => qr/[(]/xms,  'Left parenthesis' ],
-#    [ 'op rparen'   => qr/[)]/xms,  'Right parenthesis' ],
-#    [ 'op comma'    => qr/[,]/xms,  'Comma operator' ],
 
-#   long nestable comment/string
-#    <long nestable comment> ~ <comment start> <long nestable string>
-    [ 'long nestable comment' => qr/--\[(=*)\[.*?\]\1\]/xms, "long nestable comment" ],
+    [ 'Comment' => qr/--\[(=*)\[.*?\]\1\]/xms,  "long nestable comment" ],
+    [ 'Comment' => qr/--\[\[.*?\]\]/xms,        "long unnestable comment" ],
+    [ 'Comment' => qr/--[^\n]*\n/xms,           "short comment" ],
 
-#   strings -- long string, double and single quoted, _with escaping_
-    [ 'String' => qr/\[(=*)\[.*?\]\1\]/xms, "long nestable string" ],
-#    <long nestable string> ~ '[==[' <long nestable string characters> ']==]'
-#    <long nestable string> ~ '[===[' <long nestable string characters> ']===]'
-#    <long nestable string> ~ '[====[' <long nestable string characters> ']====]'
-#    <long nestable string characters> ~ <long nestable string character>*
-#    <long nestable string character> ~ [^\]]
+    [ 'String' => qr/\[(=*)\[.*?\]\1\]/xms,     "long nestable string" ],
+    [ 'String' => qr/\[\[.*?\]\]/xms,           "long unnestable string" ],
 
-#   long unnestable comment/string
-#    <long unnestable comment> ~ <comment start> <long unnestable string>
-    [ 'long unnestable comment' => qr/--\[\[.*?\]\]/xms, "long unnestable comment" ],
-
-#    <long unnestable string> ~ '[[' <long unnestable string characters> ']]'
-    [ 'String' => qr/\[\[.*?\]\]/xms, "long unnestable string" ],
-#    <long unnestable string characters> ~ <long unnestable string character>
-#    <long unnestable string character> ~ [^\]]*
-
-#   double and single quoted
-    [ 'String' => qr/"(?>(?:(?>[^"\\]+)|\\.)*)"/xms, "double quoted string" ], #"
-#    <double quoted string chars> ~ <double quoted string char>*
-#    <double quoted string char> ~ [^"] | '\"' | '\\' # "
-
-    [ 'String' => qr/'(?>(?:(?>[^'\\]+)|\\.)*)'/xms, "single quoted string" ], #'
-#    <single quoted string chars> ~ <single quoted string char>*
-#    <single quoted string char> ~ [^'] | '\' ['] | '\\' #'
-
-#    <double quote> ~ '"'
-#    <single quote> ~ ['] #'
-
-#   short comments
-    [ 'Comment' => qr/--[^\n]*\n/xms, "Comment" ],
+    [ 'String' => qr/(?<!\\)"((?:\\"|[^"])*)(?<!\\)"/xms, "double quoted string" ], #"
+    [ 'String' => qr/(?<!\\)'((?:\\'|[^'])*)(?<!\\)'/xms, "single quoted string" ], #'
 
 # keywords
     [ 'break'       => qr/\bbreak\b/xms,    "break"     ],
@@ -479,67 +290,57 @@ my @terminals = (
     [ 'until'       => qr/\buntil\b/xms,    "until"     ],
     [ 'while'       => qr/\bwhile\b/xms,    "while"     ],
 
+    [ 'not'                 => qr/\bnot\b/xms,  "not"   ],
+    [ 'or'                  => qr/\bor\b/xms,   "or"    ],
+    [ 'and'                 => qr/\band\b/xms,  "and"   ],
+
 #   Name
-    [ 'name'        => qr/\b[a-zA-Z_][\w]*\b/xms, "name" ],
+    [ 'Name'        => qr/\b[a-zA-Z_][\w]*\b/xms, "Name" ],
 
 #   Number
-    [ 'int' => qr/[\d]+/xms, "Integer number" ],
-    [ 'hex' => qr/0[x][0-9a-fA-F]+/xms, "Hexadecimal number" ],
 #   We can write numeric constants with an optional decimal part,
 #   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
 #   todo: check if this is ensured
-    [ 'float' => qr/[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?/xms, "Floating-point number" ],
+    [ 'Number' => qr/[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?/xms, "Floating-point number" ],
+    [ 'Number' => qr/0[x][0-9a-fA-F]+/xms, "Hexadecimal number" ],
+    [ 'Number' => qr/[\d]+/xms, "Integer number" ],
 
-#    float ~ <integer part> <fractional part>
-#    float ~ <fractional part>
-#    float ~ <fractional part> <exponent> <plus or minus> int
-#    float ~ <integer part> <fractional part> <exponent> <plus or minus> int
-#    float ~ <integer part> <exponent> <plus or minus> int
-#    float ~ <integer part> <fractional part> <exponent> int
-#    float ~ <fractional part> <exponent> int
-#    float ~ <integer part> <exponent> int
+#   operators
 
-#    <integer part>      ~ int
-#    <fractional part>   ~ [\.] int
-#    <plus or minus>     ~ [+-]
-#    <exponent>          ~ [eE]
+    [ 'ellipsis'            => qr/\.\.\./xms,   "ellipsis"          ],
 
-# operators from lower to higher priority as per refman 2.5.6
-
-    [ 'or'                  => qr/\bor\b/xms,   "or"    ],
-    [ 'and'                 => qr/\band\b/xms,  "and"   ],
-    [ 'less than'           => qr/</xms,        ""      ],
-    [ 'less or equal'       => qr/<=/xms,       ""      ],
-    [ 'greater than'        => qr/>/xms,        ""      ],
-    [ 'greater or equal'    => qr/>=/xms,       ""      ],
-    [ 'negation'            => qr/~=/xms,       ""      ],
-    [ 'equality'            => qr/==/xms,       ""      ],
-    [ 'concatenation'       => qr/\.\./xms,       ""      ],
-    [ 'addition'            => qr/\+/xms,        ""      ],
-    [ 'minus'               => qr/-/xms,        ""      ],
-    [ 'multiplication'      => qr/\*/xms,        ""      ],
-    [ 'division'            => qr/\//xms,       ""      ],
-    [ 'percent'             => qr/%/xms,        ""      ],
-    [ 'not'                 => qr/\bnot\b/xms,      ""      ],
-    [ 'length'              => qr/\#/xms,        ""      ],
-    [ 'exponentiation'      => qr/\^/xms,        ""      ],
+    [ 'less or equal'       => qr/<=/xms,       "less or equal"     ],
+    [ 'greater or equal'    => qr/>=/xms,       "greater or equal"  ],
+    [ 'negation'            => qr/~=/xms,       "negation"          ],
+    [ 'equality'            => qr/==/xms,       "equality"          ],
+    [ 'concatenation'       => qr/\.\./xms,     "concatenation"     ],
+    [ 'less than'           => qr/</xms,        "less than"         ],
+    [ 'greater than'        => qr/>/xms,        "greater than"      ],
+    [ 'addition'            => qr/\+/xms,       "addition"          ],
+    [ 'minus'               => qr/-/xms,        "minus"             ],
+    [ 'multiplication'      => qr/\*/xms,       "multiplication"    ],
+    [ 'division'            => qr/\//xms,       "division"          ],
+    [ 'percent'             => qr/%/xms,        "percent"           ],
+    [ 'length'              => qr/\#/xms,       "length"            ],
+    [ 'exponentiation'      => qr/\^/xms,       "exponentiation"    ],
 
 #   punctuation
-    [ 'colon'               => qr/:/xms,        ""      ],
-    [ 'left bracket'        => qr/\[/xms,        ""      ],
-    [ 'right bracket'       => qr/\]/xms,        ""      ],
-    [ 'ellipsis'            => qr/\.\.\./xms,      ""      ],
-    [ 'left paren'          => qr/\(/xms,        ""      ],
-    [ 'right paren'         => qr/\)/xms,        ""      ],
-    [ 'left curly'          => qr/\{/xms,        ""      ],
-    [ 'right curly'         => qr/\}/xms,        ""      ],
-#    [ 'comment start'  => qr/--/xms,   ""    ],
-    [ 'assignment'          => qr/=/xms,        ""      ],
-    [ 'semicolon'           => qr/;/xms,        ""      ],
-    [ 'comma'               => qr/,/xms,        ""      ],
-    [ 'period'              => qr/\./xms,       ""      ],
+    [ 'colon'               => qr/:/xms,        "colon"             ],
+    [ 'left bracket'        => qr/\[/xms,       "left bracket"      ],
+    [ 'right bracket'       => qr/\]/xms,       "right bracket"     ],
+    [ 'left paren'          => qr/\(/xms,       "left paren"        ],
+    [ 'right paren'         => qr/\)/xms,       "right paren"       ],
+    [ 'left curly'          => qr/\{/xms,       "left curly"        ],
+    [ 'right curly'         => qr/\}/xms,       "right curly"       ],
+    [ 'assignment'          => qr/=/xms,        "assignment"        ],
+    [ 'semicolon'           => qr/;/xms,        "semicolon"         ],
+    [ 'comma'               => qr/,/xms,        "comma"             ],
+    [ 'period'              => qr/\./xms,       "period"            ],
 
 );
+
+sub read{
+    my ($self, $recce, $string) = @_;
 
     $recce->read( \$string, 0, 0 );
 
@@ -554,7 +355,7 @@ my @terminals = (
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
 
-            warn "$token_name, <$lexeme>";
+#            warn "$token_name, <$lexeme>";
 
             next TOKEN if $token_name =~ /comment/i; # skip comments
 
