@@ -273,8 +273,8 @@ my @terminals = (
     [ 'String' => qr/\[===\[.*?\]===\]/xms,         "long nestable string" ],
     [ 'String' => qr/\[(={3,})\[.*?\]\1\]/xms,     "long nestable string" ],
 
-    [ 'String' => qr/(?<!\\)"((?:\\"|[^"])*)(?<!\\)"/xms, "double quoted string" ], #"
-    [ 'String' => qr/(?<!\\)'((?:\\'|[^'])*)(?<!\\)'/xms, "single quoted string" ], #'
+    [ 'String' => qr/(?<!\\)"(?:\\"|[^"])*(?<!\\)"/xms, "double quoted string" ], #"
+    [ 'String' => qr/(?<!\\)'(?:\\'|[^'])*(?<!\\)'/xms, "single quoted string" ], #'
 
 # keywords
     [ 'break'       => qr/\bbreak\b/xms,    "break"     ],
