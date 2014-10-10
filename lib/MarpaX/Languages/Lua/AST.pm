@@ -371,6 +371,10 @@ my @terminals = (
 sub read{
     my ($self, $recce, $string) = @_;
 
+    # strip 'special comment on the first line'
+    # todo: filter should preserve this
+    $string =~ s{^#.*\n}{};
+
     $recce->read( \$string, 0, 0 );
 
     my $length = length $string;

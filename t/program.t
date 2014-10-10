@@ -63,6 +63,11 @@ my $run_lua_test = 'run_lua_test.sh';
 # prepend t if running under prove
 $run_lua_test = 't/' . $run_lua_test unless $pwd =~ m{ /t$ }x;
 
+# this is used below to silence "Deep recursion warning ... on tokens()"
+# todo: check if the recursion is really deep
+my $DOWARN = 1;
+BEGIN { $SIG{'__WARN__'} = sub { warn $_[0] if $DOWARN } }
+
 LUA_FILE:
     for my $lua_fn (sort keys %lua_files){
 
