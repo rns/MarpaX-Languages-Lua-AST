@@ -327,7 +327,6 @@ my @terminals = (
 #   Number
 #   We can write numeric constants with an optional decimal part,
 #   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
-#   todo: check if this is ensured
     [ 'Number' => qr/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/xms, "Floating-point number" ],
     [ 'Number' => qr/[0-9]+[eE][-+]?[0-9]+/xms, "Floating-point number" ],
     [ 'Number' => qr/[0-9]+\./xms, "Floating-point number" ],
