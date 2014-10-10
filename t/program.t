@@ -12,23 +12,20 @@ use warnings;
 use strict;
 
 use Test::More;
-use Test::Output;
 
 use File::Temp qw{ tempfile };
+use Cwd qw();
 
 use MarpaX::Languages::Lua::AST;
 
 my $p = MarpaX::Languages::Lua::AST->new;
 
-use Cwd qw();
-my $pwd = Cwd::cwd();
 
 #   file name                       flags:  1 default: do nothing
 #                                           2 reparse with diagnostics
 #                                           3 reparse and show ast
-#                                           4 test with like()
+#                                           4 test stdout with like()
 #                                           5 stderr is expected -- test stdout anyway
-#                                           6 strings issue -- will parse with external lexing
 my %lua_files = qw{
 
     lua-tests/coroutine.lua         1
@@ -58,6 +55,9 @@ my %lua_files = qw{
     lua5.1-tests/verybig.lua        1
 };
 
+# current dir
+my $pwd = Cwd::cwd();
+
 # shell script run lua interpreter on ast serialized to tokens
 my $run_lua_test = 'run_lua_test.sh';
 # prepend t if running under prove
@@ -74,18 +74,11 @@ LUA_FILE:
         # get flags
         my $flag = $lua_files{$lua_fn};
 
-SKIP: {
-        skip "$lua_fn strings issue -- will parse with external lexing", 1 if $flag == 6;
-
         # prepend t if running under prove
         $lua_fn = 't/' . $lua_fn unless $pwd =~ m{ /t$ }x;
 
         # As an example, consider the following code:
         my $lua_slurp = slurp_file( $lua_fn );
-
-        # strip 'special comment on the first line'
-        # todo: do it with external lexing
-        $lua_slurp =~ s{^#.*\n}{};
 
         # When you run it, it produces the following output:
         my $expected_stdout = slurp_file( qq{$lua_fn.out} );
@@ -146,7 +139,6 @@ $DOWARN = 1;
             }
         }
         is $stdout, $expected_stdout, $lua_fn;
-} # SKIP
     } ## for my $lua_fn (@lua_files){
 
 sub slurp_file{
