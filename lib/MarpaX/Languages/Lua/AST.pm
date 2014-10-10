@@ -260,12 +260,12 @@ END_OF_SOURCE
 
 my @terminals = (
 
-    [ 'Comment' => qr/--\[(={4,})\[.*?\]\1\]/oxms,   "long nestable comment" ],
-    [ 'Comment' => qr/--\[===\[.*?\]===\]/oxms,      "long nestable comment" ],
-    [ 'Comment' => qr/--\[==\[.*?\]==\]/oxms,        "long nestable comment" ],
-    [ 'Comment' => qr/--\[=\[.*?\]=\]/oxms,          "long nestable comment" ],
-    [ 'Comment' => qr/--\[\[.*?\]\]/oxms,            "long unnestable comment" ],
-    [ 'Comment' => qr/--[^\n]*\n/oxms,               "short comment" ],
+    [ 'Comment' => qr/--\[(={4,})\[.*?\]\1\]/xms,   "long nestable comment" ],
+    [ 'Comment' => qr/--\[===\[.*?\]===\]/xms,      "long nestable comment" ],
+    [ 'Comment' => qr/--\[==\[.*?\]==\]/xms,        "long nestable comment" ],
+    [ 'Comment' => qr/--\[=\[.*?\]=\]/xms,          "long nestable comment" ],
+    [ 'Comment' => qr/--\[\[.*?\]\]/xms,            "long unnestable comment" ],
+    [ 'Comment' => qr/--[^\n]*\n/xms,               "short comment" ],
 
 # 2.1 – Lexical Conventions, refman
 # Literal strings can be delimited by matching single or double quotes, and can contain the
@@ -282,68 +282,67 @@ my @terminals = (
         /'(
             \\(a|b|f|n|r|t|v|"|'|\\) | [^']
            )*
-         '/oxms, "single quoted string" ],
+         '/xms, "single quoted string" ],
 
     [ 'String' => qr
         /"(
             \\(a|b|f|n|r|t|v|"|'|\\) | [^"]
            )*
-         "/oxms, "double quoted string" ],
+         "/xms, "double quoted string" ],
 #'
-    [ 'String' => qr/\[\[.*?\]\]/oxms,           "long unnestable string" ],
-    [ 'String' => qr/\[=\[.*?\]=\]/oxms,         "long nestable string" ],
-    [ 'String' => qr/\[==\[.*?\]==\]/oxms,         "long nestable string" ],
-    [ 'String' => qr/\[===\[.*?\]===\]/oxms,         "long nestable string" ],
-    [ 'String' => qr/\[====\[.*?\]====\]/oxms,         "long nestable string" ],
-    [ 'String' => qr/\[(={5,})\[.*?\]\1\]/oxms,     "long nestable string" ],
+    [ 'String' => qr/\[\[.*?\]\]/xms,           "long unnestable string" ],
+    [ 'String' => qr/\[=\[.*?\]=\]/xms,         "long nestable string" ],
+    [ 'String' => qr/\[==\[.*?\]==\]/xms,         "long nestable string" ],
+    [ 'String' => qr/\[===\[.*?\]===\]/xms,         "long nestable string" ],
+    [ 'String' => qr/\[====\[.*?\]====\]/xms,         "long nestable string" ],
+    [ 'String' => qr/\[(={5,})\[.*?\]\1\]/xms,     "long nestable string" ],
 
-# keywords
-#   group matching
+#   keywords -- group matching
     [
         { map { $_ => $_ } qw { break do else elseif end false
             for function if in local nil repeat return then true
             until while not or and } },
         qr/\bbreak\b|\bdo\b|\belse\b|\belseif\b|\bend\b|\bfalse\b|\bfor\b|
         \bfunction\b|\bif\b|\bin\b|\blocal\b|\bnil\b|\brepeat\b|\breturn\b|
-        \bthen\b|\btrue\b|\buntil\b|\bwhile\b|\bnot\b|\bor\b|\band\b/oxms,
+        \bthen\b|\btrue\b|\buntil\b|\bwhile\b|\bnot\b|\bor\b|\band\b/xms,
         undef
     ],
 
-#    [ 'break'       => qr/\bbreak\b/oxms,    "break"     ],
-#    [ 'do'          => qr/\bdo\b/oxms,       "do"        ],
-#    [ 'else'        => qr/\belse\b/oxms,     "else"      ],
-#    [ 'elseif'      => qr/\belseif\b/oxms,   "elseif"    ],
-#    [ 'end'         => qr/\bend\b/oxms,      "end"       ],
-#    [ 'false'       => qr/\bfalse\b/oxms,    "false"     ],
-#    [ 'for'         => qr/\bfor\b/oxms,      "for"       ],
-#    [ 'function'    => qr/\bfunction\b/oxms, "function"  ],
-#    [ 'if'          => qr/\bif\b/oxms,       "if"        ],
-#    [ 'in'          => qr/\bin\b/oxms,       "in"        ],
-#    [ 'local'       => qr/\blocal\b/oxms,    "local"     ],
-#    [ 'nil'         => qr/\bnil\b/oxms,      "nil"       ],
-#    [ 'repeat'      => qr/\brepeat\b/oxms,   "repeat"    ],
-#    [ 'return'      => qr/\breturn\b/oxms,   "return"    ],
-#    [ 'then'        => qr/\bthen\b/oxms,     "then"      ],
-#    [ 'true'        => qr/\btrue\b/oxms,     "true"      ],
-#    [ 'until'       => qr/\buntil\b/oxms,    "until"     ],
-#    [ 'while'       => qr/\bwhile\b/oxms,    "while"     ],
+#    [ 'break'       => qr/\bbreak\b/xms,    "break"     ],
+#    [ 'do'          => qr/\bdo\b/xms,       "do"        ],
+#    [ 'else'        => qr/\belse\b/xms,     "else"      ],
+#    [ 'elseif'      => qr/\belseif\b/xms,   "elseif"    ],
+#    [ 'end'         => qr/\bend\b/xms,      "end"       ],
+#    [ 'false'       => qr/\bfalse\b/xms,    "false"     ],
+#    [ 'for'         => qr/\bfor\b/xms,      "for"       ],
+#    [ 'function'    => qr/\bfunction\b/xms, "function"  ],
+#    [ 'if'          => qr/\bif\b/xms,       "if"        ],
+#    [ 'in'          => qr/\bin\b/xms,       "in"        ],
+#    [ 'local'       => qr/\blocal\b/xms,    "local"     ],
+#    [ 'nil'         => qr/\bnil\b/xms,      "nil"       ],
+#    [ 'repeat'      => qr/\brepeat\b/xms,   "repeat"    ],
+#    [ 'return'      => qr/\breturn\b/xms,   "return"    ],
+#    [ 'then'        => qr/\bthen\b/xms,     "then"      ],
+#    [ 'true'        => qr/\btrue\b/xms,     "true"      ],
+#    [ 'until'       => qr/\buntil\b/xms,    "until"     ],
+#    [ 'while'       => qr/\bwhile\b/xms,    "while"     ],
 
-#    [ 'not'                 => qr/\bnot\b/oxms,  "not"   ],
-#    [ 'or'                  => qr/\bor\b/oxms,   "or"    ],
-#    [ 'and'                 => qr/\band\b/oxms,  "and"   ],
+#    [ 'not'                 => qr/\bnot\b/xms,  "not"   ],
+#    [ 'or'                  => qr/\bor\b/xms,   "or"    ],
+#    [ 'and'                 => qr/\band\b/xms,  "and"   ],
 
 #   Name
-    [ 'Name'        => qr/\b[a-zA-Z_][\w]*\b/oxms, "Name" ],
+    [ 'Name'        => qr/\b[a-zA-Z_][\w]*\b/xms, "Name" ],
 
 #   Number
 #   We can write numeric constants with an optional decimal part,
 #   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
-    [ 'Number' => qr/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/oxms, "Floating-point number" ],
-    [ 'Number' => qr/[0-9]+[eE][-+]?[0-9]+/oxms, "Floating-point number" ],
-    [ 'Number' => qr/[0-9]+\./oxms, "Floating-point number" ],
-    [ 'Number' => qr/\.[0-9]+/oxms, "Floating-point number" ],
-    [ 'Number' => qr/0x[0-9a-fA-F]+/oxms, "Hexadecimal number" ],
-    [ 'Number' => qr/[\d]+/oxms, "Integer number" ],
+    [ 'Number' => qr/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/xms, "Floating-point number" ],
+    [ 'Number' => qr/[0-9]+[eE][-+]?[0-9]+/xms, "Floating-point number" ],
+    [ 'Number' => qr/[0-9]+\./xms, "Floating-point number" ],
+    [ 'Number' => qr/\.[0-9]+/xms, "Floating-point number" ],
+    [ 'Number' => qr/0x[0-9a-fA-F]+/xms, "Hexadecimal number" ],
+    [ 'Number' => qr/[\d]+/xms, "Integer number" ],
 
 #   group matching: operators and punctuation
     [
@@ -367,40 +366,40 @@ my @terminals = (
         },
         qr/
             \.\.\.|<=|>=|~=|==|\.\.|<|>|\+|-|\*|\/|%|\#|\^|:|\[|\]|\(|\)|\{|\}|=|;|,|\.
-        /oxms,
+        /xms,
         undef
     ],
 
 #   operators
-#    [ 'ellipsis'            => qr/\.\.\./oxms,   "ellipsis"          ],
+#    [ 'ellipsis'            => qr/\.\.\./xms,   "ellipsis"          ],
 
-#    [ 'less or equal'       => qr/<=/oxms,       "less or equal"     ],
-#    [ 'greater or equal'    => qr/>=/oxms,       "greater or equal"  ],
-#    [ 'negation'            => qr/~=/oxms,       "negation"          ],
-#    [ 'equality'            => qr/==/oxms,       "equality"          ],
-#    [ 'concatenation'       => qr/\.\./oxms,     "concatenation"     ],
-#    [ 'less than'           => qr/</oxms,        "less than"         ],
-#    [ 'greater than'        => qr/>/oxms,        "greater than"      ],
-#    [ 'addition'            => qr/\+/oxms,       "addition"          ],
-#    [ 'minus'               => qr/-/oxms,        "minus"             ],
-#    [ 'multiplication'      => qr/\*/oxms,       "multiplication"    ],
-#    [ 'division'            => qr/\//oxms,       "division"          ],
-#    [ 'percent'             => qr/%/oxms,        "percent"           ],
-#    [ 'length'              => qr/\#/oxms,       "length"            ],
-#    [ 'exponentiation'      => qr/\^/oxms,       "exponentiation"    ],
+#    [ 'less or equal'       => qr/<=/xms,       "less or equal"     ],
+#    [ 'greater or equal'    => qr/>=/xms,       "greater or equal"  ],
+#    [ 'negation'            => qr/~=/xms,       "negation"          ],
+#    [ 'equality'            => qr/==/xms,       "equality"          ],
+#    [ 'concatenation'       => qr/\.\./xms,     "concatenation"     ],
+#    [ 'less than'           => qr/</xms,        "less than"         ],
+#    [ 'greater than'        => qr/>/xms,        "greater than"      ],
+#    [ 'addition'            => qr/\+/xms,       "addition"          ],
+#    [ 'minus'               => qr/-/xms,        "minus"             ],
+#    [ 'multiplication'      => qr/\*/xms,       "multiplication"    ],
+#    [ 'division'            => qr/\//xms,       "division"          ],
+#    [ 'percent'             => qr/%/xms,        "percent"           ],
+#    [ 'length'              => qr/\#/xms,       "length"            ],
+#    [ 'exponentiation'      => qr/\^/xms,       "exponentiation"    ],
 
 #   punctuation
-#    [ 'colon'               => qr/:/oxms,        "colon"             ],
-#    [ 'left bracket'        => qr/\[/oxms,       "left bracket"      ],
-#    [ 'right bracket'       => qr/\]/oxms,       "right bracket"     ],
-#    [ 'left paren'          => qr/\(/oxms,       "left paren"        ],
-#    [ 'right paren'         => qr/\)/oxms,       "right paren"       ],
-#    [ 'left curly'          => qr/\{/oxms,       "left curly"        ],
-#    [ 'right curly'         => qr/\}/oxms,       "right curly"       ],
-#    [ 'assignment'          => qr/=/oxms,        "assignment"        ],
-#    [ 'semicolon'           => qr/;/oxms,        "semicolon"         ],
-#    [ 'comma'               => qr/,/oxms,        "comma"             ],
-#    [ 'period'              => qr/\./oxms,       "period"            ],
+#    [ 'colon'               => qr/:/xms,        "colon"             ],
+#    [ 'left bracket'        => qr/\[/xms,       "left bracket"      ],
+#    [ 'right bracket'       => qr/\]/xms,       "right bracket"     ],
+#    [ 'left paren'          => qr/\(/xms,       "left paren"        ],
+#    [ 'right paren'         => qr/\)/xms,       "right paren"       ],
+#    [ 'left curly'          => qr/\{/xms,       "left curly"        ],
+#    [ 'right curly'         => qr/\}/xms,       "right curly"       ],
+#    [ 'assignment'          => qr/=/xms,        "assignment"        ],
+#    [ 'semicolon'           => qr/;/xms,        "semicolon"         ],
+#    [ 'comma'               => qr/,/xms,        "comma"             ],
+#    [ 'period'              => qr/\./xms,       "period"            ],
 
 );
 
