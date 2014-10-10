@@ -460,12 +460,12 @@ sub tokens{
     else{
         my $separator = ' ';
         if ( # no spaces before and after ' and "
-               defined $tokens and $tokens =~ m{['"\[]$} #'
-            or defined $ast    and $ast    =~ m{^['"\]]} #'
+               (defined $tokens and $tokens =~ m{['"\[]$}ms) #'
+            or (defined $ast    and $ast    =~ m{^['"\]]}ms) #'
         ){
             $separator = '';
         }
-        if (defined $ast and $ast =~ /^function|while|repeat|do|if|else|elseif|for|local$/){
+        if (defined $ast and $ast =~ /^(and|or|assert|function|while|repeat|return|do|if|end|else|elseif|for|local)$/){
             $separator = "\n";
         }
         $tokens .= $separator . $ast if defined $ast;

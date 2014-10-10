@@ -26,6 +26,7 @@ my $p = MarpaX::Languages::Lua::AST->new;
 #                                           3 reparse and show ast
 #                                           4 test stdout with like()
 #                                           5 stderr is expected -- test stdout anyway
+#                                           6 print name of temporary lua file
 my %lua_files = qw{
 
     lua-tests/coroutine.lua         1
@@ -35,11 +36,11 @@ my %lua_files = qw{
     lua5.1-tests/big.lua            5
     lua5.1-tests/calls.lua          1
     lua5.1-tests/checktable.lua     1
-    lua5.1-tests/closure.lua        5
+    lua5.1-tests/closure.lua        1
     lua5.1-tests/code.lua           1
     lua5.1-tests/constructs.lua     1
-    lua5.1-tests/db.lua             5
-    lua5.1-tests/errors.lua         5
+    lua5.1-tests/db.lua             1
+    lua5.1-tests/errors.lua         1
     lua5.1-tests/events.lua         1
     lua5.1-tests/files.lua          4
     lua5.1-tests/gc.lua             1
@@ -103,7 +104,7 @@ $DOWARN = 0; # see above
         my $tokens = $p->tokens($ast);
 $DOWARN = 1;
         my $lua_file = whip_up_lua_file( $tokens );
-
+        diag "Serialized AST is in $lua_file file" if $flag == 6;
         # run lua file
         system("./$run_lua_test $lua_file 1>$lua_file.stdout 2>$lua_file.stderr");
         my ($stdout, $stderr) = map { slurp_file($_) } qq{$lua_file.stdout}, qq{$lua_file.stderr};
