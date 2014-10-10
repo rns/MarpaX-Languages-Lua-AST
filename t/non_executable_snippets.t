@@ -18,13 +18,13 @@ my @tests = (
 # strings.lua:103-104
 [ q{
 -- the below line parses ok
-a = '\\\'' -- 1 escaped \ 1 escaped '
+a = '\\\\\\'' -- 1 escaped \ 1 escaped '
 -- the below lines are currently misparsed as
 -- x = '"нlo"\n\\'
 -- assert(string.format(' ...
-x = '"нlo"\n\\'
+x = '"нlo"\\n\\\\'
 assert(string.format('%q%s', x, x) == '"\\"нlo\\"\\\n\\\\""нlo"\n\\')
-},
+}, #'
 # expected
 q{} ],
 

@@ -260,21 +260,41 @@ END_OF_SOURCE
 
 my @terminals = (
 
-    [ 'Comment' => qr/--\[\[.*?\]\]/xms,        "long unnestable comment" ],
-    [ 'Comment' => qr/--\[=\[.*?\]=\]/xms,         "long nestable comment" ],
-    [ 'Comment' => qr/--\[==\[.*?\]==\]/xms,         "long nestable comment" ],
-    [ 'Comment' => qr/--\[===\[.*?\]===\]/xms,         "long nestable comment" ],
-    [ 'Comment' => qr/--\[(={3,})\[.*?\]\1\]/xms,  "long nestable comment" ],
-    [ 'Comment' => qr/--[^\n]*\n/xms,           "short comment" ],
+    [ 'Comment' => qr/--\[(={4,})\[.*?\]\1\]/xms,   "long nestable comment" ],
+    [ 'Comment' => qr/--\[===\[.*?\]===\]/xms,      "long nestable comment" ],
+    [ 'Comment' => qr/--\[==\[.*?\]==\]/xms,        "long nestable comment" ],
+    [ 'Comment' => qr/--\[=\[.*?\]=\]/xms,          "long nestable comment" ],
+    [ 'Comment' => qr/--\[\[.*?\]\]/xms,            "long unnestable comment" ],
+    [ 'Comment' => qr/--[^\n]*\n/xms,               "short comment" ],
 
+# 2.1 – Lexical Conventions, refman
+# Literal strings can be delimited by matching single or double quotes, and can contain the
+# following C-like escape sequences: '\a' (bell), '\b' (backspace), '\f' (form feed), '\n' (
+# newline), '\r' (carriage return), '\t' (horizontal tab), '\v' (vertical tab), '\\'
+# (backslash), '\"' (quotation mark [double quote]), and '\'' (apostrophe [single quote]).
+# Moreover, a backslash followed by a real newline results in a newline in the string. A
+# character in a string can also be specified by its numerical value using the escape sequence
+# \ddd, where ddd is a sequence of up to three decimal digits. (Note that if a numerical escape
+# is to be followed by a digit, it must be expressed using exactly three digits.) Strings in
+# Lua can contain any 8-bit value, including embedded zeros, which can be specified as '\0'.
+
+    [ 'String' => qr
+        /'(
+            \\(a|b|f|n|r|t|v|"|'|\\) | [^']
+           )*
+         '/xms, "single quoted string" ],
+
+    [ 'String' => qr
+        /"(
+            \\(a|b|f|n|r|t|v|"|'|\\) | [^"]
+           )*
+         "/xms, "double quoted string" ],
+#'
     [ 'String' => qr/\[\[.*?\]\]/xms,           "long unnestable string" ],
     [ 'String' => qr/\[=\[.*?\]=\]/xms,         "long nestable string" ],
     [ 'String' => qr/\[==\[.*?\]==\]/xms,         "long nestable string" ],
     [ 'String' => qr/\[===\[.*?\]===\]/xms,         "long nestable string" ],
     [ 'String' => qr/\[(={3,})\[.*?\]\1\]/xms,     "long nestable string" ],
-
-    [ 'String' => qr/(?<!\\)"(?:\\"|[^"])*(?<!\\)"/xms, "double quoted string" ], #"
-    [ 'String' => qr/(?<!\\)'(?:\\'|[^'])*(?<!\\)'/xms, "single quoted string" ], #'
 
 # keywords
     [ 'break'       => qr/\bbreak\b/xms,    "break"     ],
@@ -359,12 +379,15 @@ sub read{
         my $start_of_lexeme = pos $string;
         last TOKEN if $start_of_lexeme >= $length;
         next TOKEN if $string =~ m/\G\s+/gcxms;     # skip whitespace
+#        warn "# matching at $start_of_lexeme:\n", substr( $string, $start_of_lexeme, 40 );
         TOKEN_TYPE: for my $t (@terminals) {
             my ( $token_name, $regex, $long_name ) = @{$t};
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
 
             next TOKEN if $token_name =~ /comment/i; # skip comments
+
+#            warn "# $token_name:\n$lexeme";
 
             if ( not defined $recce->lexeme_alternative($token_name) ) {
                 warn
