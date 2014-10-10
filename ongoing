@@ -1,6 +1,7 @@
-﻿# For more parser tests: http://lua-users.org/wiki/LuaGrammar
+﻿# More parser tests:
+http://lua-users.org/wiki/LuaGrammar
 
-# lua formatter/ast emitter
+# lua formatters/ast emitters
 
 http://lua-users.org/wiki/LuaInspect
 
@@ -55,18 +56,8 @@ Questions to be asked when enough tests will pass
 		\]	right square bracket
    
     
-# A character in a string can also be specified by its numerical value
-# using the escape sequence \ddd, where ddd is a sequence of
-# up to three decimal digits. (Note that if a numerical escape
-# is to be followed by a digit, it must be expressed using
-# exactly three digits.) Strings in Lua can contain any 8-bit value,
-# including embedded zeros, which can be specified as '\0'.
-    <escape sequence of decimal digits> ~ '\' [\d]
-    <escape sequence of decimal digits> ~ '\' [\d] [\d]
-    <escape sequence of decimal digits> ~ '\' [\d] [\d] [\d]
-
 Links
-=====
+-----
 
 https://github.com/jddurand/MarpaX-Languages-C-AST/blob/master/lib/MarpaX/Languages/C/AST/Grammar/ISO_ANSI_C_2011.pm
 https://github.com/jeffreykegler/Marpa--R2/blob/master/cpan/lib/Marpa/R2/meta/metag.bnf
