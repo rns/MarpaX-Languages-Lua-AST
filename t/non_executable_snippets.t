@@ -16,6 +16,7 @@ use MarpaX::Languages::Lua::AST;
 my @tests = (
 
 # strings.lua:103-104
+# -------------------
 [ q{
 -- the below line parses ok
 a = '\\\\\\'' -- 1 escaped \ 1 escaped '
@@ -28,13 +29,8 @@ assert(string.format('%q%s', x, x) == '"\\"нlo\\"\\\n\\\\""нlo"\n\\')
 # expected
 q{} ],
 
-# api.lua:163
-# this parses ok without semicolon after ==nil)
-[ q{ function (a) assert(a==nil); return 3 end },
-# expected
-q{} ],
-
 # constructs.lua:58
+# -----------------
 [ q{
 local f = function (i)
   if i < 10 then return 'a';
@@ -45,30 +41,22 @@ end
 },
 # expected
 q{} ],
-# main.lua:113
-[ q{
-s = [=[ --
-function f ( x )
-  local a = [[
-xuxu
-]]
-  local b = "\
-xuxu\n"
-  if x == 11 then return 1 , 2 end  --[[ test multiple returns ]]
-  return x + 1
-  --\\
-end
-=( f( 10 ) )
-assert( a == b )
-=f( 11 )  ]=]
-}, q{} ],
 
-#literals.lua:9
+# literals.lua:9
+# --------------
 [ q{
-assert('\n\"\'\\' == [[
+assert('\\n\\"\\'\\\\' == [[
 
-"'\]]) -- "
-}, q{} ],
+"'\\]]) -- "
+}, #"
+q{} ],
+
+# api.lua:163
+# -----------
+# this parses ok without semicolon after ==nil)
+[ q{ function (a) assert(a==nil); return 3 end },
+# expected
+q{} ],
 
 #[ q{}, q{} ],
 );

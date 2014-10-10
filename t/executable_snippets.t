@@ -29,10 +29,9 @@ BEGIN {
                 123"]==]
         },
 # strings.lua:103-104, see pod below
-# \ is escaped to \\ in the below line and passes the test
-        q{ a = '"нlo"\n\\'     },
-# \ is NOT escaped to \\ in the below line and fails the test
-        q{ a = '"\\"нlo\\"\\\n\\\\""нlo"\n\\' },
+# \ is escaped to \\ in the below lines to pass the test
+        q{ a = '"нlo"\\n\\\\'     },
+        q{ a = '"\\\\"нlo\\\\"\\\\\\n\\\\\\\\""нlo"\\n\\\\' },
 # Examples of valid numerical constants are
         q{ a = 3           },
         q{ a = 3.0         },
@@ -45,6 +44,25 @@ BEGIN {
 
         q{ a = 0xff        },
         q{ a = 0x56        },
+# literals.lua:129
+        q{ a = [====[[===[[=[]]=][====[]]===]===]====] },
+# main.lua:113
+        q{
+a = [=[ --
+function f ( x )
+  local a = [[
+xuxu
+]]
+  local b = "\
+xuxu\n"
+  if x == 11 then return 1 , 2 end  --[[ test multiple returns ]]
+  return x + 1
+  --\\
+end
+=( f( 10 ) )
+assert( a == b )
+=f( 11 )  ]=]
+},
     );
     for my $i (0..$#a){
         push @tests, [

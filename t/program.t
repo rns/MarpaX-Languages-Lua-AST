@@ -27,7 +27,7 @@ my $pwd = Cwd::cwd();
 #                                           2 reparse with diagnostics
 #                                           3 reparse and show ast
 #                                           4 test with like()
-#                                           5 stderr is expected -- lua file runs with errors
+#                                           5 stderr is expected -- test stdout anyway
 #                                           6 strings issue -- will parse with external lexing
 my %lua_files = qw{
 
@@ -35,20 +35,20 @@ my %lua_files = qw{
 
     lua5.1-tests/api.lua            1
     lua5.1-tests/attrib.lua         1
-    lua5.1-tests/big.lua            1
+    lua5.1-tests/big.lua            5
     lua5.1-tests/calls.lua          1
     lua5.1-tests/checktable.lua     1
-    lua5.1-tests/closure.lua        1
+    lua5.1-tests/closure.lua        5
     lua5.1-tests/code.lua           1
     lua5.1-tests/constructs.lua     1
-    lua5.1-tests/db.lua             1
-    lua5.1-tests/errors.lua         1
+    lua5.1-tests/db.lua             5
+    lua5.1-tests/errors.lua         5
     lua5.1-tests/events.lua         1
     lua5.1-tests/files.lua          4
     lua5.1-tests/gc.lua             1
     lua5.1-tests/literals.lua       1
     lua5.1-tests/locals.lua         1
-    lua5.1-tests/main.lua           1
+    lua5.1-tests/main.lua           5
     lua5.1-tests/math.lua           1
     lua5.1-tests/nextvar.lua        1
     lua5.1-tests/pm.lua             1
@@ -128,7 +128,7 @@ $DOWARN = 1;
             }
             next LUA_FILE;
         }
-        # file parses and runs, test against its output
+        # file parses and runs, test its output
         if ($flag == 4){
             # turn $expected_stdout to a regex and test against it
             if ( $lua_fn =~ m{ lua5.1-tests/sort.lua$ }x ){

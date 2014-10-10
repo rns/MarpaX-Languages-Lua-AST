@@ -294,7 +294,8 @@ my @terminals = (
     [ 'String' => qr/\[=\[.*?\]=\]/xms,         "long nestable string" ],
     [ 'String' => qr/\[==\[.*?\]==\]/xms,         "long nestable string" ],
     [ 'String' => qr/\[===\[.*?\]===\]/xms,         "long nestable string" ],
-    [ 'String' => qr/\[(={3,})\[.*?\]\1\]/xms,     "long nestable string" ],
+    [ 'String' => qr/\[====\[.*?\]====\]/xms,         "long nestable string" ],
+    [ 'String' => qr/\[(={5,})\[.*?\]\1\]/xms,     "long nestable string" ],
 
 # keywords
     [ 'break'       => qr/\bbreak\b/xms,    "break"     ],
@@ -402,13 +403,14 @@ sub read{
         } ## end TOKEN_TYPE: for my $t (@terminals)
         warn qq{No token found at position $start_of_lexeme, before "},
             substr( $string, pos $string, 40 ), q{"};
+#        warn "Showing progress:\n", $recce->show_progress();
         return
     } ## end TOKEN: while (1)
     # return ast or undef on parse failure
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         warn "No parse was found, after reading the entire input.\n";
-        warn $recce->show_progress();
+#        warn "Showing progress:\n", $recce->show_progress();
         return
     }
     return ${$value_ref};
