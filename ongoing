@@ -1,7 +1,43 @@
-﻿# More parser tests:
+﻿# lexer
+	speedup match strings in a single regex and get token_names from hash
+	
+# ast traversal
+
+Lua AST you can traverse
+
+Lua filter -- extend/mangle Lua syntax
+
+# check for ambiguity
+
+# find a job for lua parser
+
+help port lua 5.1 code to lua 5.2 -- What Lua 5.1 code breaks in Lua 5.2
+http://www.luafaq.org/#T8.1
+
+find 
+
+Features not implemented in luainspect (but probably should be):
+
+check commenting style, e.g. LuaDoc comment consistency.
+
+static analysis enhancements:
+check argument types in standard libraries when possible: e.g. local x = "foo"; math.sqrt(x)
+support block folding
+highlight poor style, such as pathological indenting and other LuaStyleGuide faults.
+check packaging conventions in project folder, like .rockspec files in LuaRocks, README, COPYRIGHT, library naming conventions, etc.
+improve performance more
+improve syntax highlighting on code currently being typed that is not yet syntactically valid. For example, when typing something like math.sqrt(2), prior to typing the final (2) to make it a valid statement, an error displays and syntax highlighting is lacking.
+provide access to more refactoring routines: fixing code intention, SourceOptimizer, localization (e.g. math.sqrt(2) --> local math_sqrt = math.sqrt ..... math_sqrt(2)), and others
+dynamic analysis: incorporate more information by dynamic analysis (e.g. ProfilingLuaCode and coverage [LuaCov]) including type/value/definition information not obtainable by static analysis fixes in Metalua
+
+http://lua-users.org/wiki/LuaInspect
+
+# More parser tests:
 http://lua-users.org/wiki/LuaGrammar
 
 # lua formatters/ast emitters
+
+http://metalua.luaforge.net/
 
 http://lua-users.org/wiki/LuaInspect
 
