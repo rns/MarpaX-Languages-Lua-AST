@@ -1,24 +1,5 @@
 ﻿# For more parser tests: http://lua-users.org/wiki/LuaGrammar
 
-# keep NAIF separator
-    varlist ::= var+ separator => [,]
-
-# moving to external lexing 
-
-Phase 1	
-	rewrite literals from G1 rules as L0 rules
-	show_symbols(1, 'L0');	
-	design and test regexes and lexer
-	test by using token streams from tokens() as expected_tokens
-	
-	# handle long nestable strings/comments
-		# PEG for nested comments
-			Begin < '(*'
-			End   < '*)'
-			C     < Begin N* End
-			N     < C / (!Begin !End Z)
-			Z     < any single character
-
 # lua formatter/ast emitter
 
 http://lua-users.org/wiki/LuaInspect
