@@ -63,6 +63,8 @@ end
 assert( a == b )
 =f( 11 )  ]=]
 },
+# api.lua:163
+        q{ a = 1, function (a) assert(a==nil); return 3 end },
     );
     for my $i (0..$#a){
         push @tests, [

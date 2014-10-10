@@ -51,13 +51,6 @@ assert('\\n\\"\\'\\\\' == [[
 }, #"
 q{} ],
 
-# api.lua:163
-# -----------
-# this parses ok without semicolon after ==nil)
-[ q{ function (a) assert(a==nil); return 3 end },
-# expected
-q{} ],
-
 #[ q{}, q{} ],
 );
 

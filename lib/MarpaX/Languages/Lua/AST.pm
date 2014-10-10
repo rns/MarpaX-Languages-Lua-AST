@@ -394,6 +394,7 @@ sub read{
                 warn
                     qq{Parser rejected token "$long_name" at position $start_of_lexeme, before "},
                     substr( $string, $start_of_lexeme, 40 ), q{"};
+                warn "Showing progress:\n", $recce->show_progress();
                 return
             }
             next TOKEN
