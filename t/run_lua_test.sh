@@ -20,4 +20,4 @@ export LUA_PATH="./?.lua;;"
 export LUA_INIT="package.path = '?;'..package.path"
 
 # run
-lua $1
+lua "$1"
