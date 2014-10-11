@@ -308,29 +308,6 @@ my @terminals = (
         undef
     ],
 
-#    [ 'break'       => qr/\bbreak\b/xms,    "break"     ],
-#    [ 'do'          => qr/\bdo\b/xms,       "do"        ],
-#    [ 'else'        => qr/\belse\b/xms,     "else"      ],
-#    [ 'elseif'      => qr/\belseif\b/xms,   "elseif"    ],
-#    [ 'end'         => qr/\bend\b/xms,      "end"       ],
-#    [ 'false'       => qr/\bfalse\b/xms,    "false"     ],
-#    [ 'for'         => qr/\bfor\b/xms,      "for"       ],
-#    [ 'function'    => qr/\bfunction\b/xms, "function"  ],
-#    [ 'if'          => qr/\bif\b/xms,       "if"        ],
-#    [ 'in'          => qr/\bin\b/xms,       "in"        ],
-#    [ 'local'       => qr/\blocal\b/xms,    "local"     ],
-#    [ 'nil'         => qr/\bnil\b/xms,      "nil"       ],
-#    [ 'repeat'      => qr/\brepeat\b/xms,   "repeat"    ],
-#    [ 'return'      => qr/\breturn\b/xms,   "return"    ],
-#    [ 'then'        => qr/\bthen\b/xms,     "then"      ],
-#    [ 'true'        => qr/\btrue\b/xms,     "true"      ],
-#    [ 'until'       => qr/\buntil\b/xms,    "until"     ],
-#    [ 'while'       => qr/\bwhile\b/xms,    "while"     ],
-
-#    [ 'not'                 => qr/\bnot\b/xms,  "not"   ],
-#    [ 'or'                  => qr/\bor\b/xms,   "or"    ],
-#    [ 'and'                 => qr/\band\b/xms,  "and"   ],
-
 #   Name
     [ 'Name'        => qr/\b[a-zA-Z_][\w]*\b/xms, "Name" ],
 
@@ -370,37 +347,6 @@ my @terminals = (
         undef
     ],
 
-#   operators
-#    [ 'ellipsis'            => qr/\.\.\./xms,   "ellipsis"          ],
-
-#    [ 'less or equal'       => qr/<=/xms,       "less or equal"     ],
-#    [ 'greater or equal'    => qr/>=/xms,       "greater or equal"  ],
-#    [ 'negation'            => qr/~=/xms,       "negation"          ],
-#    [ 'equality'            => qr/==/xms,       "equality"          ],
-#    [ 'concatenation'       => qr/\.\./xms,     "concatenation"     ],
-#    [ 'less than'           => qr/</xms,        "less than"         ],
-#    [ 'greater than'        => qr/>/xms,        "greater than"      ],
-#    [ 'addition'            => qr/\+/xms,       "addition"          ],
-#    [ 'minus'               => qr/-/xms,        "minus"             ],
-#    [ 'multiplication'      => qr/\*/xms,       "multiplication"    ],
-#    [ 'division'            => qr/\//xms,       "division"          ],
-#    [ 'percent'             => qr/%/xms,        "percent"           ],
-#    [ 'length'              => qr/\#/xms,       "length"            ],
-#    [ 'exponentiation'      => qr/\^/xms,       "exponentiation"    ],
-
-#   punctuation
-#    [ 'colon'               => qr/:/xms,        "colon"             ],
-#    [ 'left bracket'        => qr/\[/xms,       "left bracket"      ],
-#    [ 'right bracket'       => qr/\]/xms,       "right bracket"     ],
-#    [ 'left paren'          => qr/\(/xms,       "left paren"        ],
-#    [ 'right paren'         => qr/\)/xms,       "right paren"       ],
-#    [ 'left curly'          => qr/\{/xms,       "left curly"        ],
-#    [ 'right curly'         => qr/\}/xms,       "right curly"       ],
-#    [ 'assignment'          => qr/=/xms,        "assignment"        ],
-#    [ 'semicolon'           => qr/;/xms,        "semicolon"         ],
-#    [ 'comma'               => qr/,/xms,        "comma"             ],
-#    [ 'period'              => qr/\./xms,       "period"            ],
-
 );
 
 sub read{
@@ -424,9 +370,9 @@ sub read{
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
             if (ref $token_name eq "HASH"){ # check for group matching
-                die "No token defined for lexeme <$lexeme>"
-                    unless exists $token_name->{$lexeme};
                 $token_name = $token_name->{$lexeme};
+                die "No token defined for lexeme <$lexeme>"
+                    unless $token_name;
             }
             next TOKEN if $token_name =~ /comment/i; # skip comments
 #            warn "# $token_name:\n$lexeme";
