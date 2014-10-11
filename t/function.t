@@ -7,18 +7,6 @@
 # todo: add functions from 2.8 – Metatables
 #       starting at "That is, the access to a metamethod does not invoke other metamethods"
 
-=pod
-
-After the collection, Lua does the equivalent of the following function for each userdata in that list:
-
-     function gc_event (udata)
-       local h = metatable(udata).__gc
-       if h then
-         h(udata)
-       end
-     end
-=cut
-
 use 5.010;
 use warnings;
 use strict;
@@ -40,6 +28,10 @@ function fact (n)
 end
 END
 };
+
+# silense redefined sub warnings
+my $DOWARN = 0;
+BEGIN { $SIG{'__WARN__'} = sub { warn $_[0] if $DOWARN } }
 
 # lua source from a scalar initialized at compile time
 use Inline Lua => $lua_fact;
