@@ -33,7 +33,7 @@ my %lua_files = qw{
     lua-tests/coroutine.lua         1
 
     lua5.1-tests/api.lua            1
-    lua5.1-tests/attrib.lua         1
+    lua5.1-tests/attrib.lua         7
     lua5.1-tests/big.lua            5
     lua5.1-tests/calls.lua          1
     lua5.1-tests/checktable.lua     1
