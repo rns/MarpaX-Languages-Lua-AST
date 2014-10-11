@@ -293,8 +293,10 @@ my $op_punc = {
 # sort longest to shortest, quote and alternate
 my $op_punc_re = join '|', map { quotemeta } sort { length($b) <=> length($a) } keys $op_punc;
 
-my @terminals = (
+# terminals are regexes and strings
+my @terminals = ( # order matters!
 
+#   comments -- short, long (nestable)
     [ 'Comment' => qr/--\[(={4,})\[.*?\]\1\]/xms,   "long nestable comment" ],
     [ 'Comment' => qr/--\[===\[.*?\]===\]/xms,      "long nestable comment" ],
     [ 'Comment' => qr/--\[==\[.*?\]==\]/xms,        "long nestable comment" ],
@@ -302,6 +304,7 @@ my @terminals = (
     [ 'Comment' => qr/--\[\[.*?\]\]/xms,            "long unnestable comment" ],
     [ 'Comment' => qr/--[^\n]*\n/xms,               "short comment" ],
 
+#   strings -- short, long (nestable)
 # 2.1 – Lexical Conventions, refman
 # Literal strings can be delimited by matching single or double quotes, and can contain the
 # following C-like escape sequences: '\a' (bell), '\b' (backspace), '\f' (form feed), '\n' (
@@ -332,23 +335,7 @@ my @terminals = (
     [ 'String' => qr/\[====\[.*?\]====\]/xms,         "long nestable string" ],
     [ 'String' => qr/\[(={5,})\[.*?\]\1\]/xms,     "long nestable string" ],
 
-#   keywords -- group matching
-    [ $keywords => qr/$keyword_re/xms ],
-
-#    [
-#        { map { $_ => $_ } qw { break do else elseif end false
-#            for function if in local nil repeat return then true
-#            until while not or and } },
-#        qr/\bbreak\b|\bdo\b|\belse\b|\belseif\b|\bend\b|\bfalse\b|\bfor\b|
-#        \bfunction\b|\bif\b|\bin\b|\blocal\b|\bnil\b|\brepeat\b|\breturn\b|
-#        \bthen\b|\btrue\b|\buntil\b|\bwhile\b|\bnot\b|\bor\b|\band\b/xms,
-#        undef
-#    ],
-
-#   Name
-    [ 'Name'        => qr/\b[a-zA-Z_][\w]*\b/xms, "Name" ],
-
-#   Number
+#   numbers -- int, float, and hex
 #   We can write numeric constants with an optional decimal part,
 #   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
     [ 'Number' => qr/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/xms, "Floating-point number" ],
@@ -358,17 +345,27 @@ my @terminals = (
     [ 'Number' => qr/0x[0-9a-fA-F]+/xms, "Hexadecimal number" ],
     [ 'Number' => qr/[\d]+/xms, "Integer number" ],
 
+#   identifiers
+    [ 'Name' => qr/\b[a-zA-Z_][\w]*\b/xms, "Name" ],
+
+#   keywords -- group matching
+    [ $keywords => qr/$keyword_re/xms ],
+
 #   operators and punctuation -- group matching
     [ $op_punc => qr/$op_punc_re/xms ],
 
 );
 
+# add unicorns to grammar source and construct the grammar
+sub grammar{
+    my $source = $grammar . "\n" . join( "\n", map { qq{$_ ~ unicorn} } @unicorns ) . "\n";
+    return Marpa::R2::Scanless::G->new( { source => \$source } );
+}
+
 sub new {
     my ($class) = @_;
     my $parser = bless {}, $class;
-    # add unicorns
-    $grammar .= "\n" . join( "\n", map { qq{$_ ~ unicorn} } @unicorns ) . "\n";
-    $parser->{grammar} = Marpa::R2::Scanless::G->new( { source => \$grammar } );
+    $parser->{grammar} = grammar();
     return $parser;
 }
 
@@ -405,13 +402,20 @@ sub read{
             my ( $token_name, $regex, $long_name ) = @{$t};
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
-            if (ref $token_name eq "HASH"){ # check for group matching
+#            warn "# <$token_name>:\n'$lexeme'";
+            # Name cannot be a keyword so treat strings matching Name's regex as keywords
+            if ( $token_name eq "Name" and exists $keywords->{$lexeme} ){
+                $token_name = $keywords->{$lexeme};
+            }
+            # check for group matching
+            if (ref $token_name eq "HASH"){
                 $token_name = $token_name->{$lexeme};
                 die "No token defined for lexeme <$lexeme>"
                     unless $token_name;
             }
-            next TOKEN if $token_name =~ /comment/i; # skip comments
-#            warn "# $token_name:\n$lexeme";
+            # skip comments
+            next TOKEN if $token_name =~ /comment/i;
+
             if ( not defined $recce->lexeme_alternative($token_name) ) {
                 warn
                     qq{Parser rejected token "$long_name" at position $start_of_lexeme, before "},
