@@ -255,6 +255,12 @@ my @unicorns = (
     '<while>',
 );
 
+# add unicorns to grammar source and construct the grammar
+sub grammar{
+    my $source = $grammar . "\n" . join( "\n", map { qq{$_ ~ unicorn} } @unicorns ) . "\n";
+    return Marpa::R2::Scanless::G->new( { source => \$source } );
+}
+
 # Terminals
 # =========
 
@@ -348,18 +354,19 @@ my @terminals = ( # order matters!
 #   identifiers
     [ 'Name' => qr/\b[a-zA-Z_][\w]*\b/xms, "Name" ],
 
+);
+
+sub terminals{
+
+    push @terminals,
+
 #   keywords -- group matching
     [ $keywords => qr/$keyword_re/xms ],
 
 #   operators and punctuation -- group matching
-    [ $op_punc => qr/$op_punc_re/xms ],
+    [ $op_punc => qr/$op_punc_re/xms ];
 
-);
-
-# add unicorns to grammar source and construct the grammar
-sub grammar{
-    my $source = $grammar . "\n" . join( "\n", map { qq{$_ ~ unicorn} } @unicorns ) . "\n";
-    return Marpa::R2::Scanless::G->new( { source => \$source } );
+    return \@terminals;
 }
 
 sub new {
@@ -390,6 +397,8 @@ sub read{
     $string =~ s{^#.*\n}{};
 
     $recce->read( \$string, 0, 0 );
+
+    my @terminals = @{ terminals() };
 
     my $length = length $string;
     pos $string = 0;
