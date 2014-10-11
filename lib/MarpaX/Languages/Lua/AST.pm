@@ -50,7 +50,9 @@ lexeme default = action => [ name, value ] latm => 1
 
     block ::= chunk
 
-    stat ::=  varlist '=' explist |
+    stat ::= BNF |
+
+	varlist '=' explist |
 
         functioncall |
 
@@ -76,6 +78,64 @@ lexeme default = action => [ name, value ] latm => 1
 #        <local> namelist ['=' explist]
         <local> namelist '=' explist |
         <local> namelist
+
+      ## BNF statement 
+
+      # There is only one BNF statement,
+      # combining priorties, sequences, and alternation
+      BNF ::= lhs '::=' <prioritized alternatives>
+      <prioritized alternatives> ::= <prioritized alternative>+ separator => <double bar>
+      <prioritized alternative> ::= <alternative>+ separator => <bar>
+      <alternative> ::= rhs | rhs ',' <alternative fields>
+      <alternative fields> ::= <alternative field>* separator => comma
+      <alternative field> ::= field | action
+      action ::= 'action' '(' <action parlist> ')' block <end>
+    <action parlist> ::= <symbol parameter> | <action parlist> ',' <symbol parameter>
+    <symbol parameter> ::= <named RH symbol>
+      | <named RH symbol> '[' <nonnegative integer> ']'
+      | <named RH symbol> '[]'
+
+    <named RH symbol> ::= <named symbol>
+    lhs ::= <named symbol>
+
+    <double bar> ~ '||'
+    bar ~ '|'
+    comma ~ ','
+
+    rhs ::= <RH atom>+
+    <RH atom> ::= 
+         '[]' # for empty symbol
+       | <separated sequence>
+       | <named symbol>
+       | '(' alternative ')'
+
+    # The sequence notation is extended to counted sequences,
+    # and a separator notation adopted from Perl 6 is used
+
+    <named symbol> ::= <symbol name>
+    <separated sequence> ::=
+          sequence
+	| sequence '%' separator # proper separation
+	| sequence '%%' separator # Perl separation
+
+    separator ::= <named symbol>
+
+    sequence ::=
+         <named symbol> '+'
+       | <named symbol> '*'
+       | <named symbol> '?'
+       | <named symbol> '*' <nonnegative integer> '..' <nonnegative integer>
+       | <named symbol> '*' <nonnegative integer> '..' '*'
+
+    # symbol name is any valid Lua name, plus those with
+    # non-initial hyphens
+    # TODO: add angle bracket variation
+    <symbol name> ~ [a-zA-Z_] <symbol name chars>
+    <symbol name chars> ~ [-\w]*
+
+    <nonnegative integer> ~ [\d]+
+
+    ## end of BNF statement spec
 
     elseifs ::= elseif_item*
     elseif_item ::= <elseif> exp <then> block
