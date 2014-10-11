@@ -472,12 +472,13 @@ sub read{
                 $token_name = $token_name->{$lexeme};
                 die "No token defined for lexeme <$lexeme>"
                     unless $token_name;
+                $long_name = $token_name;
             }
 
             # skip comments
             next TOKEN if $token_name =~ /comment/i;
 
-            warn "# <$token_name>:\n'$lexeme'";
+#            warn "# <$token_name>:\n'$lexeme'";
             if ( not defined $recce->lexeme_alternative($token_name) ) {
                 warn
                     qq{Parser rejected token "$long_name" at position $start_of_lexeme, before "},

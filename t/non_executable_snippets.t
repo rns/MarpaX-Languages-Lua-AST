@@ -51,6 +51,7 @@ assert('\\n\\"\\'\\\\' == [[
 }, #"
 q{} ],
 
+[ q{ function pow (e1, e2) return e1 ^ e2 end }, q{} ],
 #[ q{}, q{} ],
 );
 

@@ -82,33 +82,8 @@ sequence ::=
 ## end of BNF statement spec
 };
 
-# example of Lua extended with BNF
-my $input = <<END;
--- test BNF rules
-
-Expression ::=
-    Number
-    | Expression
-   || Expression op_exp Expression, action (e) end
-   || Expression op_mul Expression
-    | Expression op_div Expression
-   || Expression op_add Expression
-    | Expression op_sub Expression
-
---- Lua function, just for testing
-
-function fact (n)
-  if n == 0 then
-    return 1
-  else
-    return n * fact(n-1)
-  end
-end
-
-END
-
+# create Lua parser and extend it with BNF rules above
 my $p = MarpaX::Languages::Lua::AST->new;
-
 $p->extend({
     # these rules will be incorporated into grammar source
     rules => $bnf,
@@ -123,39 +98,157 @@ $p->extend({
     # these must return ast subtrees serialized to valid lua
     handlers => {
         # node_id => sub {}
-
     },
-
 });
 
-my $ast = $p->parse( $input );
+# test lua bnf
+my @tests = (
 
-unless (defined $ast){
-    $p->parse( $input, { trace_terminals => 99 } );
-    fail "Can't parse:\n$input";
+[ 'bare Marpa::R2 synopsys and lua function', q{
+-- BNF rules
+
+Expression ::=
+    Number
+    | Expression
+   || Expression exp Expression
+   || Expression mul Expression
+    | Expression div Expression
+   || Expression add Expression
+    | Expression sub Expression
+
+--- Lua function, just in case
+
+function fact (n)
+  if n == 0 then
+    return 1
+  else
+    return n * fact(n-1)
+  end
+end
+}, q{
+      stat
+        BNF
+          lhs
+            named symbol
+              symbol name
+                Name 'Expression'
+          op declare bnf '::='
+          prioritized alternatives
+            prioritized alternative
+              alternative
+                rhs
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'Number'
+              alternative
+                rhs
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'Expression'
+            prioritized alternative
+              alternative
+                rhs
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'Expression'
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'exp'
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'Expression'
+            prioritized alternative
+              alternative
+                rhs
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'Expression'
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'mul'
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'Expression'
+              alternative
+                rhs
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'Expression'
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'div'
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'Expression'
+            prioritized alternative
+              alternative
+                rhs
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'Expression'
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'add'
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'Expression'
+              alternative
+                rhs
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'Expression'
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'sub'
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'Expression'
 }
+],
 
-my $fmt = $p->serialize( $ast );
+[ 'Marpa::R2 synopsys with actions in Lua functions',
+q{
+    Expression ::=
+        Number
+        | Expression
+       || Expression exp Expression action function pow (e1, e2) return e1 ^ e2 end
+       || Expression mul Expression
+        | Expression div Expression
+       || Expression add Expression
+        | Expression sub Expression
+},
+q{...}
+],
+#[ '...', q{...}, q{...} ],
+);
 
-my $expected_fmt = <<END;
-    stat
-      BNF
-        lhs
-          named symbol
-            symbol name
-              Name 'lhs'
-        op declare bnf '::='
-        prioritized alternatives
-          prioritized alternative
-            alternative
-              rhs
-                RH atom
-                  named symbol
-                    symbol name
-                      Name 'rhs'
-END
 
-like $fmt, qr/\Q$expected_fmt\E/ms, "BNF extension";
+for my $test (@tests){
+    my ($name, $lua_bnf, $subtree ) = @$test;
+    my $ast = $p->parse( $lua_bnf );
+    unless (defined $ast){
+        fail "Can't parse:\n$lua_bnf";
+    }
+    my $lua_bnf_ast = $p->serialize( $ast );
+    like $lua_bnf_ast, qr/\Q$subtree\E/xms, $name;
+}
 
 done_testing();
 
