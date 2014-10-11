@@ -6,13 +6,13 @@ use 5.010;
 use warnings;
 use strict;
 
-use Test::More  skip_all => "extension not implemented yet";
+use Test::More;
 
 use MarpaX::Languages::Lua::AST;
 
 # test extension of lua parses grammar
 
-my $bnf = {
+my $bnf = q{
 
 ## BNF statement
 stat ::= BNF
@@ -66,10 +66,18 @@ sequence ::=
 # symbol name is any valid Lua name, plus those with
 # non-initial hyphens
 # TODO: add angle bracket variation
-<symbol name> ~ [a-zA-Z_] <symbol name chars>
-<symbol name chars> ~ [-\w]*
+#<symbol name> ~ [a-zA-Z_] <symbol name chars>
+#<symbol name chars> ~ [-\w]*
+<symbol name> ::= Name
 
-<nonnegative integer> ~ [\d]+
+#<nonnegative integer> ~ [\d]+
+<nonnegative integer> ::= Number
+
+# <symbol name>, <symbol name chars>, <nonnegative integer> rules
+# are commented out from Jeffrey Kegler's BNF because
+# MarpaX::Languages::Lua::AST::extend() doesn't support character classes.
+# For the moment, suitable tokens from Lua grammar (Name and Number) are used instead
+# TODO: support charclasses per https://gist.github.com/rns/2ae390a2c7d235687287
 
 ## end of BNF statement spec
 };
@@ -87,6 +95,13 @@ end
 print("enter a number:")
 a = io.read("*number")        -- read a number
 print(fact(a))
+
+-- test BNF rules
+    stat ::= <if> exp <then> block <end>
+    stat ::= <if> exp <then> block <else> block <end>
+    stat ::= <if> exp <then> block <one or more elseifs> <else> block <end>
+    stat ::= <if> exp <then> block <one or more elseifs> <end>
+
 END
 
 my $expected_fmt = <<END;
@@ -94,10 +109,17 @@ END
 
 my $p = MarpaX::Languages::Lua::AST->new;
 
-my $p->extend({
-
-    #
+$p->extend({
+    # these rules will be incorporated into grammar source
     rules => $bnf,
+    # these literals will be made tokens for external lexing
+    literals => {
+            '%%' => 'Perl separation',
+            '::=' => 'op declare bnf',
+            '?' => 'question',
+            'action' => 'action literal',
+            '[]' => 'empty symbol',
+    },
     # these must return ast subtrees serialized to valid lua
     handlers => {
         # node_id => sub {}
@@ -117,7 +139,7 @@ my $fmt = $p->serialize( $ast );
 say $fmt;
 
 TODO: {
-    todo_skip "ast serialization to formatted source shelved until lua test suite parsing is done", 1;
+    todo_skip "extension not yet implemented", 1;
     is $fmt, $expected_fmt, 'format by seralizing lua code ast';
 }
 

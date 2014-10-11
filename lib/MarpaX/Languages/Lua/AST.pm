@@ -255,12 +255,6 @@ my @unicorns = (
     '<while>',
 );
 
-# add unicorns to grammar source and construct the grammar
-sub grammar{
-    my $source = $grammar . "\n" . join( "\n", map { qq{$_ ~ unicorn} } @unicorns ) . "\n";
-    return Marpa::R2::Scanless::G->new( { source => \$source } );
-}
-
 # Terminals
 # =========
 
@@ -272,7 +266,7 @@ my @keywords = qw {
     or repeat return then true until while
 };
 
-my $keywords = {};
+my $keywords = { map { $_ => $_ } @keywords };
 
 # operators, punctuation
 my $op_punc = {
@@ -368,6 +362,14 @@ sub terminals{
     return \@terminals;
 }
 
+# add unicorns to grammar source and construct the grammar
+sub grammar{
+    my ($extension) = @_;
+    $extension //= '';
+    my $source = $grammar . "\n### extension rules ###" . $extension . "\n" . join( "\n", map { qq{$_ ~ unicorn} } @unicorns ) . "\n";
+    return Marpa::R2::Scanless::G->new( { source => \$source } );
+}
+
 sub new {
     my ($class) = @_;
     my $parser = bless {}, $class;
@@ -378,14 +380,60 @@ sub new {
 sub extend{
     my ($parser, $opts) = @_;
 
+    my $rules = $opts->{rules};
+
+    # todo: this is quick hack, use metag.bnf
+
+    # add new literals and unicorns
+    for my $literal (keys $opts->{literals}){
+        my $symbol = $opts->{literals}->{$literal};
+#        say "new literal: $symbol, $literal";
+        $op_punc->{$literal} = $symbol;
+        $symbol = qq{<$symbol>} if $symbol =~ / /;
+        push @unicorns, $symbol;
+    }
+
     # replace known literals to lexemes
-    # L0 rules to unicorns
-    # see if any literals left, give them names and add to regex
+    my %literals = map { $_ => undef } $rules =~ m/'([^\#'\n]+)'/gms; #'
+    while (my ($literal, undef) = each %literals){
+        my $symbol = $op_punc->{$literal};
+        if (defined $symbol){
+            $symbol = qq{<$symbol>} if $symbol =~ / /;
+            # remove L0 rules if any
+            $rules =~ s/<?[\w_ ]+>?\s*~\s*'\Q$literal\E'\n?//ms; #'
+            # replace known literals with symbols
+            $rules =~ s/'\Q$literal\E'/$symbol/gms;
+            delete $literals{$literal};
+        }
+    }
 
-    # add keywords (in brackets without spaces)
+    # find symbol ~ '...' L0 rules and see if they have names for unknown literals
+    # todo: the same thing for character classes once/if general lexing
+    # (https://gist.github.com/rns/2ae390a2c7d235687287) is supported
 
-    # charclasses
+#    say "# unknown literals:\n  ", join "\n  ", keys %literals;
+    my @L0_rules = $rules =~ m/<?([\w_ ]+)>?\s*~\s*'([^\#'\n]+)'/gms; #'
+    for(my $ix = 0; $ix <= $#L0_rules; $ix += 2) {
+        my $symbol = $L0_rules[$ix];
+        my $literal = $L0_rules[$ix + 1];
+#        say "<$symbol> ~ '$literal'";
+        # add symbol and literal to external lexing
+        $op_punc->{$literal} = $symbol;
+        # remove L0 rule
+        $rules =~ s/<?$symbol>?\s*~\s*'\Q$literal\E'\n?//ms; #'
+        # add new symbol as unicorn
+        $symbol = qq{<$symbol>} if $symbol =~ / /;
+        push @unicorns, $symbol;
+        # now we know the literal
+        delete $literals{$literal};
+    }
+    # todo: support charclasses?
 
+    die "# unknown literals:\n  ", join "\n  ", keys %literals if keys %literals;
+
+    # terminals for external lexing will be rebuilt when parse()
+    # now append $rules and try to create new grammar
+    $parser->{grammar} = grammar( $rules );
 }
 
 sub read{
@@ -408,6 +456,8 @@ sub read{
         next TOKEN if $string =~ m/\G\s+/gcxms;     # skip whitespace
 #        warn "# matching at $start_of_lexeme:\n", substr( $string, $start_of_lexeme, 40 );
         TOKEN_TYPE: for my $t (@terminals) {
+
+
             my ( $token_name, $regex, $long_name ) = @{$t};
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
@@ -422,6 +472,8 @@ sub read{
                 die "No token defined for lexeme <$lexeme>"
                     unless $token_name;
             }
+
+
             # skip comments
             next TOKEN if $token_name =~ /comment/i;
 
