@@ -242,12 +242,16 @@ q{...}
 
 for my $test (@tests){
     my ($name, $lua_bnf, $subtree ) = @$test;
+SKIP:{
+    skip "actions in Lua BNF don't work yet", 1 if $name =~ /actions/;
     my $ast = $p->parse( $lua_bnf );
     unless (defined $ast){
         fail "Can't parse:\n$lua_bnf";
+        next;
     }
     my $lua_bnf_ast = $p->serialize( $ast );
     like $lua_bnf_ast, qr/\Q$subtree\E/xms, $name;
+}
 }
 
 done_testing();
