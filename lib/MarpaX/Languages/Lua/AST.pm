@@ -415,6 +415,7 @@ sub extend{
     my @L0_rules = $rules =~ m/<?([\w_ ]+)>?\s*~\s*'([^\#'\n]+)'/gms; #'
     for(my $ix = 0; $ix <= $#L0_rules; $ix += 2) {
         my $symbol = $L0_rules[$ix];
+        $symbol =~ s/\s+$//;
         my $literal = $L0_rules[$ix + 1];
 #        say "<$symbol> ~ '$literal'";
         # add symbol and literal to external lexing
@@ -461,10 +462,10 @@ sub read{
             my ( $token_name, $regex, $long_name ) = @{$t};
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
-#            warn "# <$token_name>:\n'$lexeme'";
             # Name cannot be a keyword so treat strings matching Name's regex as keywords
             if ( $token_name eq "Name" and exists $keywords->{$lexeme} ){
                 $token_name = $keywords->{$lexeme};
+                $long_name = $token_name;
             }
             # check for group matching
             if (ref $token_name eq "HASH"){
@@ -473,10 +474,10 @@ sub read{
                     unless $token_name;
             }
 
-
             # skip comments
             next TOKEN if $token_name =~ /comment/i;
 
+            warn "# <$token_name>:\n'$lexeme'";
             if ( not defined $recce->lexeme_alternative($token_name) ) {
                 warn
                     qq{Parser rejected token "$long_name" at position $start_of_lexeme, before "},
