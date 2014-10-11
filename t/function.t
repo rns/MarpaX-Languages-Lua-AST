@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!perl
 # Copyright 2014 Ruslan Shvedov
 
 # take a source code of a lua function and test its execution results

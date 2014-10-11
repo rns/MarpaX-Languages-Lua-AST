@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 # Copyright 2014 Ruslan Shvedov
 
 # Lua 5.1 Parser in barebones (no priotitized rules, external scanning) SLIF

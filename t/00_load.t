@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!perl
 # Copyright 2014 Ruslan Shvedov
 
 use 5.010;

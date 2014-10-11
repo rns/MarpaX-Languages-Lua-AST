@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!perl
 # Copyright 2014 Ruslan Shvedov
 
 # test parsing of lua code snippets from the Reference manual
