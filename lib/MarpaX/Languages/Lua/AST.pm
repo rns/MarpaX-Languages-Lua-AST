@@ -16,13 +16,10 @@ $Data::Dumper::Deepcopy = 1;
 
 use Marpa::R2;
 
-sub new {
+# Lua Grammar
+# ===========
 
-    my ($class) = @_;
-
-    my $parser = bless {}, $class;
-
-    $parser->{grammar} = Marpa::R2::Scanless::G->new( { source         => \(<<'END_OF_SOURCE'),
+my $grammar = q{
 
 :default ::= action => [ name, values ]
 lexeme default = action => [ name, value ] latm => 1
@@ -198,6 +195,7 @@ lexeme default = action => [ name, value ] latm => 1
     unop ::= <length>
 
 #   unicorns
+
     String ~ unicorn
     Number ~ unicorn
     Name ~ unicorn
@@ -252,11 +250,45 @@ lexeme default = action => [ name, value ] latm => 1
 
     unicorn ~ [^\s\S]
 
-END_OF_SOURCE
-        }
-    );
-    return $parser;
-}
+};
+
+# Terminals
+# =========
+
+# group matching regexes
+
+# keywords
+my @keywords = qw {
+    and break do else elseif end false for function if in local nil not
+    or repeat return then true until while
+};
+
+my $keywords = { map { $_ => $_ } @keywords };
+
+my $keyword_re = '\b' . join( '\b|\b', @keywords ) . '\b';
+
+# operators, punctuation
+my $op_punc = {
+            '...' =>'ellipsis',         '..' => 'concatenation',
+
+            '<=' => 'less or equal',    '>=' => 'greater or equal',
+            '~=' => 'negation',         '==' => 'equality',
+
+            '.' =>  'concatenation',    '<' =>  'less than',
+            '>' =>  'greater than',     '+' =>  'addition',
+            '-' =>  'minus',            '*' =>  'multiplication',
+            '/' =>  'division',         '%' =>  'percent',
+            '#' =>  'length',           '^' =>  'exponentiation',
+            ':' =>  'colon',            '[' =>  'left bracket',
+            ']' =>  'right bracket',    '(' =>  'left paren',
+            ')' =>  'right paren',      '{' =>  'left curly',
+            '}' =>  'right curly',      '=' =>  'assignment',
+            ';' =>  'semicolon',        ',' =>  'comma',
+            '.' =>  'period',
+};
+
+# sort longest to shortest, quote and alternate
+my $op_punc_re = join '|', map { quotemeta } sort { length($b) <=> length($a) } keys $op_punc;
 
 my @terminals = (
 
@@ -298,15 +330,17 @@ my @terminals = (
     [ 'String' => qr/\[(={5,})\[.*?\]\1\]/xms,     "long nestable string" ],
 
 #   keywords -- group matching
-    [
-        { map { $_ => $_ } qw { break do else elseif end false
-            for function if in local nil repeat return then true
-            until while not or and } },
-        qr/\bbreak\b|\bdo\b|\belse\b|\belseif\b|\bend\b|\bfalse\b|\bfor\b|
-        \bfunction\b|\bif\b|\bin\b|\blocal\b|\bnil\b|\brepeat\b|\breturn\b|
-        \bthen\b|\btrue\b|\buntil\b|\bwhile\b|\bnot\b|\bor\b|\band\b/xms,
-        undef
-    ],
+    [ $keywords => qr/$keyword_re/xms ],
+
+#    [
+#        { map { $_ => $_ } qw { break do else elseif end false
+#            for function if in local nil repeat return then true
+#            until while not or and } },
+#        qr/\bbreak\b|\bdo\b|\belse\b|\belseif\b|\bend\b|\bfalse\b|\bfor\b|
+#        \bfunction\b|\bif\b|\bin\b|\blocal\b|\bnil\b|\brepeat\b|\breturn\b|
+#        \bthen\b|\btrue\b|\buntil\b|\bwhile\b|\bnot\b|\bor\b|\band\b/xms,
+#        undef
+#    ],
 
 #   Name
     [ 'Name'        => qr/\b[a-zA-Z_][\w]*\b/xms, "Name" ],
@@ -321,36 +355,32 @@ my @terminals = (
     [ 'Number' => qr/0x[0-9a-fA-F]+/xms, "Hexadecimal number" ],
     [ 'Number' => qr/[\d]+/xms, "Integer number" ],
 
-#   group matching: operators and punctuation
-    [
-        {
-            '...' =>'ellipsis',         '..' => 'concatenation',
-
-            '<=' => 'less or equal',    '>=' => 'greater or equal',
-            '~=' => 'negation',         '==' => 'equality',
-
-            '.' =>  'concatenation',    '<' =>  'less than',
-            '>' =>  'greater than',     '+' =>  'addition',
-            '-' =>  'minus',            '*' =>  'multiplication',
-            '/' =>  'division',         '%' =>  'percent',
-            '#' =>  'length',           '^' =>  'exponentiation',
-            ':' =>  'colon',            '[' =>  'left bracket',
-            ']' =>  'right bracket',    '(' =>  'left paren',
-            ')' =>  'right paren',      '{' =>  'left curly',
-            '}' =>  'right curly',      '=' =>  'assignment',
-            ';' =>  'semicolon',        ',' =>  'comma',
-            '.' =>  'period',
-        },
-        qr/
-            \.\.\.|<=|>=|~=|==|\.\.|<|>|\+|-|\*|\/|%|\#|\^|:|\[|\]|\(|\)|\{|\}|=|;|,|\.
-        /xms,
-        undef
-    ],
+#   operators and punctuation -- group matching
+    [ $op_punc => qr/$op_punc_re/xms ],
 
 );
 
+sub new {
+    my ($class) = @_;
+    my $parser = bless {}, $class;
+    $parser->{grammar} = Marpa::R2::Scanless::G->new( { source => \$grammar } );
+    return $parser;
+}
+
+sub extend{
+    my ($parser, $opts) = @_;
+
+    # replace known literals to lexemes
+
+    # see if any literals left, croak -- external lexing doesn't allow this
+
+    # add keywords (in brackets without spaces)
+
+
+}
+
 sub read{
-    my ($self, $recce, $string) = @_;
+    my ($parser, $recce, $string) = @_;
 
     # strip 'special comment on the first line'
     # todo: filter should preserve this
@@ -404,8 +434,10 @@ sub read{
 }
 
 sub parse {
-    my ( $parser, $source ) = @_;
-    my $recce = Marpa::R2::Scanless::R->new( { grammar => $parser->{grammar} } );
+    my ( $parser, $source, $recce_opts ) = @_;
+    # add grammar
+    $recce_opts->{grammar} = $parser->{grammar};
+    my $recce = Marpa::R2::Scanless::R->new( $recce_opts );
     return $parser->read($recce, $source);
 } ## end sub parse
 
@@ -456,4 +488,5 @@ sub tokens{
     }
     return $tokens;
 }
+
 1;
