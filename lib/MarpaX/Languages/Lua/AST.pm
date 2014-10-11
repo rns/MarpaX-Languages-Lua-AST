@@ -431,6 +431,8 @@ sub extend{
 
     die "# unknown literals:\n  ", join "\n  ", keys %literals if keys %literals;
 
+    say $rules;
+
     # terminals for external lexing will be rebuilt when parse()
     # now append $rules and try to create new grammar
     $parser->{grammar} = grammar( $rules );

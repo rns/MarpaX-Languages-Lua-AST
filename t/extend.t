@@ -109,7 +109,7 @@ my @tests = (
 
 Expression ::=
     Number
-    | Expression
+    | left_paren Expression right_paren
    || Expression exp Expression
    || Expression mul Expression
     | Expression div Expression
@@ -146,7 +146,15 @@ end
                   RH atom
                     named symbol
                       symbol name
+                        Name 'left_paren'
+                  RH atom
+                    named symbol
+                      symbol name
                         Name 'Expression'
+                  RH atom
+                    named symbol
+                      symbol name
+                        Name 'right_paren'
             prioritized alternative
               alternative
                 rhs
@@ -227,12 +235,12 @@ end
 q{
     Expression ::=
         Number
-        | Expression
-       || Expression exp Expression action function pow (e1, e2) return e1 ^ e2 end
-       || Expression mul Expression
-        | Expression div Expression
-       || Expression add Expression
-        | Expression sub Expression
+        | left_paren Expression right_paren
+       || Expression op_exp Expression action function pow (e1, e2) return e1 ^ e2 end
+       || Expression op_mul Expression action function mul (e1, e2) return e1 * e2 end
+        | Expression op_div Expression action function div (e1, e2) return e1 / e2 end
+       || Expression op_add Expression action function add (e1, e2) return e1 + e2 end
+        | Expression op_sub Expression  action function sub (e1, e2) return e1 - e2 end
 },
 q{...}
 ],
@@ -243,13 +251,14 @@ q{...}
 for my $test (@tests){
     my ($name, $lua_bnf, $subtree ) = @$test;
 SKIP:{
-    skip "actions in Lua BNF don't work yet", 1 if $name =~ /actions/;
+    skip "actions in Lua BNF don't work yet", 1 if 0 and $name =~ /actions/;
     my $ast = $p->parse( $lua_bnf );
     unless (defined $ast){
         fail "Can't parse:\n$lua_bnf";
         next;
     }
     my $lua_bnf_ast = $p->serialize( $ast );
+#    say $lua_bnf_ast;
     like $lua_bnf_ast, qr/\Q$subtree\E/xms, $name;
 }
 }
