@@ -18,7 +18,7 @@ my $bnf = q{
 stat ::= BNF
 
 # There is only one BNF statement,
-# combining priorties, sequences, and alternation
+# combining priorities, sequences, and alternation
 BNF ::= lhs '::=' <prioritized alternatives>
 <prioritized alternatives> ::= <prioritized alternative>+ separator => <double bar>
 <prioritized alternative> ::= <alternative>+ separator => <bar>
@@ -104,135 +104,156 @@ $p->extend({
 # test lua bnf
 my @tests = (
 
-[ 'bare Marpa::R2 synopsys and lua function', q{
+[ 'bare Marpa::R2 synopsys BNF in lua function', q{
 -- BNF rules
+function lua_bnf()
 
-Expression ::=
-    Number
-    | left_paren Expression right_paren
-   || Expression exp Expression
-   || Expression mul Expression
-    | Expression div Expression
-   || Expression add Expression
-    | Expression sub Expression
+    Script ::= Expression+ % comma
+    Expression ::=
+        Number
+        | left_paren Expression right_paren
+       || Expression exp Expression
+       || Expression mul Expression
+        | Expression div Expression
+       || Expression add Expression
+        | Expression sub Expression
 
---- Lua function, just in case
-
-function fact (n)
-  if n == 0 then
-    return 1
-  else
-    return n * fact(n-1)
-  end
 end
+
 }, q{
-      stat
-        BNF
-          lhs
-            named symbol
-              symbol name
-                Name 'Expression'
-          op declare bnf '::='
-          prioritized alternatives
-            prioritized alternative
-              alternative
-                rhs
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'Number'
-              alternative
-                rhs
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'left_paren'
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'Expression'
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'right_paren'
-            prioritized alternative
-              alternative
-                rhs
-                  RH atom
+                stat
+                  BNF
+                    lhs
+                      named symbol
+                        symbol name
+                          Name 'Script'
+                    op declare bnf '::='
+                    prioritized alternatives
+                      prioritized alternative
+                        alternative
+                          rhs
+                            RH atom
+                              separated sequence
+                                sequence
+                                  named symbol
+                                    symbol name
+                                      Name 'Expression'
+                                  addition '+'
+                                percent '%'
+                                separator
+                                  named symbol
+                                    symbol name
+                                      Name 'comma'
+              stat
+                BNF
+                  lhs
                     named symbol
                       symbol name
                         Name 'Expression'
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'exp'
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'Expression'
-            prioritized alternative
-              alternative
-                rhs
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'Expression'
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'mul'
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'Expression'
-              alternative
-                rhs
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'Expression'
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'div'
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'Expression'
-            prioritized alternative
-              alternative
-                rhs
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'Expression'
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'add'
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'Expression'
-              alternative
-                rhs
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'Expression'
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'sub'
-                  RH atom
-                    named symbol
-                      symbol name
-                        Name 'Expression'
+                  op declare bnf '::='
+                  prioritized alternatives
+                    prioritized alternative
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Number'
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'left_paren'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'right_paren'
+                    prioritized alternative
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'exp'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                    prioritized alternative
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'mul'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'div'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                    prioritized alternative
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'add'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'sub'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
 }
 ],
 
 [ 'Marpa::R2 synopsys with actions in Lua functions',
 q{
+function lua_bnf()
+
+    Script ::= Expression+ % comma
     Expression ::=
         Number
         | left_paren Expression right_paren
@@ -241,17 +262,16 @@ q{
         | Expression op_div Expression action function div (e1, e2) return e1 / e2 end
        || Expression op_add Expression action function add (e1, e2) return e1 + e2 end
         | Expression op_sub Expression  action function sub (e1, e2) return e1 - e2 end
+end
+
 },
 q{...}
 ],
 #[ '...', q{...}, q{...} ],
 );
 
-
 for my $test (@tests){
     my ($name, $lua_bnf, $subtree ) = @$test;
-SKIP:{
-    skip "actions in Lua BNF don't work yet", 1 if 0 and $name =~ /actions/;
     my $ast = $p->parse( $lua_bnf );
     unless (defined $ast){
         fail "Can't parse:\n$lua_bnf";
@@ -260,7 +280,6 @@ SKIP:{
     my $lua_bnf_ast = $p->serialize( $ast );
 #    say $lua_bnf_ast;
     like $lua_bnf_ast, qr/\Q$subtree\E/xms, $name;
-}
 }
 
 done_testing();
