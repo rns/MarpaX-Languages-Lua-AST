@@ -14,6 +14,7 @@ use MarpaX::Languages::Lua::AST;
 # evaluate snippet: it can be arbitrary, just make sure that
 # the return value is in variable a before the function end
 my @tests;
+
 BEGIN {
     my @a = (
 # the five literal strings below denote the same string:
@@ -75,42 +76,12 @@ assert( a == b )
     }
 }
 
-=pod strings.lua:103-104
-
-   # the last '
-x = '"нlo"\n\\'
-    # is wrongly parsed as escaped \'
-    # to the nearest '
-assert(string.format('%q%s', x, x) == '"\\"нlo\\"\\\n\\\\""нlo"\n\\')
-
-# ast subtree:
-    stat
-      varlist
-        var
-          Name 'x'
-      '='
-      explist
-        exp
-          exp
-            exp
-              String ''"нlo"\n\\' #'
-assert(string.format(''
-            binop '%'
-            exp
-              prefixexp
-                var
-                  Name 'q'
-          binop '%'
-
-=cut
-
 my @results;
 my $compile_template = q{
     use Inline Lua => $tests[{{i}}]->[0];
     my $expected_a{{i}} = a_inline_{{i}}();
 
     sub got_a{{i}}{
-        my $p = MarpaX::Languages::Lua::AST->new;
         my $ast = $p->parse($tests[{{i}}]->[1]);
         my $tokens = $p->tokens( $ast );
         push @results, $tokens; # save serialized ast to show if test fails
@@ -123,12 +94,16 @@ my $compile_template = q{
     push @results, $got_a{{i}}, $expected_a{{i}}; # save lua execution resutls
 };
 
+my $p;
+BEGIN {
+    $p = MarpaX::Languages::Lua::AST->new;
+}
+
 for my $i (0..$#tests){
     my $compile_i = $compile_template;
     $compile_i =~ s/{{i}}/$i/g;
     eval $compile_i;
     if ($@){ # misparsing: reparse to show why
-        my $p = MarpaX::Languages::Lua::AST->new;
         my $ast = $p->parse(
             $tests[$i]->[2],
             { trace_terminals => 0 },

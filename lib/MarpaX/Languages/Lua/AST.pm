@@ -195,62 +195,65 @@ lexeme default = action => [ name, value ] latm => 1
     unop ::= <length>
 
 #   unicorns
-
-    String ~ unicorn
-    Number ~ unicorn
-    Name ~ unicorn
-
-    <addition> ~ unicorn
-    <and> ~ unicorn
-    <assignment> ~ unicorn
-    <break> ~ unicorn
-    <colon> ~ unicorn
-    <comma> ~ unicorn
-    <concatenation> ~ unicorn
-    <division> ~ unicorn
-    <do> ~ unicorn
-    <ellipsis> ~ unicorn
-    <else> ~ unicorn
-    <elseif> ~ unicorn
-    <end> ~ unicorn
-    <equality> ~ unicorn
-    <exponentiation> ~ unicorn
-    <false> ~ unicorn
-    <for> ~ unicorn
-    <function> ~ unicorn
-    <greater or equal> ~ unicorn
-    <greater than> ~ unicorn
-    <if> ~ unicorn
-    <in> ~ unicorn
-    <left bracket> ~ unicorn
-    <left curly> ~ unicorn
-    <left paren> ~ unicorn
-    <length> ~ unicorn
-    <less or equal> ~ unicorn
-    <less than> ~ unicorn
-    <local> ~ unicorn
-    <minus> ~ unicorn
-    <multiplication> ~ unicorn
-    <negation> ~ unicorn
-    <nil> ~ unicorn
-    <not> ~ unicorn
-    <or> ~ unicorn
-    <percent> ~ unicorn
-    <period> ~ unicorn
-    <repeat> ~ unicorn
-    <return> ~ unicorn
-    <right bracket> ~ unicorn
-    <right curly> ~ unicorn
-    <right paren> ~ unicorn
-    <semicolon> ~ unicorn
-    <then> ~ unicorn
-    <true> ~ unicorn
-    <until> ~ unicorn
-    <while> ~ unicorn
-
+    # unicorn rules will be added in the constructor for extensibility
     unicorn ~ [^\s\S]
 
 };
+
+my @unicorns = (
+
+    'String',
+    'Number',
+    'Name',
+
+    '<addition>',
+    '<and>',
+    '<assignment>',
+    '<break>',
+    '<colon>',
+    '<comma>',
+    '<concatenation>',
+    '<division>',
+    '<do>',
+    '<ellipsis>',
+    '<else>',
+    '<elseif>',
+    '<end>',
+    '<equality>',
+    '<exponentiation>',
+    '<false>',
+    '<for>',
+    '<function>',
+    '<greater or equal>',
+    '<greater than>',
+    '<if>',
+    '<in>',
+    '<left bracket>',
+    '<left curly>',
+    '<left paren>',
+    '<length>',
+    '<less or equal>',
+    '<less than>',
+    '<local>',
+    '<minus>',
+    '<multiplication>',
+    '<negation>',
+    '<nil>',
+    '<not>',
+    '<or>',
+    '<percent>',
+    '<period>',
+    '<repeat>',
+    '<return>',
+    '<right bracket>',
+    '<right curly>',
+    '<right paren>',
+    '<semicolon>',
+    '<then>',
+    '<true>',
+    '<until>',
+    '<while>',
+);
 
 # Terminals
 # =========
@@ -363,6 +366,8 @@ my @terminals = (
 sub new {
     my ($class) = @_;
     my $parser = bless {}, $class;
+    # add unicorns
+    $grammar .= "\n" . join( "\n", map { qq{$_ ~ unicorn} } @unicorns ) . "\n";
     $parser->{grammar} = Marpa::R2::Scanless::G->new( { source => \$grammar } );
     return $parser;
 }
@@ -371,11 +376,12 @@ sub extend{
     my ($parser, $opts) = @_;
 
     # replace known literals to lexemes
-
-    # see if any literals left, croak -- external lexing doesn't allow this
+    # L0 rules to unicorns
+    # see if any literals left, give them names and add to regex
 
     # add keywords (in brackets without spaces)
 
+    # charclasses
 
 }
 
