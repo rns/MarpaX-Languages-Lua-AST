@@ -84,6 +84,19 @@ sequence ::=
 
 # example of Lua extended with BNF
 my $input = <<END;
+-- test BNF rules
+
+Expression ::=
+    Number
+    | Expression
+   || Expression op_exp Expression, action (e) end
+   || Expression op_mul Expression
+    | Expression op_div Expression
+   || Expression op_add Expression
+    | Expression op_sub Expression
+
+--- Lua function, just for testing
+
 function fact (n)
   if n == 0 then
     return 1
@@ -92,19 +105,6 @@ function fact (n)
   end
 end
 
-print("enter a number:")
-a = io.read("*number")        -- read a number
-print(fact(a))
-
--- test BNF rules
-    stat ::= <if> exp <then> block <end>
-    stat ::= <if> exp <then> block <else> block <end>
-    stat ::= <if> exp <then> block <one or more elseifs> <else> block <end>
-    stat ::= <if> exp <then> block <one or more elseifs> <end>
-
-END
-
-my $expected_fmt = <<END;
 END
 
 my $p = MarpaX::Languages::Lua::AST->new;
@@ -131,17 +131,31 @@ $p->extend({
 my $ast = $p->parse( $input );
 
 unless (defined $ast){
-    $p->parse( $input, { trace_terminals => 1 } );
+    $p->parse( $input, { trace_terminals => 99 } );
     fail "Can't parse:\n$input";
 }
 
 my $fmt = $p->serialize( $ast );
-say $fmt;
 
-TODO: {
-    todo_skip "extension not yet implemented", 1;
-    is $fmt, $expected_fmt, 'format by seralizing lua code ast';
-}
+my $expected_fmt = <<END;
+    stat
+      BNF
+        lhs
+          named symbol
+            symbol name
+              Name 'lhs'
+        op declare bnf '::='
+        prioritized alternatives
+          prioritized alternative
+            alternative
+              rhs
+                RH atom
+                  named symbol
+                    symbol name
+                      Name 'rhs'
+END
+
+like $fmt, qr/\Q$expected_fmt\E/ms, "BNF extension";
 
 done_testing();
 
