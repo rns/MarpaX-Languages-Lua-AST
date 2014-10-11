@@ -272,9 +272,7 @@ my @keywords = qw {
     or repeat return then true until while
 };
 
-my $keywords = { map { $_ => $_ } @keywords };
-
-my $keyword_re = '\b' . join( '\b|\b', @keywords ) . '\b';
+my $keywords = {};
 
 # operators, punctuation
 my $op_punc = {
@@ -295,9 +293,6 @@ my $op_punc = {
             ';' =>  'semicolon',        ',' =>  'comma',
             '.' =>  'period',
 };
-
-# sort longest to shortest, quote and alternate
-my $op_punc_re = join '|', map { quotemeta } sort { length($b) <=> length($a) } keys $op_punc;
 
 # terminals are regexes and strings
 my @terminals = ( # order matters!
@@ -358,13 +353,17 @@ my @terminals = ( # order matters!
 
 sub terminals{
 
-    push @terminals,
-
 #   keywords -- group matching
-    [ $keywords => qr/$keyword_re/xms ],
+    $keywords = { map { $_ => $_ } @keywords };
+    my $keyword_re = '\b' . join( '\b|\b', @keywords ) . '\b';
 
-#   operators and punctuation -- group matching
-    [ $op_punc => qr/$op_punc_re/xms ];
+    push @terminals, [ $keywords => qr/$keyword_re/xms ];
+
+#   operators and punctuation -- group matching -- longest to shortest, quote and alternate
+    my $op_punc_re = join '|', map { quotemeta } sort { length($b) <=> length($a) }
+        keys $op_punc;
+
+    push @terminals, [ $op_punc => qr/$op_punc_re/xms ];
 
     return \@terminals;
 }
@@ -398,6 +397,7 @@ sub read{
 
     $recce->read( \$string, 0, 0 );
 
+    # build terminals
     my @terminals = @{ terminals() };
 
     my $length = length $string;
