@@ -193,6 +193,7 @@ lexeme default = action => [ name, value ] latm => 1
     unop ::= <not>
     unop ::= <length>
 
+    Number ::= Int | Float | Hex
 #   unicorns
     # unicorn rules will be added in the constructor for extensibility
     unicorn ~ [^\s\S]
@@ -202,7 +203,7 @@ lexeme default = action => [ name, value ] latm => 1
 my @unicorns = (
 
     'String',
-    'Number',
+    'Int', 'Float', 'Hex',
     'Name',
 
     '<addition>',
@@ -332,12 +333,12 @@ my @terminals = ( # order matters!
 #   numbers -- int, float, and hex
 #   We can write numeric constants with an optional decimal part,
 #   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
-    [ 'Number' => qr/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/xms, "Floating-point number" ],
-    [ 'Number' => qr/[0-9]+[eE][-+]?[0-9]+/xms, "Floating-point number" ],
-    [ 'Number' => qr/[0-9]+\./xms, "Floating-point number" ],
-    [ 'Number' => qr/\.[0-9]+/xms, "Floating-point number" ],
-    [ 'Number' => qr/0x[0-9a-fA-F]+/xms, "Hexadecimal number" ],
-    [ 'Number' => qr/[\d]+/xms, "Integer number" ],
+    [ 'Float' => qr/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/xms, "Floating-point number" ],
+    [ 'Float' => qr/[0-9]+[eE][-+]?[0-9]+/xms, "Floating-point number" ],
+    [ 'Float' => qr/[0-9]+\./xms, "Floating-point number" ],
+    [ 'Float' => qr/\.[0-9]+/xms, "Floating-point number" ],
+    [ 'Hex' => qr/0x[0-9a-fA-F]+/xms, "Hexadecimal number" ],
+    [ 'Int' => qr/[\d]+/xms, "Integer number" ],
 
 #   identifiers
     [ 'Name' => qr/\b[a-zA-Z_][\w]*\b/xms, "Name" ],
@@ -528,13 +529,58 @@ sub parse {
     return $parser->read($recce, $source);
 } ## end sub parse
 
+# so at least some of what http://perltidy.sourceforge.net/ does for perl
+# 1. indenting
+# ...
 sub fmt{
-    my ($parser, $ast) = @_;
+    my ($parser, $opts) = @_;
+    my $ast     = $opts->{ast};
+    my $indent  = $opts->{ast} || 2;
+    return do_fmt( $ast );
+}
+
+# these node_id's level++ on enter and level-- on exit
+my %structural = map { $_ => undef }
+    qw{
+        block
+    };
+# these node_id's are saved to form context for lower nodes
+my %contextual = map { $_ => undef }
+    @keywords,
+    values %$op_punc,
+    qw{
+        Name String Number Int Float Hex funcname funcbody
+    };
+
+
+#
+sub do_fmt{
+    my ($ast) = @_;
+    state $level;
+    $level //= 0;
+    state @prev_node_id;
     if (ref $ast){
         my ($node_id, @children) = @$ast;
-        $parser->fmt( $_ ) for @children;
+
+        # prolog
+        if ( exists $structural{$node_id} ){
+            $level++;
+        }
+        push @prev_node_id, $node_id if exists $contextual{$node_id};
+
+        # recurse
+        do_fmt( $_ ) for @children;
+
+        # epilog
+        pop @prev_node_id if exists $contextual{$node_id};
+        if ( exists $structural{$node_id} ){
+            $level--;
+        }
+
     }
     else{
+        my $token_name = join '/', @prev_node_id;
+        say sprintf "%2u: %30s %30s", $level, "<$token_name>", "'$ast'";
     }
 }
 

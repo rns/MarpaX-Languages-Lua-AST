@@ -37,9 +37,15 @@ unless (defined $ast){
     fail "Can't parse:\n$input";
 }
 
-my $fmt = $p->fmt( $ast );
-
+# dump tree first
 say $p->serialize( $ast );
+
+# format it later
+my $fmt = $p->fmt( {
+    ast => $ast,
+    indent => 2,
+    linelength => 78,
+} );
 
 TODO: {
     todo_skip "ast serialization to formatted source shelved until lua test suite parsing is done", 1;
