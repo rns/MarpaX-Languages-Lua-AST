@@ -2,7 +2,7 @@
 # Copyright 2014 Ruslan Shvedov
 
 #
-use 5.010;
+use v5.14.2;
 use warnings;
 use strict;
 

@@ -3,7 +3,7 @@
 
 # test parsing of lua code snippets from the Reference manual
 
-use 5.010;
+use v5.14.2;
 use warnings;
 use strict;
 

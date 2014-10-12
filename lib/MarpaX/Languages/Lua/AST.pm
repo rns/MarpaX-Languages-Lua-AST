@@ -1,10 +1,10 @@
 # Copyright 2014 Ruslan Shvedov
 
-# Lua 5.1 Parser in barebones (no priotitized rules, external scanning) SLIF
+# Lua 5.1 Parser in barebones (external scanning, no priotitized rules, no sequences) SLIF
 
 package MarpaX::Languages::Lua::AST;
 
-use 5.010;
+use v5.14.2;
 use strict;
 use warnings;
 
