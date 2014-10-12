@@ -535,16 +535,18 @@ my %structural = map { $_ => undef }
         block
     };
 # these node_id's are saved to form context for lower nodes
-my %contextual = map { $_ => undef }
+my %span = map { $_ => undef }
     @keywords,
     values %$op_punc,
     qw{
-        Name String Number Int Float Hex funcname funcbody parlist explist
+        Name String Number Int Float Hex
+        funcname funcbody
+        parlist explist namelist
     };
 
 # span " span_node_id => start_node_ids end_node_ids
-
-my @scopes = (
+# block/span/level model
+my @blocks = (
 
     [qw{ function end }      ],                 # span start //= span end
     [qw{ funcname funcbody } ],
@@ -568,12 +570,12 @@ my @scopes = (
 
 );
 
-my %scopes;
+my %blocks;
 
-delete $contextual{$_} for map { @$_ } @scopes;
+delete $span{$_} for map { @$_ } @blocks;
 
-#say Dumper @scopes;
-#say Dumper %contextual;
+#say Dumper @blocks;
+#say Dumper %span;
 
 # so at least some of what http://perltidy.sourceforge.net/ does for perl
 # 1. indenting
@@ -582,17 +584,17 @@ sub fmt{
     my ($parser, $opts) = @_;
     my $ast     = $opts->{ast};
     my $indent  = $opts->{ast} || 2;
-    # set up scopes: name, start symbol, end symbol
-    for my $scope (@scopes){
-        my ($name, $start, $end) = @$scope;
+    # set up blocks: name, start symbol, end symbol
+    for my $block (@blocks){
+        my ($name, $start, $end) = @$block;
         unless ($end){ # span can start from symbol of the same name
             $end = $start;
             $start = $name;
         }
-        $scopes{$name}->{start}->{$start} = undef;
-        $scopes{$name}->{end}->{$end} = undef;
+        $blocks{$name}->{start}->{$start} = undef;
+        $blocks{$name}->{end}->{$end} = undef;
     }
-    say Dumper %scopes;
+    say Dumper %blocks;
     return do_fmt( $ast );
 }
 
@@ -601,19 +603,19 @@ sub do_fmt{
     my ($ast) = @_;
     state $level;
     $level //= 0;
-    state @path;
-    state @scope;
+    state @span;
+    state @block;
     if (ref $ast){
         my ($node_id, @children) = @$ast;
 
         # prolog
         $level++ if exists $structural{$node_id};
 
-        push @path, $node_id if exists $contextual{$node_id};
+        push @span, $node_id if exists $span{$node_id};
 
-        for my $scope (keys %scopes){
-            pop @scope if @scope and exists $scopes{ $scope[-1] }->{end}->{ $node_id };
-            push @scope, $scope if exists $scopes{ $scope }->{start}->{ $node_id };
+        for my $block (keys %blocks){
+            pop @block if @block and exists $blocks{ $block[-1] }->{end}->{ $node_id };
+            push @block, $block if exists $blocks{ $block }->{start}->{ $node_id };
         }
 
         # recurse
@@ -621,22 +623,22 @@ sub do_fmt{
         do_fmt( $_ ) for @children;
 #        warn "# Leaving: $node_id ";
 #        warn "# Leaving:\n  ", join ', ', $node_id,
-#                $path[-1] //= '<none>',
-#                $scopes{ $path[-1] } //= '<none>' if @path;
+#                $span[-1] //= '<none>',
+#                $blocks{ $span[-1] } //= '<none>' if @span;
 
 
         # epilog
 
-        pop @path if exists $contextual{$node_id};
+        pop @span if exists $span{$node_id};
 
-        # exists $end_tags{ $path[-1] } and $node_id eq $end_tags{ $path[-1] };
+        # exists $end_tags{ $span[-1] } and $node_id eq $end_tags{ $span[-1] };
         $level-- if exists $structural{$node_id};
 
     }
     else{
-        my $token_name = join '/', @scope, @path;
+        my $token_name = join '/', @block, @span;
         say sprintf "%2u: %20s %-30s %-20s",
-            $level, join('/', @scope), join('/', @path), $ast;
+            $level, join('/', @block), join('/', @span), $ast;
     }
 }
 
