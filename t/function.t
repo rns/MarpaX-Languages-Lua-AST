@@ -13,9 +13,14 @@ use strict;
 
 use Test::More;
 
+use Inline 0.77;
+
 BEGIN {
-    eval { require Inline::Lua; 1; } or do
-    {
+    my $ilv = '0.09';
+    eval {
+        require Inline::Lua;
+        $Inline::Lua::VERSION eq $ilv;
+    } or do {
         plan skip_all => "Inline::Lua is not installed";
     };
 }
