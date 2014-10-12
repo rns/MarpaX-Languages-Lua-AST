@@ -265,7 +265,323 @@ function lua_bnf()
 end
 
 },
-q{...}
+q{
+        block
+          chunk
+            statements
+              statements
+                stat
+                  BNF
+                    lhs
+                      named symbol
+                        symbol name
+                          Name 'Script'
+                    op declare bnf '::='
+                    prioritized alternatives
+                      prioritized alternative
+                        alternative
+                          rhs
+                            RH atom
+                              separated sequence
+                                sequence
+                                  named symbol
+                                    symbol name
+                                      Name 'Expression'
+                                  addition '+'
+                                percent '%'
+                                separator
+                                  named symbol
+                                    symbol name
+                                      Name 'comma'
+              stat
+                BNF
+                  lhs
+                    named symbol
+                      symbol name
+                        Name 'Expression'
+                  op declare bnf '::='
+                  prioritized alternatives
+                    prioritized alternative
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Number'
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'left_paren'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'right_paren'
+                    prioritized alternative
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'op_exp'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                        comma ','
+                        alternative fields
+                          alternative field
+                            action
+                              action literal 'action'
+                              left paren '('
+                              action parlist
+                                action parlist
+                                  symbol parameter
+                                    named RH symbol
+                                      named symbol
+                                        symbol name
+                                          Name 'e1'
+                                comma ','
+                                symbol parameter
+                                  named RH symbol
+                                    named symbol
+                                      symbol name
+                                        Name 'e2'
+                              right paren ')'
+                              block
+                                chunk
+                                  laststat
+                                    return 'return'
+                                    explist
+                                      exp
+                                        exp
+                                          prefixexp
+                                            var
+                                              Name 'e1'
+                                        binop
+                                          exponentiation '^'
+                                        exp
+                                          prefixexp
+                                            var
+                                              Name 'e2'
+                              end 'end'
+                    prioritized alternative
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'op_mul'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                        comma ','
+                        alternative fields
+                          alternative field
+                            action
+                              action literal 'action'
+                              left paren '('
+                              action parlist
+                                action parlist
+                                  symbol parameter
+                                    named RH symbol
+                                      named symbol
+                                        symbol name
+                                          Name 'e1'
+                                comma ','
+                                symbol parameter
+                                  named RH symbol
+                                    named symbol
+                                      symbol name
+                                        Name 'e2'
+                              right paren ')'
+                              block
+                                chunk
+                                  laststat
+                                    return 'return'
+                                    explist
+                                      exp
+                                        exp
+                                          prefixexp
+                                            var
+                                              Name 'e1'
+                                        binop
+                                          multiplication '*'
+                                        exp
+                                          prefixexp
+                                            var
+                                              Name 'e2'
+                              end 'end'
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'op_div'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                        comma ','
+                        alternative fields
+                          alternative field
+                            action
+                              action literal 'action'
+                              left paren '('
+                              action parlist
+                                action parlist
+                                  symbol parameter
+                                    named RH symbol
+                                      named symbol
+                                        symbol name
+                                          Name 'e1'
+                                comma ','
+                                symbol parameter
+                                  named RH symbol
+                                    named symbol
+                                      symbol name
+                                        Name 'e2'
+                              right paren ')'
+                              block
+                                chunk
+                                  laststat
+                                    return 'return'
+                                    explist
+                                      exp
+                                        exp
+                                          prefixexp
+                                            var
+                                              Name 'e1'
+                                        binop
+                                          division '/'
+                                        exp
+                                          prefixexp
+                                            var
+                                              Name 'e2'
+                              end 'end'
+                    prioritized alternative
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'op_add'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                        comma ','
+                        alternative fields
+                          alternative field
+                            action
+                              action literal 'action'
+                              left paren '('
+                              action parlist
+                                action parlist
+                                  symbol parameter
+                                    named RH symbol
+                                      named symbol
+                                        symbol name
+                                          Name 'e1'
+                                comma ','
+                                symbol parameter
+                                  named RH symbol
+                                    named symbol
+                                      symbol name
+                                        Name 'e2'
+                              right paren ')'
+                              block
+                                chunk
+                                  laststat
+                                    return 'return'
+                                    explist
+                                      exp
+                                        exp
+                                          prefixexp
+                                            var
+                                              Name 'e1'
+                                        binop
+                                          addition '+'
+                                        exp
+                                          prefixexp
+                                            var
+                                              Name 'e2'
+                              end 'end'
+                      alternative
+                        rhs
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'op_sub'
+                          RH atom
+                            named symbol
+                              symbol name
+                                Name 'Expression'
+                        comma ','
+                        alternative fields
+                          alternative field
+                            action
+                              action literal 'action'
+                              left paren '('
+                              action parlist
+                                action parlist
+                                  symbol parameter
+                                    named RH symbol
+                                      named symbol
+                                        symbol name
+                                          Name 'e1'
+                                comma ','
+                                symbol parameter
+                                  named RH symbol
+                                    named symbol
+                                      symbol name
+                                        Name 'e2'
+                              right paren ')'
+                              block
+                                chunk
+                                  laststat
+                                    return 'return'
+                                    explist
+                                      exp
+                                        exp
+                                          prefixexp
+                                            var
+                                              Name 'e1'
+                                        binop
+                                          minus '-'
+                                        exp
+                                          prefixexp
+                                            var
+                                              Name 'e2'
+                              end 'end'
+        end 'end'
+}
 ],
 #[ '...', q{...}, q{...} ],
 );

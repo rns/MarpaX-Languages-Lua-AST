@@ -1,24 +1,29 @@
-﻿# ast traversal
-	distill
-	flatten recursion
-		statements
-		*list
+﻿# extend
+	'action' lexes as <action literal>, not Name -- http://irclog.perlgeek.de/marpa/2014-10-11#i_9493150
+	general lexing
+	
+# fmt
+	# ast traversal
+		distill
+			flatten left recursion
+				statements
+				*list
 
-Lua AST you can traverse
-
-Lua filter -- extend/mangle Lua syntax
+# highlights
+	extensible parser
+	traversable Lua AST
 
 # check for ambiguity
 
 # find a job for lua parser
-
-help port lua 5.1 code to lua 5.2 -- What Lua 5.1 code breaks in Lua 5.2
-http://www.luafaq.org/#T8.1
-
-http://lua-users.org/wiki/LuaInspect
+	help port lua 5.1 code to lua 5.2 -- What Lua 5.1 code breaks in Lua 5.2
+	http://www.luafaq.org/#T8.1
 
 # More parser tests:
 http://lua-users.org/wiki/LuaGrammar
+
+# Lua Links
+# ---------
 
 # lua formatters/ast emitters
 http://metalua.luaforge.net/
@@ -42,10 +47,10 @@ http://lua-users.org/wiki/SourceOptimizer
 http://studio.zerobrane.com/
 
 # AST-based formatter/linter
-subtle comma (Kolesnikov)
+	subtle comma (Kolesnikov)
 
-Questions to be asked when enough tests will pass
--------------------------------------------------
+# Questions to be asked when enough tests will pass
+# -------------------------------------------------
 
 #
 # How to/If we need to interpret these escape sequences (2.1 – Lexical Conventions) 

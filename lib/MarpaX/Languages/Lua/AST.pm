@@ -345,9 +345,16 @@ my @terminals = ( # order matters!
 );
 
 sub terminals{
+    my ($parser) = @_;
 
 #   keywords -- group matching
     $keywords = { map { $_ => $_ } @keywords };
+#   add new keywords, if any
+    # todo: move to general lexing
+    while (my ($literal, $symbol) = each %{ $parser->{new_keywords} } ){
+        $keywords->{$literal} = $symbol;
+    }
+
     my $keyword_re = '\b' . join( '\b|\b', @keywords ) . '\b';
 
     push @terminals, [ $keywords => qr/$keyword_re/xms ];
@@ -382,12 +389,16 @@ sub extend{
     my $rules = $opts->{rules};
 
     # todo: this is quick hack, use metag.bnf
-
-    # add new literals and unicorns
+    # add new literals, keywords and unicorns
     for my $literal (keys $opts->{literals}){
         my $symbol = $opts->{literals}->{$literal};
 #        say "new literal: $symbol, $literal";
         $op_punc->{$literal} = $symbol;
+        # save keywords
+        if ($literal =~ /^[\w]+$/){
+            $parser->{new_keywords}->{$literal} = $symbol;
+        }
+        # add unicorn
         $symbol = qq{<$symbol>} if $symbol =~ / /;
         push @unicorns, $symbol;
     }
@@ -446,7 +457,7 @@ sub read{
     $recce->read( \$string, 0, 0 );
 
     # build terminals
-    my @terminals = @{ terminals() };
+    my @terminals = @{ $parser->terminals() };
 
     my $length = length $string;
     pos $string = 0;
@@ -512,6 +523,24 @@ sub parse {
     my $recce = Marpa::R2::Scanless::R->new( $recce_opts );
     return $parser->read($recce, $source);
 } ## end sub parse
+
+sub fmt{
+    my ($parser, $ast) = @_;
+    if (ref $ast){
+        my ($node_id, @children) = @$ast;
+#        warn $node_id;
+        if ($node_id eq 'statements'){
+#            warn Dumper @children;
+            warn scalar @children;
+            warn $children[0]->[0], $children[0]->[1];
+            warn $children[-1]->[0], $children[-1]->[1];
+        }
+        $parser->fmt( $_ ) for @children;
+    }
+    else{
+#        warn $ast;
+    }
+}
 
 sub serialize{
     my ($parser, $ast) = @_;

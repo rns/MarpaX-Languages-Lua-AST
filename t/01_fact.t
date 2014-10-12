@@ -37,8 +37,9 @@ unless (defined $ast){
     fail "Can't parse:\n$input";
 }
 
-my $fmt = $p->serialize( $ast );
-say $fmt;
+my $fmt = $p->fmt( $ast );
+
+say $p->serialize( $ast );
 
 TODO: {
     todo_skip "ast serialization to formatted source shelved until lua test suite parsing is done", 1;
