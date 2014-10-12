@@ -23,7 +23,7 @@ BNF ::= lhs '::=' <prioritized alternatives>
 <prioritized alternatives> ::= <prioritized alternative>+ separator => <double bar>
 <prioritized alternative> ::= <alternative>+ separator => <bar>
 <alternative> ::= rhs | rhs ',' <alternative fields>
-<alternative fields> ::= <alternative field>* separator => comma
+<alternative fields> ::= <alternative field>+ separator => comma
 <alternative field> ::= field | action
 action ::= 'action' '(' <action parlist> ')' block <end>
 <action parlist> ::= <symbol parameter> | <action parlist> ',' <symbol parameter>
@@ -257,11 +257,11 @@ function lua_bnf()
     Expression ::=
         Number
         | left_paren Expression right_paren
-       || Expression op_exp Expression action function pow (e1, e2) return e1 ^ e2 end
-       || Expression op_mul Expression action function mul (e1, e2) return e1 * e2 end
-        | Expression op_div Expression action function div (e1, e2) return e1 / e2 end
-       || Expression op_add Expression action function add (e1, e2) return e1 + e2 end
-        | Expression op_sub Expression  action function sub (e1, e2) return e1 - e2 end
+       || Expression op_exp Expression, action (e1, e2) return e1 ^ e2 end
+       || Expression op_mul Expression, action (e1, e2) return e1 * e2 end
+        | Expression op_div Expression, action (e1, e2) return e1 / e2 end
+       || Expression op_add Expression, action (e1, e2) return e1 + e2 end
+        | Expression op_sub Expression,  action (e1, e2) return e1 - e2 end
 end
 
 },
