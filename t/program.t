@@ -13,6 +13,27 @@ use strict;
 
 use Test::More;
 
+BEGIN {
+    my $stderr;
+    eval
+    {
+        my $luav = "lua -v";
+        # run $luav capturing STDERR (per perlfaq8)
+        use IPC::Open3;
+        use File::Spec;
+        my $in = '';
+        open(NULL, ">", File::Spec->devnull);
+        my $pid = open3($in, ">&NULL", \*PH, $luav);
+        my $stderr = <PH>;
+        waitpid($pid, 0);
+        # check lua and its version
+        $stderr =~ /^Lua 5.1/ims;
+    } or do
+    {
+        plan skip_all => "lua 5.1 not installed or can't be run (lua -v fails)";
+    };
+}
+
 use File::Temp qw{ tempfile };
 use Cwd qw();
 
@@ -163,4 +184,5 @@ sub whip_up_lua_file{
 }
 
 done_testing();
+
 

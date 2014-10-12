@@ -13,6 +13,13 @@ use strict;
 
 use Test::More;
 
+BEGIN {
+    eval { require Inline::Lua; 1; } or do
+    {
+        plan skip_all => "Inline::Lua is not installed";
+    };
+}
+
 use MarpaX::Languages::Lua::AST;
 
 my $lua_fact;

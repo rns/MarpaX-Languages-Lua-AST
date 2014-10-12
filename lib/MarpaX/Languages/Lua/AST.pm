@@ -13,7 +13,7 @@ $Data::Dumper::Indent = 1;
 $Data::Dumper::Terse = 1;
 $Data::Dumper::Deepcopy = 1;
 
-use Marpa::R2;
+use Marpa::R2 2.096;
 
 # Lua Grammar
 # ===========
@@ -528,17 +528,9 @@ sub fmt{
     my ($parser, $ast) = @_;
     if (ref $ast){
         my ($node_id, @children) = @$ast;
-#        warn $node_id;
-        if ($node_id eq 'statements'){
-#            warn Dumper @children;
-            warn scalar @children;
-            warn $children[0]->[0], $children[0]->[1];
-            warn $children[-1]->[0], $children[-1]->[1];
-        }
         $parser->fmt( $_ ) for @children;
     }
     else{
-#        warn $ast;
     }
 }
 
