@@ -529,54 +529,6 @@ sub parse {
     return $parser->read($recce, $source);
 } ## end sub parse
 
-# these node_id's level++ on enter and level-- on exit
-my %structural = map { $_ => undef }
-    qw{
-        block
-    };
-# these node_id's are saved to form context for lower nodes
-my %span = map { $_ => undef }
-    @keywords,
-    values %$op_punc,
-    qw{
-        Name String Number Int Float Hex
-        funcname funcbody
-        parlist explist namelist
-    };
-
-# span " span_node_id => start_node_ids end_node_ids
-# block/span/level model
-my @blocks = (
-
-    [qw{ function end }      ],                 # span start //= span end
-    [qw{ funcname funcbody } ],
-# need more context for parens
-#    [ 'parlist', 'left paren', 'right paren' ], # span start          end
-
-    [qw{ if end }],
-    [qw{ if then }],
-
-    [qw{ then end }],
-    [qw{ then else }],
-
-    [qw{ else end }],
-    [qw{ elseif else }],
-    [qw{ elseif end }],
-
-    [qw{ for end }],
-    [qw{ while end }],
-
-    [qw{ do end }],
-
-);
-
-my %blocks;
-
-delete $span{$_} for map { @$_ } @blocks;
-
-#say Dumper @blocks;
-#say Dumper %span;
-
 # so at least some of what http://perltidy.sourceforge.net/ does for perl
 # 1. indenting
 # ...
@@ -584,17 +536,6 @@ sub fmt{
     my ($parser, $opts) = @_;
     my $ast     = $opts->{ast};
     my $indent  = $opts->{ast} || 2;
-    # set up blocks: name, start symbol, end symbol
-    for my $block (@blocks){
-        my ($name, $start, $end) = @$block;
-        unless ($end){ # span can start from symbol of the same name
-            $end = $start;
-            $start = $name;
-        }
-        $blocks{$name}->{start}->{$start} = undef;
-        $blocks{$name}->{end}->{$end} = undef;
-    }
-    say Dumper %blocks;
     return do_fmt( $ast );
 }
 
@@ -603,43 +544,45 @@ sub do_fmt{
     my ($ast) = @_;
     state $level;
     $level //= 0;
-    state @span;
-    state @block;
+    my $s;
     if (ref $ast){
         my ($node_id, @children) = @$ast;
 
         # prolog
-        $level++ if exists $structural{$node_id};
-
-        push @span, $node_id if exists $span{$node_id};
-
-        for my $block (keys %blocks){
-            pop @block if @block and exists $blocks{ $block[-1] }->{end}->{ $node_id };
-            push @block, $block if exists $blocks{ $block }->{start}->{ $node_id };
-        }
+        $level++ if $node_id eq 'block';
 
         # recurse
 #        warn "# Entering: $node_id";
-        do_fmt( $_ ) for @children;
+        $s .= join '', grep { defined } do_fmt( $_ ) for @children;
 #        warn "# Leaving: $node_id ";
-#        warn "# Leaving:\n  ", join ', ', $node_id,
-#                $span[-1] //= '<none>',
-#                $blocks{ $span[-1] } //= '<none>' if @span;
-
 
         # epilog
-
-        pop @span if exists $span{$node_id};
-
-        # exists $end_tags{ $span[-1] } and $node_id eq $end_tags{ $span[-1] };
-        $level-- if exists $structural{$node_id};
+        $level-- if $node_id eq 'block';
 
     }
     else{
-        my $token_name = join '/', @block, @span;
-        say sprintf "%2u: %20s %-30s %-20s",
-            $level, join('/', @block), join('/', @span), $ast;
+        if ($ast =~ /^function|if|local$/){
+            $s .= "\n" . '  ' x $level . $ast . ' ';
+        }
+        elsif ( $ast =~ /^else$/ ){
+            $s .= "\n" . '  ' x $level . $ast . "\n";
+        }
+        elsif ( $ast =~ /^then$/ ){
+            $s .= ' ' . $ast . "\n";
+        }
+        elsif ($ast =~ /^end$/){
+            $s .= "\n" . '  ' x $level . $ast;
+            # add newline after function end
+            $s .= "\n" if $level == 0;
+        }
+        elsif ( $ast =~ /^return$/ ){
+            $s .= '  ' x $level . $ast . ' ';
+        }
+        else{
+            $s .= $ast;
+        }
     }
+    return $s;
 }
 
 sub serialize{

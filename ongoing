@@ -1,12 +1,25 @@
-﻿# extend
+﻿ast distill, capture group-based lexer, format
+
+# extend
 	general lexing
+	extract terminals from extension grammar for lexemes
+
+# ast distill
+	flatten left recursion
+		statements
+		*list
 	
 # fmt
-	# ast traversal
-		distill
-			flatten left recursion
-				statements
-				*list
+	context
+		@start[$level]
+		start block node_id of the same level
+			function for while end
+			if else elseif
+			repeat until
+  "\n" after stat level 0
+		
+		
+# ast traversal
 
 # highlights
 	extensible parser

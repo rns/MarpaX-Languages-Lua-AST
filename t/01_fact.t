@@ -51,6 +51,8 @@ my $fmt = $p->fmt( {
     linelength => 78,
 } );
 
+say $fmt;
+
 TODO: {
     todo_skip "ast serialization to formatted source shelved until lua test suite parsing is done", 1;
     is $fmt, $expected_fmt, 'format by seralizing lua code ast';
