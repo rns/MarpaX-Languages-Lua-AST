@@ -373,6 +373,7 @@ sub grammar{
     my ($extension) = @_;
     $extension //= '';
     my $source = $grammar . "\n### extension rules ###" . $extension . "\n" . join( "\n", map { qq{$_ ~ unicorn} } @unicorns ) . "\n";
+#    say $source if $extension;
     return Marpa::R2::Scanless::G->new( { source => \$source } );
 }
 
@@ -393,10 +394,12 @@ sub extend{
     for my $literal (keys $opts->{literals}){
         my $symbol = $opts->{literals}->{$literal};
 #        say "new literal: $symbol, $literal";
-        $op_punc->{$literal} = $symbol;
-        # save keywords
+        # save new literal to keywords or other lexemes
         if ($literal =~ /^[\w]+$/){
             $parser->{new_keywords}->{$literal} = $symbol;
+        }
+        else{
+            $op_punc->{$literal} = $symbol;
         }
         # add unicorn
         $symbol = qq{<$symbol>} if $symbol =~ / /;
@@ -405,14 +408,15 @@ sub extend{
 
     # replace known literals to lexemes
     my %literals = map { $_ => undef } $rules =~ m/'([^\#'\n]+)'/gms; #'
-    while (my ($literal, undef) = each %literals){
-        my $symbol = $op_punc->{$literal};
+LITERAL: while (my ($literal, undef) = each %literals){
+        my $symbol = $op_punc->{$literal} || $parser->{new_keywords}->{$literal};
         if (defined $symbol){
             $symbol = qq{<$symbol>} if $symbol =~ / /;
             # remove L0 rules if any
             $rules =~ s/<?[\w_ ]+>?\s*~\s*'\Q$literal\E'\n?//ms; #'
             # replace known literals with symbols
             $rules =~ s/'\Q$literal\E'/$symbol/gms;
+            # now the literal is known
             delete $literals{$literal};
         }
     }

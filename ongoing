@@ -1,5 +1,4 @@
 ﻿# extend
-	'action' lexes as <action literal>, not Name -- http://irclog.perlgeek.de/marpa/2014-10-11#i_9493150
 	general lexing
 	
 # fmt
