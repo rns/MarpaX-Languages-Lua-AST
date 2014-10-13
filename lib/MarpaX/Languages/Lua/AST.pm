@@ -534,17 +534,20 @@ sub parse {
 # ...
 sub fmt{
     my ($parser, $ast, $opts) = @_;
-    if (ref $opts eq "HASH"){
-        my $indent  = $opts->{ast} || 2;
+    if (defined $opts and ref $opts ne "HASH"){
+        warn "arg 2 to fmt() must be a hash ref, not ", ref $opts;
     }
-    my $fmt = do_fmt( $ast );
+    else{ # check for options and set defaults if missing
+        $opts->{indent} //= '  ';
+    }
+    my $fmt = do_fmt( $ast, $opts );
     $fmt =~ s/^\n//ms;
     return $fmt . "\n";
 }
 
 #
 sub do_fmt{
-    my ($ast) = @_;
+    my ($ast, $opts) = @_;
     state $level;
     $level //= 0;
     my $s;
@@ -552,6 +555,7 @@ sub do_fmt{
     state @level_blocks; # $level_stats[0] is block node_id at level 0
     state $current_node;
     state $previous_literal_node;
+    state $indent = $opts->{indent};
     if (ref $ast){
         my ($node_id, @children) = @$ast;
 
@@ -580,29 +584,29 @@ sub do_fmt{
     }
     else{
         if ($ast =~ /^function$/){
-            $s .= '  ' x $level . $ast . ' ';
+            $s .= $indent x $level . $ast . ' ';
         }
         elsif ($ast =~ /^(if)$/){
-            $s .= ($level_0_stat ? "\n" : '') . '  ' x $level . $ast . ' ';
+            $s .= ($level_0_stat ? "\n" : '') . $indent x $level . $ast . ' ';
         }
         elsif ($ast =~ /^(local)$/){
-            $s .= '  ' x $level . $ast . ' ';
+            $s .= $indent x $level . $ast . ' ';
         }
         elsif ( $ast =~ /^else$/ ){
-            $s .= "\n" . '  ' x $level . $ast;
+            $s .= "\n" . $indent x $level . $ast;
         }
         elsif ( $ast =~ /^then$/ ){
             $s .= ' ' . $ast;
         }
         elsif ($ast =~ /^end$/){
-            $s .= "\n" . '  ' x $level . $ast;
+            $s .= "\n" . $indent x $level . $ast;
             # add newline after function end
             $s .= "\n" if $level_blocks[$level] =~ /^(function|local)$/;
             $level_blocks[$level] = '';
         }
         elsif ( $ast =~ /^return$/ ){
             $s .= ($level_0_stat ? "\n" : '') .
-                  '  ' x $level . $ast . ' ';
+                  $indent x $level . $ast . ' ';
         }
         elsif ( $ast =~ /^(\=\=|\*|\=)$/ ){
             $s .= ' ' . $ast . ' ';

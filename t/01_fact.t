@@ -38,7 +38,7 @@ unless (defined $ast){
     fail "Can't parse:\n$input";
 }
 
-# we need an ast dump first at times
+# an ast dump is needed first at times
 #say $p->serialize( $ast );
 
 my $fmt = $p->fmt(
