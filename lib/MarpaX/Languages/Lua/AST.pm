@@ -87,6 +87,8 @@ lexeme default = action => [ name, value ] latm => 1
     stat ::= <local> namelist <assignment> explist
     stat ::= <local> namelist
 
+    stat ::= Comment
+
     <one or more elseifs> ::= <one elseif>
     <one or more elseifs> ::= <one or more elseifs> <one elseif>
     <one elseif> ::= <elseif> exp <then> block
@@ -194,6 +196,11 @@ lexeme default = action => [ name, value ] latm => 1
     unop ::= <length>
 
     Number ::= Int | Float | Hex
+
+    Comment ::= <long nestable comment>
+    Comment ::= <long unnestable comment>
+    Comment ::= <short comment>
+
 #   unicorns
     # unicorn rules will be added in the constructor for extensibility
     unicorn ~ [^\s\S]
@@ -205,6 +212,10 @@ my @unicorns = (
     'String',
     'Int', 'Float', 'Hex',
     'Name',
+
+    '<long nestable comment>',
+    '<long unnestable comment>',
+    '<short comment>',
 
     '<addition>',
     '<and>',
@@ -292,12 +303,12 @@ my $op_punc = {
 my @terminals = ( # order matters!
 
 #   comments -- short, long (nestable)
-    [ 'Comment' => qr/--\[(={4,})\[.*?\]\1\]/xms,   "long nestable comment" ],
-    [ 'Comment' => qr/--\[===\[.*?\]===\]/xms,      "long nestable comment" ],
-    [ 'Comment' => qr/--\[==\[.*?\]==\]/xms,        "long nestable comment" ],
-    [ 'Comment' => qr/--\[=\[.*?\]=\]/xms,          "long nestable comment" ],
-    [ 'Comment' => qr/--\[\[.*?\]\]/xms,            "long unnestable comment" ],
-    [ 'Comment' => qr/--[^\n]*\n/xms,               "short comment" ],
+    [ 'long nestable comment' => qr/--\[(={4,})\[.*?\]\1\]/xms, "long nestable comment" ],
+    [ 'long nestable comment' => qr/--\[===\[.*?\]===\]/xms,    "long nestable comment" ],
+    [ 'long nestable comment' => qr/--\[==\[.*?\]==\]/xms,      "long nestable comment" ],
+    [ 'long nestable comment' => qr/--\[=\[.*?\]=\]/xms,        "long nestable comment" ],
+    [ 'long unnestable comment' => qr/--\[\[.*?\]\]/xms,        "long unnestable comment" ],
+    [ 'short comment' => qr/--[^\n]*\n/xms,                     "short comment" ],
 
 #   strings -- short, long (nestable)
 # 2.1 – Lexical Conventions, refman
@@ -473,7 +484,6 @@ sub read{
 #        warn "# matching at $start_of_lexeme:\n", substr( $string, $start_of_lexeme, 40 );
         TOKEN_TYPE: for my $t (@terminals) {
 
-
             my ( $token_name, $regex, $long_name ) = @{$t};
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
@@ -491,7 +501,8 @@ sub read{
             }
 
             # skip comments
-            next TOKEN if $token_name =~ /comment/i;
+            # todo: make comment skipping an option
+#            next TOKEN if $token_name =~ /comment/i;
 
 #            warn "# <$token_name>:\n'$lexeme'";
             if ( not defined $recce->lexeme_alternative($token_name) ) {
@@ -546,12 +557,13 @@ sub fmt{
 }
 
 =pod
-
     just enough info to know how to format every literal
+
+        every stat at indent level 0 starts with a newline
 
         structural nodes (block) inc/dec indent level
 
-        block start nodes (function if else then elseif for while repeat)
+        block start nodes (function if else then elseif do for while repeat)
         are saved for each indent level as indent_level_blocks
 
         block end nodes (end) set block start node to ''
@@ -559,6 +571,9 @@ sub fmt{
         immediate context nodes define literal spacing
             current node
             previous literal node
+
+    keywords not currently checked
+        and break false in nil not or true
 
 =cut
 #
@@ -582,7 +597,7 @@ sub do_fmt{
             $s .= "\n" unless defined $s;
         }
 
-        if ($node_id =~ /^(function|if|else|elseif|then|for|while|repeat)$/) {
+        if ($node_id =~ /^(function|if|else|elseif|then|for|do|while|repeat)$/) {
             $indent_level_blocks[$indent_level] = $node_id;
         }
 
@@ -630,6 +645,14 @@ sub do_fmt{
         elsif ( $previous_literal_node eq 'function' ){
             $s .= $ast . ' ';
         }
+        elsif ( $current_node eq 'short comment' ){
+            say "# '$ast'";
+            say "$indent_level, @indent_level_blocks" if @indent_level_blocks;
+            say "$current_node '$ast'";
+            say "$previous_literal_node";
+            $s .= '        ' . $ast
+        }
+
         else{
             # print literal and its context
 #            say "# '$ast'";
