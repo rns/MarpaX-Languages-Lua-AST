@@ -10,10 +10,10 @@ use Test::More;
 
 use MarpaX::Languages::Lua::AST;
 
-# fact is lua's hello world -- this nonexecutable snippet
-# will be tested by serialized ast comparison
+# fact is lua's hello world -- test formatter by comparing it with
+# this nonexecutable snippet
 
-my $input = <<END;
+my $lua_src = <<END;
 function fact (n)
   if n == 0 then
     return 1
@@ -32,20 +32,19 @@ print(fact(a))
 END
 
 my $p = MarpaX::Languages::Lua::AST->new;
-my $ast = $p->parse( $input );
+my $ast = $p->parse( $lua_src );
 unless (defined $ast){
-    $p->parse( $input, { trace_terminals => 1 } );
-    fail "Can't parse:\n$input";
+    $p->parse( $lua_src, { trace_terminals => 1 } );
+    fail "Can't parse:\n$lua_src";
 }
 
 # an ast dump is needed first at times
 #say $p->serialize( $ast );
 
-my $fmt = $p->fmt(
-    $ast, { indent => '  ' }
-);
+my $fmt = $p->fmt( $ast, { indent => '  ' } );
 
-my $expected_fmt = $input;
+# remove comments from source
+my $expected_fmt = $lua_src;
 $expected_fmt =~ s/        -- read a number//;
 
 use Test::Differences 0.61;
