@@ -41,12 +41,7 @@ unless (defined $ast){
 # dump tree first
 #say $p->serialize( $ast );
 
-# format it later
-my $fmt = $p->fmt( {
-    ast => $ast,
-    indent => 2,
-    linelength => 78,
-} );
+my $fmt = $p->fmt( { ast => $ast } );
 
 my $expected_fmt = $input;
 $expected_fmt =~ s/        -- read a number//;

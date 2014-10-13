@@ -606,9 +606,7 @@ sub do_fmt{
         elsif ( $ast =~ /^(\=\=|\*|\=)$/ ){
             $s .= ' ' . $ast . ' ';
         }
-        elsif (
-            $previous_literal_node eq 'function'
-            ){
+        elsif ( $previous_literal_node eq 'function' ){
             $s .= $ast . ' ';
         }
         else{
