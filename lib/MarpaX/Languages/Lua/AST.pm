@@ -549,14 +549,14 @@ sub fmt{
 
     just enough info to know how to format every literal
 
-        structural nodes inc/dec indent level
+        structural nodes (block) inc/dec indent level
 
         block start nodes (function if else then elseif for while repeat)
         are saved for each indent level as indent_level_blocks
 
         block end nodes (end) set block start node to ''
 
-        immediate context nodes
+        immediate context nodes define literal spacing
             current node
             previous literal node
 
