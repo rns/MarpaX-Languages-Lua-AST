@@ -533,9 +533,10 @@ sub parse {
 # 1. indenting
 # ...
 sub fmt{
-    my ($parser, $opts) = @_;
-    my $ast     = $opts->{ast};
-    my $indent  = $opts->{ast} || 2;
+    my ($parser, $ast, $opts) = @_;
+    if (ref $opts eq "HASH"){
+        my $indent  = $opts->{ast} || 2;
+    }
     my $fmt = do_fmt( $ast );
     $fmt =~ s/^\n//ms;
     return $fmt . "\n";

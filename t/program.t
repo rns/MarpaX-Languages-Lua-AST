@@ -48,7 +48,7 @@ my $p = MarpaX::Languages::Lua::AST->new;
 #                                           4 test stdout with like()
 #                                           5 stderr is expected -- test stdout anyway
 #                                           6 print name of temporary lua file
-#                                           7 skip
+#                                           7 todo skip
 my %lua_files = qw{
 
     lua-tests/coroutine.lua         1
@@ -96,8 +96,8 @@ LUA_FILE:
 
         # get flags
         my $flag = $lua_files{$lua_fn};
-SKIP: {
-        skip "$lua_fn parses, but runs incorrectly", 1  if $flag == 7;
+TODO: {
+        todo_skip "$lua_fn parses, but runs incorrectly", 1  if $flag == 7;
         # prepend t if running under prove
         $lua_fn = 't/' . $lua_fn unless $pwd =~ m{ /t$ }x;
 
