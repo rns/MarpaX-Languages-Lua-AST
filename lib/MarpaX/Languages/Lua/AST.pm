@@ -623,8 +623,10 @@ sub do_fmt{
             $current_parent_node = $node_id;
         }
 
-        if ( # $indent_level == 0 and
-            $node_id eq 'stat' and $children[0]->[0] ne 'Comment'){
+        if (    $node_id eq 'stat'
+            and $children[0]->[0] ne 'Comment'
+            and $children[0]->[0] ne 'semicolon'
+            ){
             $indent_level_0_stat = 1;
             $s .= "\n" . $indent x $indent_level unless defined $s;
         }

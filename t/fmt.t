@@ -32,6 +32,7 @@ print("enter a number:")
 a = io.read("*number")        -- read a number
 print(fact(a))
 assert(not pcall(err_on_n, - - -n))
+f,a = loadstring(f)();
 END
 
 my $p = MarpaX::Languages::Lua::AST->new;
