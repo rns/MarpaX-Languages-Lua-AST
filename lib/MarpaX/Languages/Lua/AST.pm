@@ -545,6 +545,22 @@ sub fmt{
     return $fmt . "\n";
 }
 
+=pod
+
+    just enough info to know how to format every literal
+
+        structural nodes inc/dec indent level
+
+        block start nodes (function if else then elseif for while repeat)
+        are saved for each indent level as indent_level_blocks
+
+        block end nodes (end) set block start node to ''
+
+        immediate context nodes
+            current node
+            previous literal node
+
+=cut
 #
 sub do_fmt{
     my ($ast, $opts) = @_;
@@ -566,7 +582,7 @@ sub do_fmt{
             $s .= "\n" unless defined $s;
         }
 
-        if ($node_id =~ /^(function|if|else|then|for|while|repeat)$/) {
+        if ($node_id =~ /^(function|if|else|elseif|then|for|while|repeat)$/) {
             $indent_level_blocks[$indent_level] = $node_id;
         }
 
