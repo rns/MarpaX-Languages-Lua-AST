@@ -54,21 +54,21 @@ my %lua_files = qw{
     lua-tests/coroutine.lua         1
 
     lua5.1-tests/api.lua            1
-    lua5.1-tests/attrib.lua         7
+    lua5.1-tests/attrib.lua         1
     lua5.1-tests/big.lua            5
     lua5.1-tests/calls.lua          1
     lua5.1-tests/checktable.lua     1
     lua5.1-tests/closure.lua        1
     lua5.1-tests/code.lua           1
     lua5.1-tests/constructs.lua     1
-    lua5.1-tests/db.lua             7
-    lua5.1-tests/errors.lua         7
+    lua5.1-tests/db.lua             1
+    lua5.1-tests/errors.lua         1
     lua5.1-tests/events.lua         1
     lua5.1-tests/files.lua          4
     lua5.1-tests/gc.lua             1
     lua5.1-tests/literals.lua       1
     lua5.1-tests/locals.lua         1
-    lua5.1-tests/main.lua           7
+    lua5.1-tests/main.lua           1
     lua5.1-tests/math.lua           1
     lua5.1-tests/nextvar.lua        1
     lua5.1-tests/pm.lua             1
@@ -124,10 +124,10 @@ TODO: {
 
         # serialize ast to tokens and write to temporary file
 $DOWARN = 0; # see above
-        my $tokens = $p->tokens($ast);
+        my $parsed_lua_source = $p->fmt($ast);
 $DOWARN = 1;
-        my $lua_file = whip_up_lua_file( $tokens );
-        diag "Serialized AST is in $lua_file file" if $flag == 6;
+        my $lua_file = whip_up_lua_file( $parsed_lua_source );
+        diag "Serialized AST is in $lua_file file";
         # run lua file
         system("./$run_lua_test $lua_file 1>$lua_file.stdout 2>$lua_file.stderr");
         my ($stdout, $stderr) = map { slurp_file($_) } qq{$lua_file.stdout}, qq{$lua_file.stderr};

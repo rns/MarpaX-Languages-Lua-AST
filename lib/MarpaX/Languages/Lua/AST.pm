@@ -173,12 +173,18 @@ lexeme default = action => [ name, value ] latm => 1
 #    tableconstructor ::= '{' [fieldlist] '}'
     tableconstructor ::= <left curly> fieldlist <right curly>
     tableconstructor ::= <left curly> <right curly>
+    tableconstructor ::= <left curly> Comment <right curly>
     tableconstructor ::= <left curly> Comment fieldlist <right curly>
+    tableconstructor ::= <left curly> fieldlist Comment <right curly>
 
 #    fieldlist ::= field {fieldsep field} [fieldsep]
     fieldlist ::= field
+    fieldlist ::= field Comment
     fieldlist ::= fieldlist fieldsep field
+    fieldlist ::= fieldlist fieldsep Comment field
+    fieldlist ::= fieldlist fieldsep Comment field Comment
     fieldlist ::= fieldlist fieldsep field fieldsep
+    fieldlist ::= fieldlist fieldsep field Comment fieldsep
 
     fieldsep ::= <comma>
     fieldsep ::= <semicolon>
@@ -574,7 +580,7 @@ sub fmt{
     }
     my $fmt = do_fmt( $ast, $opts );
     $fmt =~ s/^\n//ms;
-    return $fmt . "\n";
+    return $fmt;
 }
 
 =pod
@@ -617,9 +623,10 @@ sub do_fmt{
             $current_parent_node = $node_id;
         }
 
-        if ($indent_level == 0 and $node_id eq 'stat' and $children[0]->[0] ne 'Comment'){
+        if ( # $indent_level == 0 and
+            $node_id eq 'stat' and $children[0]->[0] ne 'Comment'){
             $indent_level_0_stat = 1;
-            $s .= "\n" unless defined $s;
+            $s .= "\n" . $indent x $indent_level unless defined $s;
         }
 
         if ($node_id =~ /^(function|if|else|elseif|then|for|do|while|repeat)$/) {
@@ -639,25 +646,27 @@ sub do_fmt{
 
     }
     else{ # handlers: order matters
-        if    ( $ast =~ /^function$/   ){ $s .= $indent x $indent_level . $ast . ' ' }
-        elsif ( $ast =~ /^if$/         ){ $s .= ($indent_level_0_stat ? "\n" : '') .
-                                                 $indent x $indent_level . $ast . ' ' }
-        elsif ( $ast =~ /^local$/      ){ $s .= $indent x $indent_level . $ast . ' ' }
+        if    ( $ast =~ /^(function|for|while|repeat)$/   ){ $s .= $ast . ' ' }
+        elsif ( $ast =~ /^do$/         ){ $s .= ' ' . $ast . ' ' }
+        elsif ( $ast =~ /^if$/         ){ $s .= $ast . ' ' }
+        elsif ( $ast =~ /^local$/      ){ $s .= $ast . ' ' }
         elsif ( $ast =~ /^else$/       ){ $s .= "\n" . $indent x $indent_level . $ast }
+        elsif ( $ast =~ /^elseif$/     ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
+        elsif ( $ast =~ /^until$/     ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
         elsif ( $ast =~ /^then$/       ){ $s .= ' ' . $ast }
         elsif ( $ast =~ /^end$/        ){ $s .= "\n" . $indent x $indent_level . $ast;
                                            # add newline after function end
-                                           $s .= "\n" if $indent_level_blocks[$indent_level] =~ /^(function|local)$/;
+                                           $s .= "\n" if $indent_level_blocks[$indent_level] =~ /^(function|local|do)$/;
                                            $indent_level_blocks[$indent_level] = '';
                                         }
         elsif ( $ast =~ /^return$/     ){ $s .= ($indent_level_0_stat ? "\n" : '') .
                                                 $indent x $indent_level . $ast . ' '
                                         }
         elsif ( $previous_literal_node eq 'function' ){
+#            say "# $current_node: '$ast'";
             $s .= $ast . ' ';
         }
         elsif ( $current_node eq 'short comment' ){
-            chomp $ast;
             $s .= '        ' . $ast
         }
         elsif ( $current_node eq 'assignment'   ){ $s .= ' ' . $ast . ' ' }
@@ -668,13 +677,22 @@ sub do_fmt{
                 $)
                 }xms
             or  $current_parent_node =~ m{^
-                    String|Number|unop
+                    String|Number
                 $}xms
             ){
             $s .= $ast;
+            $current_parent_node = '';
         }
-        elsif ( $current_node eq 'minus'        ){ $s .= $ast } # fact() src is so formatted
-        elsif ( $current_parent_node eq 'binop' ){ $s .= ' ' . $ast . ' ' }
+        elsif ( $current_parent_node eq 'unop' ){
+            $s .= $ast . ' ';
+        }
+        elsif ( $current_parent_node eq 'binop'
+            and $current_node eq 'minus' ){
+            $s .= ' ' . $ast . ' '
+        }
+        elsif ( $current_parent_node eq 'binop' or
+                $current_node =~ /^(in|and|or)$/
+            ){ $s .= ' ' . $ast . ' ' }
         else{
             # print literal and its context
             # print its context
@@ -685,6 +703,7 @@ sub do_fmt{
 #            say "# $current_node: '$ast'";
             $s .= ' ' . $ast;
         }
+        # set context item
         $previous_literal_node = $current_node;
     }
     return $s;
