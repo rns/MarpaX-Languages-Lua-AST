@@ -31,11 +31,6 @@ end
 print("enter a number:")
 a = io.read("*number")        -- read a number
 print(fact(a))
-assert(not pcall(err_on_n, - - -n))
-f,a = loadstring(f)();
-
-a = f
-(g).x(a)
 END
 
 my $p = MarpaX::Languages::Lua::AST->new;
@@ -52,7 +47,7 @@ my $fmt = $p->fmt( $ast, { indent => '  ' } );
 say $fmt;
 
 use Test::Differences 0.61;
-#eq_or_diff $fmt, $lua_src, 'lua code formatting';
+eq_or_diff $fmt, $lua_src, 'lua code formatting';
 
 done_testing();
 

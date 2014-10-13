@@ -553,11 +553,13 @@ sub read{
         return
     } ## end TOKEN: while (1)
     # return ast or undef on parse failure
+=pod
     if ($recce->ambiguity_metric() > 1){
         my $i = 0;
         while (defined $recce->value() and $i <= 100){ $i++;  }
         warn "Ambiguous parse: ", ($i > 100 ? "over 100" : $i), " alternatives."
     }
+=cut
     $recce->series_restart();
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
@@ -636,8 +638,12 @@ sub do_fmt{
             and $children[0]->[0] ne 'Comment'
             and $children[0]->[0] ne 'semicolon'
             ){
-            $indent_level_0_stat = 1;
-            $s .= "\n" . $indent x $indent_level unless defined $s;
+            # no newline before stat ::= functioncall
+            unless(    $children[0]->[0] eq 'functioncall'
+                and $children[0]->[1]->[1]->[0] eq 'left paren'){
+                $indent_level_0_stat = 1;
+                $s .= "\n" . $indent x $indent_level unless defined $s;
+            }
         }
 
         if ($node_id =~ /^(function|if|else|elseif|then|for|do|while|repeat)$/) {
