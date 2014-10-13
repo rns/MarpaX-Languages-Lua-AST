@@ -22,7 +22,7 @@ function fact (n)
   end
 end
 
-local function get()
+local function get ()
   return v
 end
 
@@ -47,12 +47,12 @@ my $fmt = $p->fmt( {
     indent => 2,
     linelength => 78,
 } );
-#say $fmt;
 
 my $expected_fmt = $input;
 $expected_fmt =~ s/        -- read a number//;
 
-is $fmt, $expected_fmt, 'lua code formatting';
+use Test::Differences;
+eq_or_diff $fmt, $expected_fmt, 'lua code formatting';
 
 done_testing();
 

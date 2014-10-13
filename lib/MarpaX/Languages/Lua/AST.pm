@@ -549,8 +549,12 @@ sub do_fmt{
     my $s;
     state $level_0_stat;
     state @level_blocks; # $level_stats[0] is block node_id at level 0
+    state $current_node;
+    state $previous_literal_node;
     if (ref $ast){
         my ($node_id, @children) = @$ast;
+
+        $current_node = $node_id;
 
         if ($level == 0 and $node_id eq 'stat'){
             $level_0_stat = 1;
@@ -592,19 +596,31 @@ sub do_fmt{
         elsif ($ast =~ /^end$/){
             $s .= "\n" . '  ' x $level . $ast;
             # add newline after function end
-#            say "end: $level, @level_blocks" if @level_blocks;
             $s .= "\n" if $level_blocks[$level] =~ /^(function|local)$/;
+            $level_blocks[$level] = '';
         }
         elsif ( $ast =~ /^return$/ ){
             $s .= ($level_0_stat ? "\n" : '') .
                   '  ' x $level . $ast . ' ';
         }
-        elsif ( $ast =~ /^\=\=|\*|\=$/ ){
+        elsif ( $ast =~ /^(\=\=|\*|\=)$/ ){
             $s .= ' ' . $ast . ' ';
         }
+        elsif (
+            $previous_literal_node eq 'function'
+            ){
+            $s .= $ast . ' ';
+        }
         else{
+            # print literal and its context
+#            say "# '$ast'";
+#            say "$level, @level_blocks" if @level_blocks;
+#            say "$current_node '$ast'";
+#            say "$previous_literal_node";
+            # append current literal
             $s .= $ast;
         }
+        $previous_literal_node = $current_node;
     }
     return $s;
 }
