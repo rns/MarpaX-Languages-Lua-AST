@@ -548,11 +548,11 @@ sub fmt{
 #
 sub do_fmt{
     my ($ast, $opts) = @_;
-    state $level;
-    $level //= 0;
+    state $indent_level;
+    $indent_level //= 0;
     my $s;
-    state $level_0_stat;
-    state @level_blocks; # $level_stats[0] is block node_id at level 0
+    state $indent_level_0_stat;
+    state @indent_level_blocks; # $indent_level_stats[0] is block node_id at level 0
     state $current_node;
     state $previous_literal_node;
     state $indent = $opts->{indent};
@@ -561,17 +561,17 @@ sub do_fmt{
 
         $current_node = $node_id;
 
-        if ($level == 0 and $node_id eq 'stat'){
-            $level_0_stat = 1;
+        if ($indent_level == 0 and $node_id eq 'stat'){
+            $indent_level_0_stat = 1;
             $s .= "\n" unless defined $s;
         }
 
         if ($node_id =~ /^(function|if|else|then|for|while|repeat)$/) {
-            $level_blocks[$level] = $node_id;
+            $indent_level_blocks[$indent_level] = $node_id;
         }
 
         # prolog
-        $level++ if $node_id eq 'block';
+        $indent_level++ if $node_id eq 'block';
 
         # recurse
 #        warn "# Entering: $node_id";
@@ -579,34 +579,34 @@ sub do_fmt{
 #        warn "# Leaving: $node_id ";
 
         # epilog
-        $level-- if $node_id eq 'block';
+        $indent_level-- if $node_id eq 'block';
 
     }
     else{
         if ($ast =~ /^function$/){
-            $s .= $indent x $level . $ast . ' ';
+            $s .= $indent x $indent_level . $ast . ' ';
         }
         elsif ($ast =~ /^(if)$/){
-            $s .= ($level_0_stat ? "\n" : '') . $indent x $level . $ast . ' ';
+            $s .= ($indent_level_0_stat ? "\n" : '') . $indent x $indent_level . $ast . ' ';
         }
         elsif ($ast =~ /^(local)$/){
-            $s .= $indent x $level . $ast . ' ';
+            $s .= $indent x $indent_level . $ast . ' ';
         }
         elsif ( $ast =~ /^else$/ ){
-            $s .= "\n" . $indent x $level . $ast;
+            $s .= "\n" . $indent x $indent_level . $ast;
         }
         elsif ( $ast =~ /^then$/ ){
             $s .= ' ' . $ast;
         }
         elsif ($ast =~ /^end$/){
-            $s .= "\n" . $indent x $level . $ast;
+            $s .= "\n" . $indent x $indent_level . $ast;
             # add newline after function end
-            $s .= "\n" if $level_blocks[$level] =~ /^(function|local)$/;
-            $level_blocks[$level] = '';
+            $s .= "\n" if $indent_level_blocks[$indent_level] =~ /^(function|local)$/;
+            $indent_level_blocks[$indent_level] = '';
         }
         elsif ( $ast =~ /^return$/ ){
-            $s .= ($level_0_stat ? "\n" : '') .
-                  $indent x $level . $ast . ' ';
+            $s .= ($indent_level_0_stat ? "\n" : '') .
+                  $indent x $indent_level . $ast . ' ';
         }
         elsif ( $ast =~ /^(\=\=|\*|\=)$/ ){
             $s .= ' ' . $ast . ' ';
@@ -617,7 +617,7 @@ sub do_fmt{
         else{
             # print literal and its context
 #            say "# '$ast'";
-#            say "$level, @level_blocks" if @level_blocks;
+#            say "$indent_level, @level_blocks" if @level_blocks;
 #            say "$current_node '$ast'";
 #            say "$previous_literal_node";
             # append current literal
