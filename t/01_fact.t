@@ -41,7 +41,9 @@ unless (defined $ast){
 # we need an ast dump first at times
 #say $p->serialize( $ast );
 
-my $fmt = $p->fmt( $ast, { indent => '  ' } );
+my $fmt = $p->fmt(
+    $ast, { indent => '  ' }
+);
 
 my $expected_fmt = $input;
 $expected_fmt =~ s/        -- read a number//;
