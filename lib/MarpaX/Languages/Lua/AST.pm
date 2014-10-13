@@ -44,7 +44,9 @@ lexeme default = action => [ name, value ] latm => 1
     chunk ::= statements laststat
     chunk ::= statements laststat <semicolon>
     chunk ::= laststat <semicolon>
+    chunk ::= laststat <semicolon> Comment
     chunk ::= laststat
+    chunk ::= laststat Comment
 #    {stat [';']}
     statements ::= stat
     statements ::= statements stat
@@ -106,7 +108,10 @@ lexeme default = action => [ name, value ] latm => 1
 
 #    varlist ::= var {',' var}
 #    varlist ::= var+ separator => [,]
-    varlist ::= var | varlist <comma> var
+    varlist ::= var
+    varlist ::= varlist <comma> var
+    varlist ::= var Comment
+    varlist ::= varlist <comma> Comment var
 
     var ::=  Name | prefixexp <left bracket> exp <right bracket> | prefixexp <period> Name
 
@@ -118,7 +123,11 @@ lexeme default = action => [ name, value ] latm => 1
 #    explist ::= {exp ','} exp
 #    explist ::= exp+ separator => [,]
     explist ::= exp
+    explist ::= exp Comment
+    explist ::= Comment exp
     explist ::= explist <comma> exp
+    explist ::= explist <comma> Comment exp
+
 
 
     exp ::= <nil>
@@ -131,7 +140,11 @@ lexeme default = action => [ name, value ] latm => 1
     exp ::= prefixexp
     exp ::= tableconstructor
     exp ::= exp binop exp
+    exp ::= exp binop Comment exp
+    exp ::= exp Comment binop Comment exp
     exp ::= unop exp
+    exp ::= unop Comment exp
+    exp ::= unop exp Comment
 
     prefixexp ::= var
     prefixexp ::= functioncall
@@ -160,6 +173,7 @@ lexeme default = action => [ name, value ] latm => 1
 #    tableconstructor ::= '{' [fieldlist] '}'
     tableconstructor ::= <left curly> fieldlist <right curly>
     tableconstructor ::= <left curly> <right curly>
+    tableconstructor ::= <left curly> Comment fieldlist <right curly>
 
 #    fieldlist ::= field {fieldsep field} [fieldsep]
     fieldlist ::= field
@@ -493,20 +507,18 @@ sub read{
 #        warn "# matching at $start_of_lexeme:\n", substr( $string, $start_of_lexeme, 40 );
         TOKEN_TYPE: for my $t (@terminals) {
 
-            my ( $token_name, $regex, $long_name ) = @{$t};
+            my ( $token_name, $regex ) = @{$t};
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
             # Name cannot be a keyword so treat strings matching Name's regex as keywords
             if ( $token_name eq "Name" and exists $keywords->{$lexeme} ){
                 $token_name = $keywords->{$lexeme};
-                $long_name = $token_name;
             }
             # check for group matching
             if (ref $token_name eq "HASH"){
                 $token_name = $token_name->{$lexeme};
                 die "No token defined for lexeme <$lexeme>"
                     unless $token_name;
-                $long_name = $token_name;
             }
 
             # skip comments
@@ -516,7 +528,7 @@ sub read{
 #            warn "# <$token_name>:\n'$lexeme'";
             if ( not defined $recce->lexeme_alternative($token_name) ) {
                 warn
-                    qq{Parser rejected token "$long_name" at position $start_of_lexeme, before "},
+                    qq{Parser rejected token "$token_name" at position $start_of_lexeme, before "},
                     substr( $string, $start_of_lexeme + length($lexeme), 40 ), q{"};
                 warn "Showing progress:\n", $recce->show_progress();
                 return
