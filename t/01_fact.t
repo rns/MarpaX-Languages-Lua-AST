@@ -31,9 +31,6 @@ a = io.read("*number")        -- read a number
 print(fact(a))
 END
 
-my $expected_fmt = <<END;
-END
-
 my $p = MarpaX::Languages::Lua::AST->new;
 my $ast = $p->parse( $input );
 unless (defined $ast){
@@ -42,7 +39,7 @@ unless (defined $ast){
 }
 
 # dump tree first
-say $p->serialize( $ast );
+#say $p->serialize( $ast );
 
 # format it later
 my $fmt = $p->fmt( {
@@ -50,13 +47,12 @@ my $fmt = $p->fmt( {
     indent => 2,
     linelength => 78,
 } );
+#say $fmt;
 
-say $fmt;
+my $expected_fmt = $input;
+$expected_fmt =~ s/        -- read a number//;
 
-TODO: {
-    todo_skip "ast serialization to formatted source shelved until lua test suite parsing is done", 1;
-    is $fmt, $expected_fmt, 'format by seralizing lua code ast';
-}
+is $fmt, $expected_fmt, 'lua code formatting';
 
 done_testing();
 

@@ -536,7 +536,9 @@ sub fmt{
     my ($parser, $opts) = @_;
     my $ast     = $opts->{ast};
     my $indent  = $opts->{ast} || 2;
-    return do_fmt( $ast );
+    my $fmt = do_fmt( $ast );
+    $fmt =~ s/^\n//ms;
+    return $fmt . "\n";
 }
 
 #
@@ -545,8 +547,19 @@ sub do_fmt{
     state $level;
     $level //= 0;
     my $s;
+    state $level_0_stat;
+    state @level_blocks; # $level_stats[0] is block node_id at level 0
     if (ref $ast){
         my ($node_id, @children) = @$ast;
+
+        if ($level == 0 and $node_id eq 'stat'){
+            $level_0_stat = 1;
+            $s .= "\n" unless defined $s;
+        }
+
+        if ($node_id =~ /^(function|if|else|then|for|while|repeat)$/) {
+            $level_blocks[$level] = $node_id;
+        }
 
         # prolog
         $level++ if $node_id eq 'block';
@@ -561,22 +574,33 @@ sub do_fmt{
 
     }
     else{
-        if ($ast =~ /^function|if|local$/){
-            $s .= "\n" . '  ' x $level . $ast . ' ';
+        if ($ast =~ /^function$/){
+            $s .= '  ' x $level . $ast . ' ';
+        }
+        elsif ($ast =~ /^(if)$/){
+            $s .= ($level_0_stat ? "\n" : '') . '  ' x $level . $ast . ' ';
+        }
+        elsif ($ast =~ /^(local)$/){
+            $s .= '  ' x $level . $ast . ' ';
         }
         elsif ( $ast =~ /^else$/ ){
-            $s .= "\n" . '  ' x $level . $ast . "\n";
+            $s .= "\n" . '  ' x $level . $ast;
         }
         elsif ( $ast =~ /^then$/ ){
-            $s .= ' ' . $ast . "\n";
+            $s .= ' ' . $ast;
         }
         elsif ($ast =~ /^end$/){
             $s .= "\n" . '  ' x $level . $ast;
             # add newline after function end
-            $s .= "\n" if $level == 0;
+#            say "end: $level, @level_blocks" if @level_blocks;
+            $s .= "\n" if $level_blocks[$level] =~ /^(function|local)$/;
         }
         elsif ( $ast =~ /^return$/ ){
-            $s .= '  ' x $level . $ast . ' ';
+            $s .= ($level_0_stat ? "\n" : '') .
+                  '  ' x $level . $ast . ' ';
+        }
+        elsif ( $ast =~ /^\=\=|\*|\=$/ ){
+            $s .= ' ' . $ast . ' ';
         }
         else{
             $s .= $ast;

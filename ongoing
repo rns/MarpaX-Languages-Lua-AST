@@ -1,5 +1,33 @@
-﻿ast distill, capture group-based lexer, format
+﻿# words * contexts = translations
+	inflected form
+	semantic form
+	search/replace safety
+	
+# ast distill, capture group-based lexer, format
 
+extensible lexer, extensible grammar, grammar algebra
+parse to grammar (graph), not AST (tree)
+	ambiguity is not a problem
+
+MarpaX::Languages::SLIF::AST
+	prepare for external lexing
+	extensible lexer
+		capture groups
+	extensible grammar
+		grammar algebra based on namespaces
+			+ enable some syntax
+			- disable some syntax
+			* 
+			/
+
+MarpaX::AST
+	traversal
+		unwind left right recursion to sequences
+		format as an 
+
+MarpaX::ASF::PFG
+	contexts
+	
 # extend
 	general lexing
 	extract terminals from extension grammar for lexemes
@@ -16,7 +44,7 @@
 			function for while end
 			if else elseif
 			repeat until
-  "\n" after stat level 0
+  $s .= "\n" if node_id eq stat and level == 0
 		
 		
 # ast traversal
