@@ -149,6 +149,9 @@ lexeme default = action => [ name, value ] latm => 1
     prefixexp ::= var
     prefixexp ::= functioncall
     prefixexp ::= <left paren> exp <right paren>
+# As an exception to the free-format syntax of Lua, you cannot put a line break
+# before the '(' in a function call. This restriction avoids some
+# ambiguities in the language.
 
     functioncall ::= prefixexp args
     functioncall ::= prefixexp <colon> Name args
@@ -550,6 +553,12 @@ sub read{
         return
     } ## end TOKEN: while (1)
     # return ast or undef on parse failure
+    if ($recce->ambiguity_metric() > 1){
+        my $i = 0;
+        while (defined $recce->value() and $i <= 100){ $i++;  }
+        warn "Ambiguous parse: ", ($i > 100 ? "over 100" : $i), " alternatives."
+    }
+    $recce->series_restart();
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         warn "No parse was found, after reading the entire input.\n";
@@ -654,7 +663,7 @@ sub do_fmt{
         elsif ( $ast =~ /^local$/      ){ $s .= $ast . ' ' }
         elsif ( $ast =~ /^else$/       ){ $s .= "\n" . $indent x $indent_level . $ast }
         elsif ( $ast =~ /^elseif$/     ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
-        elsif ( $ast =~ /^until$/     ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
+        elsif ( $ast =~ /^until$/      ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
         elsif ( $ast =~ /^then$/       ){ $s .= ' ' . $ast }
         elsif ( $ast =~ /^end$/        ){ $s .= "\n" . $indent x $indent_level . $ast;
                                            # add newline after function end
