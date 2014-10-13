@@ -559,7 +559,7 @@ sub fmt{
 =pod
     just enough info to know how to format every literal
 
-        every stat at indent level 0 starts with a newline
+        every stat at indent level 0, except Comment starts with a newline
 
         structural nodes (block) inc/dec indent level
 
@@ -592,7 +592,8 @@ sub do_fmt{
 
         $current_node = $node_id;
 
-        if ($indent_level == 0 and $node_id eq 'stat'){
+        if ($indent_level == 0 and $node_id eq 'stat' and $children[0]->[0] ne 'Comment'){
+            say $children[0]->[0];
             $indent_level_0_stat = 1;
             $s .= "\n" unless defined $s;
         }
@@ -650,6 +651,7 @@ sub do_fmt{
             say "$indent_level, @indent_level_blocks" if @indent_level_blocks;
             say "$current_node '$ast'";
             say "$previous_literal_node";
+            chomp $ast;
             $s .= '        ' . $ast
         }
 
