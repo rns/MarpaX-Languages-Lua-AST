@@ -605,13 +605,17 @@ sub do_fmt{
     my $s;
     state $indent_level_0_stat;
     state @indent_level_blocks; # $indent_level_stats[0] is block node_id at level 0
-    state $current_node;
-    state $previous_literal_node;
+    state $current_node //= '';
+    state $current_parent_node //= '';
+    state $previous_literal_node //= '';
     state $indent = $opts->{indent};
     if (ref $ast){
         my ($node_id, @children) = @$ast;
 
         $current_node = $node_id;
+        if ($node_id =~ m{^(binop|Number|String|Comment|unop)}xms){ # save current node as parent of its children nodes
+            $current_parent_node = $node_id;
+        }
 
         if ($indent_level == 0 and $node_id eq 'stat' and $children[0]->[0] ne 'Comment'){
             $indent_level_0_stat = 1;
@@ -634,35 +638,21 @@ sub do_fmt{
         $indent_level-- if $node_id eq 'block';
 
     }
-    else{
-        if ($ast =~ /^function$/){
-            $s .= $indent x $indent_level . $ast . ' ';
-        }
-        elsif ($ast =~ /^(if)$/){
-            $s .= ($indent_level_0_stat ? "\n" : '') . $indent x $indent_level . $ast . ' ';
-        }
-        elsif ($ast =~ /^(local)$/){
-            $s .= $indent x $indent_level . $ast . ' ';
-        }
-        elsif ( $ast =~ /^else$/ ){
-            $s .= "\n" . $indent x $indent_level . $ast;
-        }
-        elsif ( $ast =~ /^then$/ ){
-            $s .= ' ' . $ast;
-        }
-        elsif ($ast =~ /^end$/){
-            $s .= "\n" . $indent x $indent_level . $ast;
-            # add newline after function end
-            $s .= "\n" if $indent_level_blocks[$indent_level] =~ /^(function|local)$/;
-            $indent_level_blocks[$indent_level] = '';
-        }
-        elsif ( $ast =~ /^return$/ ){
-            $s .= ($indent_level_0_stat ? "\n" : '') .
-                  $indent x $indent_level . $ast . ' ';
-        }
-        elsif ( $ast =~ /^(\=\=|\*|\=)$/ ){
-            $s .= ' ' . $ast . ' ';
-        }
+    else{ # handlers: order matters
+        if    ( $ast =~ /^function$/   ){ $s .= $indent x $indent_level . $ast . ' ' }
+        elsif ( $ast =~ /^if$/         ){ $s .= ($indent_level_0_stat ? "\n" : '') .
+                                                 $indent x $indent_level . $ast . ' ' }
+        elsif ( $ast =~ /^local$/      ){ $s .= $indent x $indent_level . $ast . ' ' }
+        elsif ( $ast =~ /^else$/       ){ $s .= "\n" . $indent x $indent_level . $ast }
+        elsif ( $ast =~ /^then$/       ){ $s .= ' ' . $ast }
+        elsif ( $ast =~ /^end$/        ){ $s .= "\n" . $indent x $indent_level . $ast;
+                                           # add newline after function end
+                                           $s .= "\n" if $indent_level_blocks[$indent_level] =~ /^(function|local)$/;
+                                           $indent_level_blocks[$indent_level] = '';
+                                        }
+        elsif ( $ast =~ /^return$/     ){ $s .= ($indent_level_0_stat ? "\n" : '') .
+                                                $indent x $indent_level . $ast . ' '
+                                        }
         elsif ( $previous_literal_node eq 'function' ){
             $s .= $ast . ' ';
         }
@@ -670,16 +660,30 @@ sub do_fmt{
             chomp $ast;
             $s .= '        ' . $ast
         }
-
+        elsif ( $current_node eq 'assignment'   ){ $s .= ' ' . $ast . ' ' }
+        elsif ( $current_node =~ m{(^
+                    double\ quoted\ string|single\ quoted\ string|
+                    left\ paren|right\ paren|
+                    Name|period
+                $)
+                }xms
+            or  $current_parent_node =~ m{^
+                    String|Number|unop
+                $}xms
+            ){
+            $s .= $ast;
+        }
+        elsif ( $current_node eq 'minus'        ){ $s .= $ast } # fact() src is so formatted
+        elsif ( $current_parent_node eq 'binop' ){ $s .= ' ' . $ast . ' ' }
         else{
             # print literal and its context
-#            say "# '$ast'";
             # print its context
 #            say "$indent_level, @level_blocks" if @level_blocks;
 #            say "$current_node '$ast'";
 #            say "$previous_literal_node";
             # append current literal
-            $s .= $ast;
+#            say "# $current_node: '$ast'";
+            $s .= ' ' . $ast;
         }
         $previous_literal_node = $current_node;
     }
