@@ -201,6 +201,11 @@ lexeme default = action => [ name, value ] latm => 1
     Comment ::= <long unnestable comment>
     Comment ::= <short comment>
 
+    String ::= <long nestable string>
+    String ::= <long unnestable string>
+    String ::= <double quoted string>
+    String ::= <single quoted string>
+
 #   unicorns
     # unicorn rules will be added in the constructor for extensibility
     unicorn ~ [^\s\S]
@@ -209,13 +214,17 @@ lexeme default = action => [ name, value ] latm => 1
 
 my @unicorns = (
 
-    'String',
     'Int', 'Float', 'Hex',
     'Name',
 
     '<long nestable comment>',
     '<long unnestable comment>',
     '<short comment>',
+
+    '<long nestable string>',
+    '<long unnestable string>',
+    '<double quoted string>',
+    '<single quoted string>',
 
     '<addition>',
     '<and>',
@@ -322,24 +331,24 @@ my @terminals = ( # order matters!
 # is to be followed by a digit, it must be expressed using exactly three digits.) Strings in
 # Lua can contain any 8-bit value, including embedded zeros, which can be specified as '\0'.
 
-    [ 'String' => qr
+    [ 'single quoted string' => qr
         /'(
             \\(a|b|f|n|r|t|v|"|'|\\) | [^']
            )*
          '/xms, "single quoted string" ],
 
-    [ 'String' => qr
+    [ 'double quoted string' => qr
         /"(
             \\(a|b|f|n|r|t|v|"|'|\\) | [^"]
            )*
          "/xms, "double quoted string" ],
 #'
-    [ 'String' => qr/\[\[.*?\]\]/xms,           "long unnestable string" ],
-    [ 'String' => qr/\[=\[.*?\]=\]/xms,         "long nestable string" ],
-    [ 'String' => qr/\[==\[.*?\]==\]/xms,         "long nestable string" ],
-    [ 'String' => qr/\[===\[.*?\]===\]/xms,         "long nestable string" ],
-    [ 'String' => qr/\[====\[.*?\]====\]/xms,         "long nestable string" ],
-    [ 'String' => qr/\[(={5,})\[.*?\]\1\]/xms,     "long nestable string" ],
+    [ 'long unnestable string' => qr/\[\[.*?\]\]/xms,        "long unnestable string" ],
+    [ 'long nestable string' => qr/\[=\[.*?\]=\]/xms,        "long nestable string" ],
+    [ 'long nestable string' => qr/\[==\[.*?\]==\]/xms,      "long nestable string" ],
+    [ 'long nestable string' => qr/\[===\[.*?\]===\]/xms,    "long nestable string" ],
+    [ 'long nestable string' => qr/\[====\[.*?\]====\]/xms,  "long nestable string" ],
+    [ 'long nestable string' => qr/\[(={5,})\[.*?\]\1\]/xms, "long nestable string" ],
 
 #   numbers -- int, float, and hex
 #   We can write numeric constants with an optional decimal part,
@@ -593,7 +602,6 @@ sub do_fmt{
         $current_node = $node_id;
 
         if ($indent_level == 0 and $node_id eq 'stat' and $children[0]->[0] ne 'Comment'){
-            say $children[0]->[0];
             $indent_level_0_stat = 1;
             $s .= "\n" unless defined $s;
         }
@@ -647,10 +655,6 @@ sub do_fmt{
             $s .= $ast . ' ';
         }
         elsif ( $current_node eq 'short comment' ){
-            say "# '$ast'";
-            say "$indent_level, @indent_level_blocks" if @indent_level_blocks;
-            say "$current_node '$ast'";
-            say "$previous_literal_node";
             chomp $ast;
             $s .= '        ' . $ast
         }
@@ -658,6 +662,7 @@ sub do_fmt{
         else{
             # print literal and its context
 #            say "# '$ast'";
+            # print its context
 #            say "$indent_level, @level_blocks" if @level_blocks;
 #            say "$current_node '$ast'";
 #            say "$previous_literal_node";
