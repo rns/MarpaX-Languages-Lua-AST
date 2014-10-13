@@ -38,7 +38,7 @@ unless (defined $ast){
     fail "Can't parse:\n$input";
 }
 
-# dump tree first
+# we need an ast dump first at times
 #say $p->serialize( $ast );
 
 my $fmt = $p->fmt( { ast => $ast } );
@@ -46,7 +46,7 @@ my $fmt = $p->fmt( { ast => $ast } );
 my $expected_fmt = $input;
 $expected_fmt =~ s/        -- read a number//;
 
-use Test::Differences;
+use Test::Differences 0.61;
 eq_or_diff $fmt, $expected_fmt, 'lua code formatting';
 
 done_testing();
