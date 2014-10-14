@@ -536,7 +536,7 @@ sub read{
 #            next TOKEN if $token_name =~ /comment/i;
 
 # todo: look into: [[ ]] string are returned with space before comma
-            warn "# <$token_name>:\n'$lexeme'";
+#            warn "# <$token_name>:\n'$lexeme'";
             if ( not defined $recce->lexeme_alternative($token_name) ) {
                 warn
                     qq{Parser rejected token "$token_name" at position $start_of_lexeme, before "},
