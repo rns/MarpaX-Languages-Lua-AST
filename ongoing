@@ -27,7 +27,10 @@ MarpaX::AST
 
 MarpaX::ASF::PFG
 	contexts
-	
+
+# motivation for formatter
+	http://blog.golang.org/go-fmt-your-code
+
 # extend
 	general lexing
 	extract terminals from extension grammar for lexemes

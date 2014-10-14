@@ -127,7 +127,7 @@ $DOWARN = 0; # see above
         my $parsed_lua_source = $p->fmt($ast);
 $DOWARN = 1;
         my $lua_file = whip_up_lua_file( $parsed_lua_source );
-        diag "Serialized AST is in $lua_file file";
+        diag "Serialized AST is in $lua_file file" if $flag == 6;
         # run lua file
         system("./$run_lua_test $lua_file 1>$lua_file.stdout 2>$lua_file.stderr");
         my ($stdout, $stderr) = map { slurp_file($_) } qq{$lua_file.stdout}, qq{$lua_file.stderr};

@@ -56,6 +56,7 @@ lexeme default = action => [ name, value ] latm => 1
 #   in http://www.lua.org/manual/5.1/manual.html#2.4.1, but api.lua:163
 #   doesn't parse without that
 #   there is also constructs.lua:58 -- end;
+#   Empty statements are ok in Lua 5.2 http://www.lua.org/manual/5.2/manual.html#3.3.1
 #
 #   possible todo: better optional semicolon
     stat ::= <semicolon>
