@@ -58,17 +58,17 @@ my %lua_files = qw{
     lua5.1-tests/big.lua            5
     lua5.1-tests/calls.lua          1
     lua5.1-tests/checktable.lua     1
-    lua5.1-tests/closure.lua        1
+    lua5.1-tests/closure.lua        7
     lua5.1-tests/code.lua           1
     lua5.1-tests/constructs.lua     1
-    lua5.1-tests/db.lua             1
-    lua5.1-tests/errors.lua         1
+    lua5.1-tests/db.lua             7
+    lua5.1-tests/errors.lua         7
     lua5.1-tests/events.lua         1
     lua5.1-tests/files.lua          4
     lua5.1-tests/gc.lua             1
     lua5.1-tests/literals.lua       1
     lua5.1-tests/locals.lua         1
-    lua5.1-tests/main.lua           1
+    lua5.1-tests/main.lua           7
     lua5.1-tests/math.lua           1
     lua5.1-tests/nextvar.lua        1
     lua5.1-tests/pm.lua             1

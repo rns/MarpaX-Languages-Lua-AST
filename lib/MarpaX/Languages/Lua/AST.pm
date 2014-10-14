@@ -535,7 +535,7 @@ sub read{
             # todo: make comment skipping an option
 #            next TOKEN if $token_name =~ /comment/i;
 
-#            warn "# <$token_name>:\n'$lexeme'";
+            warn "# <$token_name>:\n'$lexeme'";
             if ( not defined $recce->lexeme_alternative($token_name) ) {
                 warn
                     qq{Parser rejected token "$token_name" at position $start_of_lexeme, before "},
@@ -690,7 +690,8 @@ sub do_fmt{
         elsif ( $current_node eq 'assignment'   ){ $s .= ' ' . $ast . ' ' }
         elsif ( $current_node =~ m{(^
                     double\ quoted\ string|single\ quoted\ string|
-                    left\ paren|right\ paren|
+                    left\ paren|right\ paren|left\ bracket|right\ bracket|
+                    left\ curly|right\ curly|
                     Name|period
                 $)
                 }xms
@@ -698,10 +699,11 @@ sub do_fmt{
                     String|Number
                 $}xms
             ){
+#            say "# $current_node: '$ast'";
             $s .= $ast;
             $current_parent_node = '';
         }
-        elsif ( $current_parent_node eq 'unop' ){
+        elsif ( $current_parent_node eq 'unop' or $current_node eq 'comma' ){
             $s .= $ast . ' ';
         }
         elsif ( $current_parent_node eq 'binop'
@@ -718,7 +720,7 @@ sub do_fmt{
 #            say "$current_node '$ast'";
 #            say "$previous_literal_node";
             # append current literal
-#            say "# $current_node: '$ast'";
+            say "# $current_node: '$ast'";
             $s .= ' ' . $ast;
         }
         # set context item
