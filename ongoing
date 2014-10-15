@@ -16,7 +16,7 @@
 	# strings
 	# local to my
 
-# extensible lexer
+# extensible lexer (start here, backport to MarpaX::Languages::SLIF::AST)
 	# move a SLIF grammar to general lexing
 	given a SLIF grammar, 
 		
