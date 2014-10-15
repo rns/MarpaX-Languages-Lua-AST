@@ -1,4 +1,19 @@
-﻿# words * contexts = translations
+﻿# cases for extensible parser -- smart preprocessing
+# malleable syntax -- like the language but hate some of its syntax
+	Hate ends? Use curlies!
+		for ... end 				-> for ... { ... }
+		do ... end 					-> do { ... }
+		while ... end 			-> while { ... }
+		repeat ... until 		-> repeat { ... } until
+		function () ... end	-> sub (...){...}
+	replace some grammar BNF rules with new ones
+	
+	# blocks
+	# comments
+	# strings
+	# local to my
+	
+# words * contexts = translations
 	inflected form
 	semantic form
 	search/replace safety
