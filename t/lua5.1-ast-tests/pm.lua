@@ -19,7 +19,7 @@ end
 
 a, b = string.find('', '')        -- empty patterns are tricky
 
-assert(a == 1 and b == 0) ;
+assert(a == 1 and b == 0);
 a, b = string.find('alo', '')
 assert(a == 1 and b == 0)
 a, b = string.find('a\0o a\0o a\0o', 'a', 1)        -- first position
@@ -31,9 +31,9 @@ assert(a == 5 and b == 7)
 a, b = string.find('a\0o a\0o a\0o', 'a\0o', 9)        -- starts in the midle
 
 assert(a == 9 and b == 11)
-a, b = string.find('a\0a\0a\0a\0\0ab', '\0ab', 2) ;        -- finds at the end
+a, b = string.find('a\0a\0a\0a\0\0ab', '\0ab', 2);        -- finds at the end
 
-assert(a == 9 and b == 11) ;
+assert(a == 9 and b == 11);
 a, b = string.find('a\0a\0a\0a\0\0ab', 'b')        -- last position
 
 assert(a == 11 and b == 11)
@@ -44,9 +44,9 @@ assert(string.find('alo123alo', '12') == 4)
 assert(string.find('alo123alo', '^12') ==  nil )
 assert(f('aloALO', '%l*') == 'alo')
 assert(f('aLo_ALO', '%a*') == 'aLo')
-assert(f('aaab', 'a*') == 'aaa') ;
-assert(f('aaa', '^.*$') == 'aaa') ;
-assert(f('aaa', 'b*') == '') ;
+assert(f('aaab', 'a*') == 'aaa');
+assert(f('aaa', '^.*$') == 'aaa');
+assert(f('aaa', 'b*') == '');
 assert(f('aaa', 'ab*a') == 'aa')
 assert(f('aba', 'ab*a') == 'aba')
 assert(f('aaab', 'a+') == 'aaa')
@@ -90,7 +90,7 @@ local function range (i, j)
   end
 end
 
-local abc = string.char(range(0, 255)) ;
+local abc = string.char(range(0, 255));
 assert(string.len(abc) == 256)
 function strset (p)
   local res = {s = ''}
@@ -100,7 +100,7 @@ function strset (p)
 )
   return res.s
 end
- ;
+;
 assert(string.len(strset('[\200-\210]')) == 11)
 assert(strset('[a-z]') == "abcdefghijklmnopqrstuvwxyz")
 assert(strset('[a-z%d]') == strset('[%da-uu-z]'))
@@ -111,7 +111,7 @@ assert(strset('[a%-z]') == '-az')
 assert(strset('[%^%[%-a%]%-b]') == '-[]^ab')
 assert(strset('%Z') == strset('[\1-\255]'))
 assert(strset('.') == strset('[\1-\255%z]'))
-print('+') ;
+print('+');
 assert(string.match("alo xyzK", "(%w+)K") == "xyz")
 assert(string.match("254 K", "(%d*)K") == "")
 assert(string.match("alo ", "(%w*)$") == "")
@@ -166,8 +166,8 @@ assert(x == ' assim vai para ALO')
 t = {}
 s = 'a alo jose  joao'
 r = string.gsub(s, '()(%w+)()', function ( a, w, b)
-  assert(string.len(w) == b - a) ;
-  t[a] = b - a ;
+  assert(string.len(w) == b - a);
+  t[a] = b - a;
 end
 )
 assert(s == r and t[1] == 1 and t[3] == 3 and t[7] == 4 and t[13] == 4)
@@ -178,22 +178,22 @@ end
 assert(isbalanced("(9 ((8))(\0) 7) \0\0 a b ()(c)() a"))
 assert(not isbalanced("(9 ((8) 7) a b (\0 c) a"))
 assert(string.gsub("alo 'oi' alo", "%b''", '"') == 'alo " alo')
-local t = {"apple", "orange", "lime" ;n = 0}
+local t = {"apple", "orange", "lime";n = 0}
 assert(string.gsub("x and x and x", "x", function ( )
-  t.n = t.n + 1 ;
+  t.n = t.n + 1;
   return t[t.n]
 end
 ) == "apple and orange and lime")
 t = {n = 0}
 string.gsub("first second word", "%w%w*", function ( w)
-  t.n = t.n + 1 ;
+  t.n = t.n + 1;
   t[t.n] = w
 end
 )
 assert(t[1] == "first" and t[2] == "second" and t[3] == "word" and t.n == 3)
 t = {n = 0}
 assert(string.gsub("first second word", "%w+", function ( w)
-  t.n = t.n + 1 ;
+  t.n = t.n + 1;
   t[t.n] = w
 end
 , 2) == "first second word")
@@ -225,7 +225,7 @@ assert(string.gsub("alo alo", "(.)", {a = "AA", l = ""}) == "AAo AAo")
 assert(string.gsub("alo alo", "(.).", {a = "AA", l = "K"}) == "AAo AAo")
 assert(string.gsub("alo alo", "((.)(.?))", {al = "AA", o =  false}) == "AAo AAo")
 assert(string.gsub("alo alo", "().", {2, 5, 6}) == "256 alo")
-t = {} ;
+t = {};
 setmetatable(t, {__index = function ( t, s)
   return string.upper(s)
 end
@@ -235,14 +235,14 @@ assert(string.gsub("a alo b hi", "%w%w+", t) == "a ALO b HI")        -- tests fo
 assert(string.gfind == string.gmatch)
 local a = 0
 for i in string.gmatch('abcde', '()') do 
-  assert(i == a + 1) ;
+  assert(i == a + 1);
   a = i
 end
 
 assert(a == 6)
 t = {n = 0}
 for w in string.gmatch("first second word", "%w+") do 
-  t.n = t.n + 1 ;
+  t.n = t.n + 1;
   t[t.n] = w
 end
 
@@ -260,7 +260,7 @@ end
 
 a = 0
 for k, v in pairs(t) do 
-  assert(k + 1 == v + 0) ;
+  assert(k + 1 == v + 0);
   a = a + 1
 end
 

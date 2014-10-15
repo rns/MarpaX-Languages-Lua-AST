@@ -168,7 +168,7 @@ repeat
   flag = eq(Max, 1, 0.001) and eq(Min, 0, 0.001)
 until flag or i > 10000
 assert(0 <= Min and Max < 1)
-assert(flag) ;
+assert(flag);
 for i = 1, 10 do 
   local t = math.random(5)
   assert(1 <= t and t <= 5)
@@ -185,5 +185,5 @@ repeat
   flag = (Max == 0 and Min == - 10)
 until flag or i > 10000
 assert(- 10 <= Min and Max <= 0)
-assert(flag) ;
+assert(flag);
 print('OK')

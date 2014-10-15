@@ -47,10 +47,8 @@ my $p = MarpaX::Languages::Lua::AST->new;
 #                                           3 reparse and show ast
 #                                           4 test stdout with like()
 #                                           5 stderr is expected -- test stdout anyway
-#                                           6 print name of temporary lua file
 #                                           7 todo skip
 
-# todo: test in lua5.1-ast-tests/api.lua, not a temporaty file in /tmp
 # todo: move this and other in xt (author test)
 my %lua_files = qw{
 
@@ -105,10 +103,12 @@ LUA_FILE:
         my $lua_ts_fn = $lua_test_suite_dir . '/' . $lua_fn;
         my $lua_ast_ts_fn = $lua_ast_test_suite_dir . '/' . $lua_fn;
 
-TODO: {
-        todo_skip "$lua_fn parses, but runs incorrectly", 1  if $flag == 7;
         # prepend t if running under prove
         $lua_ts_fn = 't/' . $lua_ts_fn unless $pwd =~ m{ /t$ }x;
+        $lua_ast_ts_fn = 't/' . $lua_ast_ts_fn unless $pwd =~ m{ /t$ }x;
+
+TODO: {
+        todo_skip "$lua_fn parses, but runs incorrectly", 1  if $flag == 7;
 
         # As an example, consider the following code:
         my $lua_slurp = slurp_file( $lua_ts_fn );

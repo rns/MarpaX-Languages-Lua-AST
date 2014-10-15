@@ -3,7 +3,7 @@ function check (a, f)
   f = f or function ( x, y)
     return x < y
   end
- ;
+;
   for n = table.getn(a), 2, - 1 do 
     assert(not f(a[n], a[n - 1]))
   end
@@ -35,10 +35,10 @@ for i = 1, limit do
   a[i] = math.random()
 end
 
-x = os.clock() ;
+x = os.clock();
 i = 0
 table.sort(a, function ( x, y)
-  i = i + 1 ;
+  i = i + 1;
   return y < x
 end
 )
@@ -53,7 +53,7 @@ for i = 1, limit do
   a[i] =  false
 end
 
-x = os.clock() ;
+x = os.clock();
 table.sort(a, function ( x, y)
   return  nil
 end
@@ -82,8 +82,8 @@ end
 }
 a = {}
 for i = 1, 10 do 
-  a[i] = {val = math.random(100)} ;
-  setmetatable(a[i], tt) ;
+  a[i] = {val = math.random(100)};
+  setmetatable(a[i], tt);
 end
 
 table.sort(a)

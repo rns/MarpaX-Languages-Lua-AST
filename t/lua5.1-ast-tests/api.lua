@@ -65,7 +65,7 @@ tcheck(t, {n = 6, 1, 2, 3, 4, "alo", "joao"})
   for i = 1, 1000 do 
     a[i] =  true
   end
- ;
+;
   a[999] = 10
   local b = T.testC([[call 1 -1; pop 1; tostring -1; return 1]], unpack, a)
   assert(b == "10")
@@ -144,7 +144,7 @@ a = T.testC([[
   call 0, 0;
   return 1
 ]], "x=150", function ( a)
-  assert(a ==  nil ) ;
+  assert(a ==  nil );
   return 3
 end
 )
@@ -257,7 +257,7 @@ for i = 1, Lim do         -- lock many objects
 end
 
 assert(T.ref( nil) == - 1 and T.getref(- 1) ==  nil )
-T.unref(- 1) ;
+T.unref(- 1);
 T.unref(- 1)
 for i = 1, Lim do         -- unlock all them
 
@@ -291,7 +291,7 @@ assert(type(T.getref(a)) == 'table')        -- colect in cl the `val' of all col
 
 tt = {}
 cl = {n = 0}
-A =  nil ;
+A =  nil;
 B =  nil
 local F
 F = function ( x)
@@ -324,14 +324,14 @@ end
 tt.__gc = F        -- test whether udate collection frees memory in the right time
 
  do 
-  collectgarbage() ;
-  collectgarbage() ;
-  local x = collectgarbage("count") ;
+  collectgarbage();
+  collectgarbage();
+  local x = collectgarbage("count");
   local a = T.newuserdata(5001)
   assert(T.testC("objsize 2; return 1", a) == 5001)
   assert(collectgarbage("count") >= x + 4)
   a =  nil
-  collectgarbage() ;
+  collectgarbage();
   assert(collectgarbage("count") <= x + 1)        -- udata without finalizer
 
   x = collectgarbage("count")
@@ -366,28 +366,28 @@ end
 
 collectgarbage("stop")        -- create 3 userdatas with tag `tt'
 
-a = T.newuserdata(0) ;
-debug.setmetatable(a, tt) ;
+a = T.newuserdata(0);
+debug.setmetatable(a, tt);
 na = T.udataval(a)
-b = T.newuserdata(0) ;
-debug.setmetatable(b, tt) ;
+b = T.newuserdata(0);
+debug.setmetatable(b, tt);
 nb = T.udataval(b)
-c = T.newuserdata(0) ;
-debug.setmetatable(c, tt) ;
+c = T.newuserdata(0);
+debug.setmetatable(c, tt);
 nc = T.udataval(c)        -- create userdata without meta table
 
 x = T.newuserdata(4)
 y = T.newuserdata(0)
 assert(debug.getmetatable(x) ==  nil  and debug.getmetatable(y) ==  nil )
-d = T.ref(a) ;
-e = T.ref(b) ;
-f = T.ref(c) ;
+d = T.ref(a);
+e = T.ref(b);
+f = T.ref(c);
 t = {T.getref(d), T.getref(e), T.getref(f)}
 assert(t[1] == a and t[2] == b and t[3] == c)
-t =  nil ;
-a =  nil ;
-c =  nil ;
-T.unref(e) ;
+t =  nil;
+a =  nil;
+c =  nil;
+T.unref(e);
 T.unref(f)
 collectgarbage()        -- check that unref objects have been collected
 
@@ -401,7 +401,7 @@ tt =  nil        -- frees tt for GC
 
 A =  nil
 b =  nil
-T.unref(d) ;
+T.unref(d);
 n5 = T.newuserdata(0)
 debug.setmetatable(n5, {__gc = F})
 n5 = T.udataval(n5)
@@ -417,7 +417,7 @@ for i = 30, 1, - 1 do
 end
 
 cl = {}
-a =  nil ;
+a =  nil;
 collectgarbage()
 assert(table.getn(cl) == 30)
 for i = 1, 30 do 
@@ -430,7 +430,7 @@ for i = 2, Lim, 2 do         -- unlock the other half
   T.unref(Arr[i])
 end
 
-x = T.newuserdata(41) ;
+x = T.newuserdata(41);
 debug.setmetatable(x, {__gc = F})
 assert(T.testC("objsize 2; return 1", x) == 41)
 cl = {}
@@ -521,7 +521,7 @@ end
         -- test for userdata vals
 
  do 
-  local a = {} ;
+  local a = {};
   local lim = 30
   for i = 0, lim do 
     a[i] = T.pushuserdata(i)
@@ -548,7 +548,7 @@ end
         -------------------------------------------------------------------------
         -- testing multiple states
 
-T.closestate(T.newstate()) ;
+T.closestate(T.newstate());
 L1 = T.newstate()
 assert(L1)
 assert(pack(T.doremote(L1, "function f () return 'alo', 3 end; f()")).n == 0)
@@ -576,7 +576,7 @@ a, b = T.doremote(L1, [[
   return string.sub('okinama', 1, 2)
 ]])
 assert(a == "ok")
-T.closestate(L1) ;
+T.closestate(L1);
 L1 = T.newstate()
 T.loadlib(L1)
 T.doremote(L1, "a = {}")
@@ -636,7 +636,7 @@ end
         -- testing memory errors when creating a new state
 
 b = testamem("state creation", T.newstate)
-T.closestate(b) ;        -- close new state
+T.closestate(b);        -- close new state
         -- testing threads
 
 function expand (n, s)
@@ -647,12 +647,12 @@ function expand (n, s)
   return string.format("T.doonnewstack([%s[ %s;\n collectgarbage(); %s]%s])\n", e, s, expand(n - 1, s), e)
 end
 
-G = 0 ;
-collectgarbage() ;
+G = 0;
+collectgarbage();
 a = collectgarbage("count")
 loadstring(expand(20, "G=G+1"))()
-assert(G == 20) ;
-collectgarbage() ;        -- assert(gcinfo() <= a+1)
+assert(G == 20);
+collectgarbage();        -- assert(gcinfo() <= a+1)
 
 testamem("thread creation", function ( )
   return T.doonnewstack("x=1") == 0        -- try to create thread
@@ -705,7 +705,7 @@ local t = os.tmpname()
 testamem("file creation", function ( )
   local f = assert(io.open(t, 'w'))
   assert(not io.open"nomenaoexistente")
-  io.close(f) ;
+  io.close(f);
   return not loadfile'nomenaoexistente'
 end
 )
@@ -713,7 +713,7 @@ assert(os.remove(t))
 testamem("table creation", function ( )
   local a, lim = {}, 10
   for i = 1, lim do 
-    a[i] = i ;
+    a[i] = i;
     a[i .. 'a'] = {}
   end
 

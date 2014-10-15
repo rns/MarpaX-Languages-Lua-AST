@@ -112,7 +112,7 @@ assert(loadstring("return 1\n--comentário sem EOL no final")() == 1)
 assert(table.concat{} == "")
 assert(table.concat({}, 'x') == "")
 assert(table.concat({'\0', '\0\1', '\0\1\2'}, '.\0.') == "\0.\0.\0\1.\0.\0\1\2")
-local a = {} ;
+local a = {};
 for i = 1, 3000 do 
   a[i] = "xuxu"
 end

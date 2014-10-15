@@ -43,8 +43,8 @@ function checktable (t)
     end
   end
 
-  l.asize = asize ;
-  l.hsize = hsize ;
+  l.asize = asize;
+  l.hsize = hsize;
   l.ff = ff
   return l
 end

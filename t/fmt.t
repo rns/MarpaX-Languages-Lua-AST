@@ -63,7 +63,6 @@ return function ( a, b, c, d, e )
 end, { a = 1, b = 2 >= 1, } or { 1 };
 ]]
 f = string.gsub(f, "%s+", "\n");        -- force a SETLINE between opcodes
-
 f, a = loadstring(f)();
 } ],
 
@@ -76,7 +75,11 @@ my $p = MarpaX::Languages::Lua::AST->new;
 for my $test (@tests){
     my ($lua_src, $expected_fmt) = @$test;
     $expected_fmt //= $lua_src;
+    # trim spaces
+    $expected_fmt =~ s/^\s+//ms;
+    $expected_fmt =~ s/\s+$//ms;
 
+    # parse/reparse with diagnostics on error
     my $ast = $p->parse( $lua_src );
     unless (defined $ast){
         $p->parse( $lua_src, { trace_terminals => 1 } );

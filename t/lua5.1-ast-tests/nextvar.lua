@@ -86,17 +86,17 @@ if T then        -- testing table sizes
   print'+'        -- testing tables dynamically built
 
   local lim = 130
-  local a = {} ;
-  a[2] = 1 ;
+  local a = {};
+  a[2] = 1;
   check(a, 0, 1)
-  a = {} ;
-  a[0] = 1 ;
-  check(a, 0, 1) ;
-  a[2] = 1 ;
+  a = {};
+  a[0] = 1;
+  check(a, 0, 1);
+  a[2] = 1;
   check(a, 0, 2)
-  a = {} ;
-  a[0] = 1 ;
-  a[1] = 1 ;
+  a = {};
+  a[0] = 1;
+  a[1] = 1;
   check(a, 1, 1)
   a = {}
   for i = 1, lim do 
@@ -170,7 +170,7 @@ if T then        -- testing table sizes
 
   local a = {}
   for i = 1, lim do 
-    a[i] =  true ;
+    a[i] =  true;
     foo(i, unpack(a))
   end
 
@@ -328,9 +328,9 @@ local function checknext (a)
 
   b = {}
    do 
-    local k, v = next(a) ;
+    local k, v = next(a);
     while k do 
-      b[k] = v ;
+      b[k] = v;
       k, v = next(a, k)
     end
 
@@ -389,10 +389,10 @@ end
 
 assert(n == 5)
 local function test (a)
-  table.insert(a, 10) ;
-  table.insert(a, 2, 20) ;
-  table.insert(a, 1, - 1) ;
-  table.insert(a, 40) ;
+  table.insert(a, 10);
+  table.insert(a, 2, 20);
+  table.insert(a, 1, - 1);
+  table.insert(a, 40);
   table.insert(a, table.getn(a) + 1, 50)
   table.insert(a, 2, - 2)
   assert(table.remove(a, 1) == - 1)
@@ -407,11 +407,11 @@ end
 a = {n = 0, [- 7] = "ban"}
 test(a)
 assert(a.n == 0 and a[- 7] == "ban")
-a = {[- 7] = "ban"} ;
+a = {[- 7] = "ban"};
 test(a)
 assert(a.n ==  nil  and table.getn(a) == 0 and a[- 7] == "ban")
-table.insert(a, 1, 10) ;
-table.insert(a, 1, 20) ;
+table.insert(a, 1, 10);
+table.insert(a, 1, 20);
 table.insert(a, 1, - 1)
 assert(table.remove(a) == 10)
 assert(table.remove(a) == 20)
@@ -427,7 +427,7 @@ assert(table.getn(a) == 0 and a.n ==  nil )
 print("+")
 a = {}
 for i = 1, 1000 do 
-  a[i] = i ;
+  a[i] = i;
   a[i - 1] =  nil
 end
 
@@ -446,75 +446,75 @@ for i = 0, 1, - 1 do
   error'not here'
 end
 
-a =  nil ;
+a =  nil;
 for i = 1, 1 do 
-  assert(not a) ;
+  assert(not a);
   a = 1
 end
- ;
+;
 assert(a)
-a =  nil ;
+a =  nil;
 for i = 1, 1, - 1 do 
-  assert(not a) ;
+  assert(not a);
   a = 1
 end
- ;
+;
 assert(a)
-a = 0 ;
+a = 0;
 for i = 0, 1, 0.1 do 
   a = a + 1
 end
- ;
+;
 assert(a == 11)        -- precision problems
         --a = 0; for i=1, 0, -0.01 do a=a+1 end; assert(a==101)
 
-a = 0 ;
+a = 0;
 for i = 0, 0.999999999, 0.1 do 
   a = a + 1
 end
- ;
+;
 assert(a == 10)
-a = 0 ;
+a = 0;
 for i = 1, 1, 1 do 
   a = a + 1
 end
- ;
+;
 assert(a == 1)
-a = 0 ;
+a = 0;
 for i = 1e10, 1e10, - 1 do 
   a = a + 1
 end
- ;
+;
 assert(a == 1)
-a = 0 ;
+a = 0;
 for i = 1, 0.99999, 1 do 
   a = a + 1
 end
- ;
+;
 assert(a == 0)
-a = 0 ;
+a = 0;
 for i = 99999, 1e5, - 1 do 
   a = a + 1
 end
- ;
+;
 assert(a == 0)
-a = 0 ;
+a = 0;
 for i = 1, 0.99999, - 1 do 
   a = a + 1
 end
- ;
+;
 assert(a == 1)        -- conversion
 
-a = 0 ;
+a = 0;
 for i = "10", "1", "-2" do 
   a = a + 1
 end
- ;
+;
 assert(a == 5)
 collectgarbage()        -- testing generic 'for'
 
 local function f (n, p)
-  local t = {} ;
+  local t = {};
   for i = 1, p do 
     t[i] = i * 10
   end

@@ -535,7 +535,6 @@ sub read{
             # todo: make comment skipping an option
 #            next TOKEN if $token_name =~ /comment/i;
 
-# todo: look into: [[ ]] string are returned with space before comma
 #            warn "# <$token_name>:\n'$lexeme'";
             if ( not defined $recce->lexeme_alternative($token_name) ) {
                 warn
@@ -637,7 +636,7 @@ sub do_fmt{
         }
 
         if (    $node_id eq 'stat'
-            and $children[0]->[0] ne 'Comment'
+            and $children[0]->[0] ne 'Comment' # todo: check for short comments: they include trailing newlines
             and $children[0]->[0] ne 'semicolon'
             ){
             # no newline before stat ::= functioncall
@@ -686,13 +685,15 @@ sub do_fmt{
             $s .= $ast . ' ';
         }
         elsif ( $current_node eq 'short comment' ){
+#            say "# $current_parent_node/$current_node: '$ast'";
+#            chomp $ast;
             $s .= '        ' . $ast
         }
         elsif ( $current_node eq 'assignment'   ){ $s .= ' ' . $ast . ' ' }
         elsif ( $current_node =~ m{(^
                     double\ quoted\ string|single\ quoted\ string|
                     left\ paren|right\ paren|left\ bracket|right\ bracket|
-                    left\ curly|right\ curly|
+                    left\ curly|right\ curly|semicolon|
                     Name|period
                 $)
                 }xms
@@ -700,6 +701,13 @@ sub do_fmt{
                     String|Number
                 $}xms
             ){
+# todo: look into: [[ ]] strings are somehow returned with space before comma
+#       write a test case for marpa based on sl_external1.t
+        # for now just substitute
+#            say "# $current_parent_node/$current_node: '$ast'";
+            if ($current_node =~ /string$/){
+                $ast =~ s/ ,/,/gms;
+            }
 #            say "# $current_node: '$ast'";
             $s .= $ast;
             $current_parent_node = '';
@@ -715,8 +723,8 @@ sub do_fmt{
                 $current_node =~ /^(in|and|or)$/
             ){ $s .= ' ' . $ast . ' ' }
         else{
+
             # print literal and its context
-            # print its context
 #            say "$indent_level, @level_blocks" if @level_blocks;
 #            say "$current_node '$ast'";
 #            say "$previous_literal_node";

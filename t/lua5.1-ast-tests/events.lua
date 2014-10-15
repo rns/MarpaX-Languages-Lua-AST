@@ -1,5 +1,5 @@
 print('testing metatables')
-X = 20 ;
+X = 20;
 B = 30
 setfenv(1, setmetatable({}, {__index = _G}))
 collectgarbage()
@@ -12,7 +12,7 @@ assert(B == 30)
 assert(getmetatable{} ==  nil )
 assert(getmetatable(4) ==  nil )
 assert(getmetatable( nil) ==  nil )
-a = {} ;
+a = {};
 setmetatable(a, {__metatable = "xuxu", __tostring = function ( x)
   return x.name
 end
@@ -23,7 +23,7 @@ assert(tostring(a) ==  nil )        -- cannot change a protected metatable
 assert(pcall(setmetatable, a, {}) ==  false )
 a.name = "gororoba"
 assert(tostring(a) == "gororoba")
-local a, t = {10, 20, 30 ;x = "10", y = "20"}, {}
+local a, t = {10, 20, 30;x = "10", y = "20"}, {}
 assert(setmetatable(a, t) == a)
 assert(getmetatable(a) == t)
 assert(setmetatable(a,  nil) == a)
@@ -45,19 +45,19 @@ function f (t, i, v)
 end
 
 t.__newindex = f
-a[1] = 30 ;
-a.x = "101" ;
+a[1] = 30;
+a.x = "101";
 a[5] = 200
 assert(a[1] == 27 and a.x == 98 and a[5] == 197)
 local c = {}
 a = setmetatable({}, t)
 t.__newindex = c
-a[1] = 10 ;
-a[2] = 20 ;
+a[1] = 10;
+a[2] = 20;
 a[3] = 90
 assert(c[1] == 10 and c[2] == 20 and c[3] == 90)
  do 
-  local a ;
+  local a;
   a = setmetatable({}, {__index = setmetatable({}, {__index = setmetatable({}, {__index = function ( _, n)
     return a[n - 3] + 4, "lixo"
   end
@@ -74,32 +74,32 @@ end
   local foi
   local a = {}
   for i = 1, 10 do 
-    a[i] = 0 ;
-    a['a' .. i] = 0 ;
+    a[i] = 0;
+    a['a' .. i] = 0;
   end
 
   setmetatable(a, {__newindex = function ( t, k, v)
-    foi =  true ;
+    foi =  true;
     rawset(t, k, v)
   end
 })
-  foi =  false ;
-  a[1] = 0 ;
+  foi =  false;
+  a[1] = 0;
   assert(not foi)
-  foi =  false ;
-  a['a1'] = 0 ;
+  foi =  false;
+  a['a1'] = 0;
   assert(not foi)
-  foi =  false ;
-  a['a11'] = 0 ;
+  foi =  false;
+  a['a11'] = 0;
   assert(foi)
-  foi =  false ;
-  a[11] = 0 ;
+  foi =  false;
+  a[11] = 0;
   assert(foi)
-  foi =  false ;
-  a[1] =  nil ;
+  foi =  false;
+  a[1] =  nil;
   assert(not foi)
-  foi =  false ;
-  a[1] =  nil ;
+  foi =  false;
+  a[1] =  nil;
   assert(foi)
 end
 
@@ -119,7 +119,7 @@ local b = setmetatable({}, t)
 setmetatable(b, t)
 function f (op)
   return function (  ...)
-    cap = {[0] = op,  ...} ;
+    cap = {[0] = op,  ...};
     return ( ...)
   end
 
@@ -140,7 +140,7 @@ assert(5 + b == 5)
 assert(cap[0] == "add" and cap[1] == 5 and cap[2] == b and cap[3] ==  nil )
 assert('5' + b == '5')
 assert(cap[0] == "add" and cap[1] == '5' and cap[2] == b and cap[3] ==  nil )
-b = b - 3 ;
+b = b - 3;
 assert(getmetatable(b) == t)
 assert(5 - a == 5)
 assert(cap[0] == "sub" and cap[1] == 5 and cap[2] == a and cap[3] ==  nil )
@@ -281,9 +281,9 @@ t.__concat = function ( a, b, c)
   end
 end
 
-c = {val = "c"} ;
+c = {val = "c"};
 setmetatable(c, t)
-d = {val = "d"} ;
+d = {val = "d"};
 setmetatable(d, t)
 A =  true
 assert(c .. d == 'cd')
@@ -295,8 +295,8 @@ x = 0 .. "a" .. "b" .. c .. d .. "e" .. "f" .. "g"
 assert(x.val == "0abcdefg")        -- test comparison compatibilities
 
 local t1, t2, c, d
-t1 = {} ;
-c = {} ;
+t1 = {};
+c = {};
 setmetatable(c, t1)
 d = {}
 t1.__eq = function ( )

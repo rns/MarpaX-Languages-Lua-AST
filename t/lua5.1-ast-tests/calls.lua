@@ -47,7 +47,7 @@ assert(a.t :x(2, 3) == - 95)
  do 
   local a = {x = 0}
   function a  :add(x)
-    self.x, a.y = self.x + x, 20 ;
+    self.x, a.y = self.x + x, 20;
     return self
   end
 
@@ -64,13 +64,13 @@ function a .b.c :f2(x, y)
 end
 
 assert(a.b.c.f1(4) == 5)
-a.b.c :f2('k', 12) ;
+a.b.c :f2('k', 12);
 assert(a.b.c.k == 12)
 print('+')
 t =  nil        -- 'declare' t
 
 function f (a, b, c)
-  local d = 'a' ;
+  local d = 'a';
   t = {a, b, c, d}
 end
 
@@ -95,11 +95,11 @@ assert(a == 120 and b == 3)
 print('+')
 function err_on_n (n)
   if n == 0 then
-    error() ;
-    exit(1) ;
+    error();
+    exit(1);
   else
-    err_on_n(n - 1) ;
-    exit(1) ;
+    err_on_n(n - 1);
+    exit(1);
   end
 end
 
@@ -152,7 +152,7 @@ assert(a == 23 and (function ( x)
 end
 )(20) == 40)
 local x, y, z, a
-a = {} ;
+a = {};
 lim = 2000
 for i = 1, lim do 
   a[i] = i
@@ -317,7 +317,7 @@ assert(a()(2)(3)(10) == 15)        -- test for dump/undump with upvalues
 local a, b = 20, 30
 x = loadstring(string.dump(function ( x)
   if x == "set" then
-    a = 10 + b ;
+    a = 10 + b;
     b = b + 1
   else
     return a
@@ -340,7 +340,7 @@ assert((function ( )
 end
 )(4) ==  nil )
 assert((function ( )
-  local a ;
+  local a;
   return a
 end
 )(4) ==  nil )

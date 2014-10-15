@@ -12,7 +12,7 @@ end
 
 function c12 ( ...)
   assert(arg ==  nil )
-  local x = { ...} ;
+  local x = { ...};
   x.n = table.getn(x)
   local res = (x.n == 2 and x[1] == 1 and x[2] == 2)
   if res then
@@ -35,12 +35,12 @@ assert(f({"alo",  nil, 45, f,  nil}, "alo",  nil, 45, f,  nil) == 5)
 assert(c12(1, 2) == 55)
 a, b = assert(call(c12, {1, 2}))
 assert(a == 55 and b == 2)
-a = call(c12, {1, 2 ;n = 2})
+a = call(c12, {1, 2;n = 2})
 assert(a == 55 and b == 2)
-a = call(c12, {1, 2 ;n = 1})
+a = call(c12, {1, 2;n = 1})
 assert(not a)
 assert(c12(1, 2, 3) ==  false )
-local a = vararg(call(next, {_G,  nil ;n = 2}))
+local a = vararg(call(next, {_G,  nil;n = 2}))
 local b, c = next(_G)
 assert(a[1] == b and a[2] == c and a.n == 2)
 a = vararg(call(call, {c12, {1, 2}}))
@@ -57,7 +57,7 @@ print('+')
 lim = 20
 local i, a = 1, {}
 while i <= lim do 
-  a[i] = i + 0.3 ;
+  a[i] = i + 0.3;
   i = i + 1
 end
 
@@ -75,7 +75,7 @@ call(g, a)
 a = {}
 i = 1
 while i <= lim do 
-  a[i] = i ;
+  a[i] = i;
   i = i + 1
 end
 

@@ -3,7 +3,7 @@ assert(io.input(io.stdin) == io.stdin)
 assert(io.output(io.stdout) == io.stdout)
 assert(type(io.input()) == "userdata" and io.type(io.output()) == "file")
 assert(io.type(8) ==  nil )
-local a = {} ;
+local a = {};
 setmetatable(a, {})
 assert(io.type(a) ==  nil )
 local a, b, c = io.open('xuxu_nao_existe')
@@ -13,8 +13,8 @@ assert(not a and type(b) == "string" and type(c) == "number")
 local file = os.tmpname()
 local otherfile = os.tmpname()
 assert(os.setlocale('C', 'all'))
-io.input(io.stdin) ;
-io.output(io.stdout) ;
+io.input(io.stdin);
+io.output(io.stdout);
 os.remove(file)
 assert(loadfile(file) ==  nil )
 assert(io.open(file) ==  nil )
@@ -49,7 +49,7 @@ end
 assert(os.rename(file, otherfile))
 assert(os.rename(file, otherfile) ==  nil )
 io.output(io.open(otherfile, "a"))
-assert(io.write("\n\n\t\t  3450\n")) ;
+assert(io.write("\n\n\t\t  3450\n"));
 io.close()        -- test line generators
 
 assert(os.rename(otherfile, file))
@@ -57,7 +57,7 @@ io.output(otherfile)
 local f = io.lines(file)
 while f() do  
 end
- ;
+;
 assert(not pcall(f))        -- read lines after EOF
 
 assert(not pcall(f))        -- read lines after EOF
@@ -77,7 +77,7 @@ for l in f :lines() do
   io.write(l, "\n")
 end
 
-assert(f :close()) ;
+assert(f :close());
 io.close()
 assert(not pcall(io.close, f))        -- error trying to close again
 
@@ -136,7 +136,7 @@ assert(not pcall(io.read))
 assert(os.remove(file))
 local t = '0123456789'
 for i = 1, 12 do 
-  t = t .. t ;
+  t = t .. t;
 end
 
 assert(string.len(t) == 10 * 2 ^ 12)
@@ -149,7 +149,7 @@ io.output(f)
 collectgarbage()
 assert(io.write(' ' .. t .. ' '))
 assert(io.write(';', 'end of file\n'))
-f :flush() ;
+f :flush();
 io.flush()
 f :close()
 print('+')
@@ -189,7 +189,7 @@ assert(filehandle :read('*l') == "qualquer coisa")
 io.input(otherfilehandle)
 assert(io.read(string.len"outra coisa") == "outra coisa")
 assert(filehandle :read('*l') == "mais qualquer coisa")
-filehandle :close() ;
+filehandle :close();
 assert(type(filehandle) == "userdata")
 io.input(otherfilehandle)
 assert(io.read(4) == "\0\1\3\0")
@@ -254,7 +254,7 @@ collectgarbage()        -- testing buffers
   fr :seek("set", 1)
   assert(fr :read("*all") == "xa\n")        -- now we have a whole line
 
-  f :close() ;
+  f :close();
   fr :close()
 end
         -- testing large files (> BUFSIZ)
@@ -278,7 +278,7 @@ assert(x == y .. '\n' .. io.read())
 assert(io.read() ==  nil )
 io.close(io.input())
 assert(os.remove(file))
-x =  nil ;
+x =  nil;
 y =  nil
 x, y = pcall(io.popen, "ls")
 if x then
@@ -308,7 +308,7 @@ loadstring(os.date([[!assert(T.year==%Y and T.month==%m and T.day==%d and
 end
 
 t = os.time(T)
-T.year = T.year - 1 ;
+T.year = T.year - 1;
 local t1 = os.time(T)        -- allow for leap years
 
 assert(math.abs(os.difftime(t, t1) / (24 * 3600) - 365) < 2)

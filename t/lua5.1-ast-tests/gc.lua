@@ -5,7 +5,7 @@ limit = 5000
 contCreate = 0
 print('tables')
 while contCreate <= limit do 
-  local a = {} ;
+  local a = {};
   a =  nil
   contCreate = contCreate + 1
 end
@@ -14,7 +14,7 @@ a = "a"
 contCreate = 0
 print('strings')
 while contCreate <= limit do 
-  a = contCreate .. "b" ;
+  a = contCreate .. "b";
   a = string.gsub(a, '(%d%d*)', string.upper)
   a = "a"
   contCreate = contCreate + 1
@@ -72,8 +72,8 @@ s = ''
 n = 0
 k = 300
 while n < k do 
-  s = s .. x ;
-  n = n + 1 ;
+  s = s .. x;
+  n = n + 1;
   j = tostring(n)
 end
 
@@ -99,7 +99,7 @@ local function dosteps (siz)
   collectgarbage"stop"
   local a = {}
   for i = 1, 100 do 
-    a[i] = {{}} ;
+    a[i] = {{}};
     local b = {}
   end
 
@@ -164,8 +164,8 @@ for i = 1, lim do
 end
 
 print('weak tables')
-a = {} ;
-setmetatable(a, {__mode = 'k'}) ;        -- fill a with some `collectable' indices
+a = {};
+setmetatable(a, {__mode = 'k'});        -- fill a with some `collectable' indices
 
 for i = 1, lim do 
   a[{}] = i
@@ -173,7 +173,7 @@ end
         -- and some non-collectable ones
 
 for i = 1, lim do 
-  local t = {} ;
+  local t = {};
   a[t] = t
 end
 
@@ -182,20 +182,20 @@ for i = 1, lim do
 end
 
 for i = 1, lim do 
-  local s = string.rep('@', i) ;
+  local s = string.rep('@', i);
   a[s] = s .. '#'
 end
 
 collectgarbage()
 local i = 0
 for k, v in pairs(a) do 
-  assert(k == v or k .. '#' == v) ;
+  assert(k == v or k .. '#' == v);
   i = i + 1
 end
 
 assert(i == 3 * lim)
-a = {} ;
-setmetatable(a, {__mode = 'v'}) ;
+a = {};
+setmetatable(a, {__mode = 'v'});
 a[1] = string.rep('b', 21)
 collectgarbage()
 assert(a[1])        -- strings are *values*
@@ -212,7 +212,7 @@ end
         -- and some non-collectable ones
 
 for i = 1, lim do 
-  local t = {} ;
+  local t = {};
   a[t] = t
 end
 
@@ -223,13 +223,13 @@ end
 collectgarbage()
 local i = 0
 for k, v in pairs(a) do 
-  assert(k == v or k - lim .. 'x' == v) ;
+  assert(k == v or k - lim .. 'x' == v);
   i = i + 1
 end
 
 assert(i == 2 * lim)
-a = {} ;
-setmetatable(a, {__mode = 'vk'}) ;
+a = {};
+setmetatable(a, {__mode = 'vk'});
 local x, y, z = {}, {}, {}        -- keep only some items
 
 a[1], a[2], a[3] = x, y, z
@@ -244,7 +244,7 @@ for i = 1, lim do
 end
 
 for i = 1, lim do 
-  local t = {} ;
+  local t = {};
   a[t] = t
 end
 
@@ -252,7 +252,7 @@ collectgarbage()
 assert(next(a) ~=  nil )
 local i = 0
 for k, v in pairs(a) do 
-  assert((k == 1 and v == x) or (k == 2 and v == y) or (k == 3 and v == z) or k == v) ;
+  assert((k == 1 and v == x) or (k == 2 and v == y) or (k == 3 and v == z) or k == v);
   i = i + 1
 end
 
@@ -265,7 +265,7 @@ collectgarbage("stop")        -- stop collection
 
 local u = newproxy( true)
 local s = 0
-local a = {[u] = 0} ;
+local a = {[u] = 0};
 setmetatable(a, {__mode = 'vk'})
 for i = 1, 10 do 
   a[newproxy(u)] = i
@@ -275,7 +275,7 @@ for k in pairs(a) do
   assert(getmetatable(k) == getmetatable(u))
 end
 
-local a1 = {} ;
+local a1 = {};
 for k, v in pairs(a) do 
   a1[k] = v
 end
@@ -321,8 +321,8 @@ end
 collectgarbage()
 local u = newproxy( true)
 local m = getmetatable(u)
-m.x = {[{0}] = 1 ;[0] = {1}} ;
-setmetatable(m.x, {__mode = "kv"}) ;
+m.x = {[{0}] = 1;[0] = {1}};
+setmetatable(m.x, {__mode = "kv"});
 m.__gc = function ( o)
   assert(next(getmetatable(o).x) ==  nil )
   m = 10

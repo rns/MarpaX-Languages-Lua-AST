@@ -44,9 +44,9 @@ end
 
 check(function ( )
   local a, b, c
-  local d ;
-  local e ;
-  a =  nil ;
+  local d;
+  local e;
+  a =  nil;
   d =  nil
 end
 , 'RETURN')        -- single return
@@ -148,7 +148,7 @@ end
 checkequal(function ( )
   if (a ==  nil ) then
     a = 1
-  end ;
+  end;
   if a ~=  nil  then
     a = 1
   end
@@ -156,7 +156,7 @@ end
 , function ( )
   if (a == 9) then
     a = 1
-  end ;
+  end;
   if a ~= 9 then
     a = 1
   end
@@ -170,24 +170,24 @@ end
 , 'GETGLOBAL', 'EQ', 'JMP', 'LOADK', 'SETGLOBAL', 'RETURN')        -- de morgan
 
 checkequal(function ( )
-  local a ;
+  local a;
   if not (a or b) then
     b = a
   end
 end
 , function ( )
-  local a ;
+  local a;
   if (not a and not b) then
     b = a
   end
 end
 )
 checkequal(function ( l)
-  local a ;
+  local a;
   return 0 <= a and a <= l
 end
 , function ( l)
-  local a ;
+  local a;
   return not (not (a >= 0) or not (a <= l))
 end
 )

@@ -118,17 +118,17 @@ return AA]]
   end
 
   local assert, module, package = assert, module, package
-  X =  nil ;
-  x = 0 ;
+  X =  nil;
+  x = 0;
   assert(_G.x == 0)        -- `x' must be a global variable
 
-  module"X" ;
-  x = 1 ;
+  module"X";
+  x = 1;
   assert(_M.x == 1)
-  module"X.a.b.c" ;
-  x = 2 ;
+  module"X.a.b.c";
+  x = 2;
   assert(_M.x == 2)
-  module("X.a.b", package.seeall) ;
+  module("X.a.b", package.seeall);
   x = 3
   assert(X._NAME == "X" and X.a.b.c._NAME == "X.a.b.c" and X.a.b._NAME == "X.a.b")
   assert(X._M == X and X.a.b.c._M == X.a.b.c and X.a.b._M == X.a.b)
@@ -136,11 +136,11 @@ return AA]]
   assert(X._PACKAGE == "" and X.a.b.c._PACKAGE == "X.a.b." and X.a.b._PACKAGE == "X.a.")
   assert(_PACKAGE .. "c" == "X.a.c")
   assert(X.a._NAME ==  nil  and X.a._M ==  nil )
-  module("X.a", import("X")) ;
+  module("X.a", import("X"));
   x = 4
   assert(X.a._NAME == "X.a" and X.a.x == 4 and X.a._M == X.a)
-  module("X.a.b", package.seeall) ;
-  assert(x == 3) ;
+  module("X.a.b", package.seeall);
+  assert(x == 3);
   x = 5
   assert(_NAME == "X.a.b" and X.a.b.x == 5)
   assert(X._G ==  nil  and X.a._G ==  nil  and X.a.b._G == _G and X.a.b.c._G ==  nil )
@@ -217,14 +217,14 @@ a[f()], b, a[f() + 3] = f(), a, 'x'
 assert(a[10] == 10 and b == a and a[13] == 'x')
  do 
   local f = function ( n)
-    local x = {} ;
+    local x = {};
     for i = 1, n do 
       x[i] = i
     end
- ;
+;
     return unpack(x)
   end
- ;
+;
   local a, b, c
   a, b = 0, f(1)
   assert(a == 0 and b == 1)
@@ -273,15 +273,15 @@ end
 
 local a = {}
 for i = 3000, - 3000, - 1 do 
-  a[i] = i ;
+  a[i] = i;
 end
 
-a[10e30] = "alo" ;
-a[ true] = 10 ;
+a[10e30] = "alo";
+a[ true] = 10;
 a[ false] = 20
 assert(a[10e30] == 'alo' and a[not 1] == 20 and a[10 < 20] == 10)
 for i = 3000, - 3000, - 1 do 
-  assert(a[i] == i) ;
+  assert(a[i] == i);
 end
 
 a[print] = assert
@@ -290,25 +290,25 @@ a[a] = a
 assert(a[a][a][a][a][print] == assert)
 a[print](a[a[f]] == a[print])
 a =  nil
-a = {10, 9, 8, 7, 6, 5, 4, 3, 2 ;[- 3] = 'a', [f] = print, a = 'a', b = 'ab'}
+a = {10, 9, 8, 7, 6, 5, 4, 3, 2;[- 3] = 'a', [f] = print, a = 'a', b = 'ab'}
 a, a.x, a.y = a, a[- 3]
 assert(a[1] == 10 and a[- 3] == a.a and a[f] == print and a.x == 'a' and not a.y)
 a[1], f(a)[2], b, c = {['alo'] = assert}, 10, a[1], a[f], 6, 10, 23, f(a), 2
 a[1].alo(a[2] == 10 and b == 10 and c == print)
-a[2 ^ 31] = 10 ;
-a[2 ^ 31 + 1] = 11 ;
-a[- 2 ^ 31] = 12 ;
-a[2 ^ 32] = 13 ;
-a[- 2 ^ 32] = 14 ;
-a[2 ^ 32 + 1] = 15 ;
-a[10 ^ 33] = 16 ;
+a[2 ^ 31] = 10;
+a[2 ^ 31 + 1] = 11;
+a[- 2 ^ 31] = 12;
+a[2 ^ 32] = 13;
+a[- 2 ^ 32] = 14;
+a[2 ^ 32 + 1] = 15;
+a[10 ^ 33] = 16;
 assert(a[2 ^ 31] == 10 and a[2 ^ 31 + 1] == 11 and a[- 2 ^ 31] == 12 and a[2 ^ 32] == 13 and a[- 2 ^ 32] == 14 and a[2 ^ 32 + 1] == 15 and a[10 ^ 33] == 16)
 a =  nil
  do 
   local a, i, j, b
-  a = {'a', 'b'} ;
-  i = 1 ;
-  j = 2 ;
+  a = {'a', 'b'};
+  i = 1;
+  j = 2;
   b = a
   i, a[i], a, j, a[j], a[i + j] = j, i, i, b, j, i
   assert(i == 2 and b[1] == 1 and a == 1 and j == b and b[2] == 2 and b[3] == 1)

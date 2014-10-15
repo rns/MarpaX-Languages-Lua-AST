@@ -2,12 +2,12 @@ print('testing local variables plus some extra stuff')
  do 
   local i = 10
    do 
-    local i = 100 ;
+    local i = 100;
     assert(i == 100)
   end
 
    do 
-    local i = 1000 ;
+    local i = 1000;
     assert(i == 1000)
   end
 
@@ -44,11 +44,11 @@ function f (a)
 end
 
 local b = 10
-local a ;
+local a;
 repeat 
-  local b ;
-  a, b = 1, 2 ;
-  assert(a + 1 == b) ;
+  local b;
+  a, b = 1, 2;
+  assert(a + 1 == b);
 until a + b == 3
 assert(x == 1)
 f(2)
@@ -59,13 +59,13 @@ assert(type(f) == 'function')        -- testing globals ;-)
   local _G = _G
   for i = 1, 10 do 
     f[i] = function ( x)
-      A = A + 1 ;
+      A = A + 1;
       return A, _G.getfenv(x)
     end
 
   end
 
-  A = 10 ;
+  A = 10;
   assert(f[1]() == 11)
   for i = 1, 10 do 
     assert(setfenv(f[i], {A = i}) == f[i])
@@ -83,11 +83,11 @@ assert(type(f) == 'function')        -- testing globals ;-)
   end
 
   g = function ( )
-    f() ;
+    f();
     _G.assert(_G.getfenv(1).a == '10')
   end
 
-  g() ;
+  g();
   assert(getfenv(g).a == '10')
 end
         -- test for global table of loaded chunks
