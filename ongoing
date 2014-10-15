@@ -39,6 +39,9 @@
 	semantic form
 	search/replace safety
 
+# the Lua SLIF grammar is highly ambiguous, at times with over 100 ASTs
+	get Marpa::R2::Glade generate PFG rules lazily for pruning
+
 # todo: ast distill, capture group-based lexer, format
 
 use PFG and the context will be right here
