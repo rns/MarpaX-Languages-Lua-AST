@@ -2,8 +2,16 @@
 	inflected form
 	semantic form
 	search/replace safety
+
+# todo: ast distill, capture group-based lexer, format
+
+use PFG and the context will be right here
+
+move fmt to handlers => {
+	'stat/if' => sub {
+	},
 	
-# ast distill, capture group-based lexer, format
+}
 
 extensible lexer, extensible grammar, grammar algebra
 parse to grammar (graph), not AST (tree)

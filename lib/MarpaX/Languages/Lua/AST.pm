@@ -721,7 +721,7 @@ sub do_fmt{
 #            say "$current_node '$ast'";
 #            say "$previous_literal_node";
             # append current literal
-            say "# $current_node: '$ast'";
+#            say "# $current_node: '$ast'";
             $s .= ' ' . $ast;
         }
         # set context item

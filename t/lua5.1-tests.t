@@ -49,33 +49,34 @@ my $p = MarpaX::Languages::Lua::AST->new;
 #                                           5 stderr is expected -- test stdout anyway
 #                                           6 print name of temporary lua file
 #                                           7 todo skip
+
+# todo: test in lua5.1-ast-tests/api.lua, not a temporaty file in /tmp
+# todo: move this and other in xt (author test)
 my %lua_files = qw{
 
-    lua-tests/coroutine.lua         1
-
-    lua5.1-tests/api.lua            1
-    lua5.1-tests/attrib.lua         1
-    lua5.1-tests/big.lua            5
-    lua5.1-tests/calls.lua          1
-    lua5.1-tests/checktable.lua     1
-    lua5.1-tests/closure.lua        7
-    lua5.1-tests/code.lua           1
-    lua5.1-tests/constructs.lua     1
-    lua5.1-tests/db.lua             7
-    lua5.1-tests/errors.lua         7
-    lua5.1-tests/events.lua         1
-    lua5.1-tests/files.lua          4
-    lua5.1-tests/gc.lua             1
-    lua5.1-tests/literals.lua       1
-    lua5.1-tests/locals.lua         1
-    lua5.1-tests/main.lua           7
-    lua5.1-tests/math.lua           1
-    lua5.1-tests/nextvar.lua        1
-    lua5.1-tests/pm.lua             1
-    lua5.1-tests/sort.lua           4
-    lua5.1-tests/strings.lua        1
-    lua5.1-tests/vararg.lua         1
-    lua5.1-tests/verybig.lua        1
+    api.lua            1
+    attrib.lua         1
+    big.lua            5
+    calls.lua          1
+    checktable.lua     1
+    closure.lua        7
+    code.lua           1
+    constructs.lua     1
+    db.lua             7
+    errors.lua         7
+    events.lua         1
+    files.lua          4
+    gc.lua             1
+    literals.lua       1
+    locals.lua         1
+    main.lua           7
+    math.lua           1
+    nextvar.lua        1
+    pm.lua             1
+    sort.lua           4
+    strings.lua        1
+    vararg.lua         1
+    verybig.lua        1
 };
 
 # current dir
@@ -85,6 +86,9 @@ my $pwd = Cwd::cwd();
 my $run_lua_test = 'run_lua_test.sh';
 # prepend t if running under prove
 $run_lua_test = 't/' . $run_lua_test unless $pwd =~ m{ /t$ }x;
+# test suite dirs
+my $lua_test_suite_dir = 'lua5.1-tests';
+my $lua_ast_test_suite_dir = 'lua5.1-ast-tests';
 
 # this is used below to silence "Deep recursion warning ... on tokens()"
 # todo: check if the recursion is really deep
@@ -96,22 +100,27 @@ LUA_FILE:
 
         # get flags
         my $flag = $lua_files{$lua_fn};
+
+        # prepend test suite path unless a file is from another dir
+        my $lua_ts_fn = $lua_test_suite_dir . '/' . $lua_fn;
+        my $lua_ast_ts_fn = $lua_ast_test_suite_dir . '/' . $lua_fn;
+
 TODO: {
         todo_skip "$lua_fn parses, but runs incorrectly", 1  if $flag == 7;
         # prepend t if running under prove
-        $lua_fn = 't/' . $lua_fn unless $pwd =~ m{ /t$ }x;
+        $lua_ts_fn = 't/' . $lua_ts_fn unless $pwd =~ m{ /t$ }x;
 
         # As an example, consider the following code:
-        my $lua_slurp = slurp_file( $lua_fn );
+        my $lua_slurp = slurp_file( $lua_ts_fn );
 
         # When you run it, it produces the following output:
-        my $expected_stdout = slurp_file( qq{$lua_fn.out} );
+        my $expected_stdout = slurp_file( qq{$lua_ts_fn.out} );
 
         # parse
         my $ast = $p->parse($lua_slurp);
         # check for parse error, fail and proceed as flagged if any
         unless (defined $ast){
-            fail "parse $lua_fn";
+            fail "parse $lua_ts_fn";
             if ($flag eq 2){ # reparse with diagnostics
                 $ast = $p->parse(
                     $lua_slurp,
@@ -126,11 +135,11 @@ TODO: {
 $DOWARN = 0; # see above
         my $parsed_lua_source = $p->fmt($ast);
 $DOWARN = 1;
-        my $lua_file = whip_up_lua_file( $parsed_lua_source );
-        diag "Serialized AST is in $lua_file file" if $flag == 6;
+        whip_up_lua_file( $lua_ast_ts_fn, $parsed_lua_source );
+        diag "Serialized AST is in $lua_ast_ts_fn file" if $flag == 6;
         # run lua file
-        system("./$run_lua_test $lua_file 1>$lua_file.stdout 2>$lua_file.stderr");
-        my ($stdout, $stderr) = map { slurp_file($_) } qq{$lua_file.stdout}, qq{$lua_file.stderr};
+        system("./$run_lua_test $lua_ast_test_suite_dir $lua_fn 1>$lua_ast_ts_fn.stdout 2>$lua_ast_ts_fn.stderr");
+        my ($stdout, $stderr) = map { slurp_file($_) } qq{$lua_ast_ts_fn.stdout}, qq{$lua_ast_ts_fn.stderr};
 
         # check for run error, fail and proceed as flagged if any
         if
@@ -138,22 +147,22 @@ $DOWARN = 1;
                 $stderr         # there was run error
             and $flag != 5      # and it is NOT expected
         ){
-            fail "run $lua_fn:\n$stderr";
+            fail "run $lua_ts_fn:\n$stderr";
             if ($flag eq 3){ # reparse and show ast
                 $ast = $p->parse( $lua_slurp );
-                warn "# ast of $lua_fn: ", $p->serialize( $ast );
+                warn "# ast of $lua_ts_fn: ", $p->serialize( $ast );
             }
             next LUA_FILE;
         }
         # file parses and runs, test its output
         if ($flag == 4){
             # turn $expected_stdout to a regex and test against it
-            if ( $lua_fn =~ m{ lua5.1-tests/sort.lua$ }x ){
+            if ( $lua_ts_fn =~ m{ lua5.1-tests/sort.lua$ }x ){
                 $expected_stdout =~ s{[\d\.]+}{[\\d\\.]+}gx;
                 like $stdout, qr/$expected_stdout/, $lua_fn;
                 next LUA_FILE;
             }
-            elsif ( $lua_fn =~ m{ lua5.1-tests/files.lua$ }x ){
+            elsif ( $lua_ts_fn =~ m{ lua5.1-tests/files.lua$ }x ){
                 $expected_stdout =~ s{\d{2}/\d{2}/\d{4}}{__DATE__}gx;
                 $expected_stdout =~ s{\d{2}:\d{2}:\d{2}}{__TIME__}gx;
                 $stdout =~ s{\d{2}/\d{2}/\d{4}}{__DATE__}gx;
@@ -176,11 +185,10 @@ sub slurp_file{
 }
 
 sub whip_up_lua_file{
-    my ($lua_text) = @_;
-    my ($fh, $filename) = tempfile();
+    my ($lua_fn, $lua_text) = @_;
+    open my $fh, ">$lua_fn" or die "Can't create $lua_fn: $@.";
     say $fh $lua_text;
     close $fh;
-    return $filename;
 }
 
 done_testing();
