@@ -50,6 +50,16 @@ my $p = MarpaX::Languages::Lua::AST->new;
 #                                           7 todo skip
 
 # todo: move this and other in xt (author test)
+#       as in http://elliotlovesperl.com/2009/11/24/explicitly-running-author-tests/
+# If you have .pm files in your module's distribution
+# that are used only for tests, put them in 't/lib' and add the line
+#   use lib 't/lib';
+# to each test's file.
+#   ./xt/author - run when the tests are being run in an author's working copy
+#   ./xt/smoke - run when the dist is being smoked (AUTOMATED_TESTING=1)
+#   ./xt/release - run during "make disttest"
+# -- http://perl-qa.hexten.net/wiki/index.php?title=Best_Practices_for_Testing
+
 my %lua_files = qw{
 
     api.lua            1
