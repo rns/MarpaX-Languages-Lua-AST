@@ -1,4 +1,7 @@
-﻿# cases for extensible parser -- smart preprocessing
+﻿# eliminate <* comment> lexemes, use '--' <* string> instead
+	
+	
+# cases for extensible parser -- smart preprocessing
 # malleable syntax -- like the language but hate some of its syntax
 	Hate ends? Use curlies!
 		for ... end 				-> for ... { ... }
@@ -12,6 +15,23 @@
 	# comments
 	# strings
 	# local to my
+
+# extensible lexer
+	# move a SLIF grammar to general lexing
+	given a SLIF grammar, 
+		
+		build an external lexer for it 
+		
+		sub read ( $recce, $input ){} for it with external lexing
+		terminals, literals, L0 rules, unicorns, read
+		custom lexemes, e.g. 
+			String ::= <long nestable string> 
+			<long nestable string> ~ ...
+			exist in SLIF grammar, but do not really parse nested strings
+			<long nestable string> => regex will ensure that it does
+
+	given a SLIF grammar with events
+		build read with events handling and callbacks to handlers
 	
 # words * contexts = translations
 	inflected form
