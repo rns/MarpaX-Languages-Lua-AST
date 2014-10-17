@@ -1,6 +1,0 @@
-testing sort
-Sorting 30000 elements in 0.01 sec.
-Re-sorting 30000 elements in 0.02 sec.
-Invert-sorting other 30000 elements in 0.06 sec., with 476357 comparisons
-Sorting 30000 equal elements in 0.03 sec.
-OK

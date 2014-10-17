@@ -1,5 +1,0 @@
-lua: files.lua:49: \sfo.: Permission denied
-stack traceback:
-	[C]: in function 'assert'
-	files.lua:49: in main chunk
-	[C]: ?

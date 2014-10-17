@@ -98,6 +98,7 @@ my $run_lua_test = $^O eq 'MSWin32' ? 'run_lua_test.bat' : 'run_lua_test.sh';
 my @dirs = File::Spec->splitdir( $pwd );
 my $under_prove = $dirs[-1] eq 't';
 $run_lua_test = File::Spec->catfile( '.', 't', $run_lua_test ) unless $under_prove;
+$run_lua_test = './' . $run_lua_test unless $^O eq 'MSWin32';
 
 # test suite dirs
 my $lua_test_suite_dir = 'lua5.1-tests';
