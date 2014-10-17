@@ -1,0 +1,10 @@
+testing require
+
+ >>> cannot load dynamic library <<<
+
+Не найден указанный модуль.
+	open
++
+testing assignments, logical operators, and constructors
++
+OK

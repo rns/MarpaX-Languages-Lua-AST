@@ -1,2 +1,5 @@
-Системе не удается найти указанный путь.
-lua: cannot open files.lua: No such file or directory
+lua: files.lua:49: \sfo.: Permission denied
+stack traceback:
+	[C]: in function 'assert'
+	files.lua:49: in main chunk
+	[C]: ?

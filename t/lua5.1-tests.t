@@ -162,7 +162,7 @@ $DOWARN = 1;
                 $stderr         # there was run error
             and $flag != 5      # and it is NOT expected
         ){
-            fail "$run_lua_test $lua_ts_fn:\n$stderr";
+            fail "$run_lua_test $lua_ast_test_suite_dir $lua_fn:\n$stderr";
             if ($flag eq 3){ # reparse and show ast
                 $ast = $p->parse( $lua_slurp );
                 warn "# ast of $lua_ts_fn: ", $p->serialize( $ast );

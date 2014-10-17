@@ -8,7 +8,7 @@
 
 : check if we are in the test suite dir
 @echo off
-if exist ".\t\%1" cd "%1"
+if exist ".\t\%1" cd ".\t\%1"
 if exist "%1" cd "%1"
 
 : prepare to run

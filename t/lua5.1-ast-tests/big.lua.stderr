@@ -1,2 +1,6 @@
-Системе не удается найти указанный путь.
-lua: cannot open big.lua: No such file or directory
+lua: attempt to yield across metamethod/C-call boundary
+stack traceback:
+	[C]: in function 'yield'
+	big.lua:259: in function 'xxxx'
+	big.lua:263: in main chunk
+	[C]: ?
