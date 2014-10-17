@@ -19,6 +19,7 @@ nytprof.out
 *.bs
 /etc/
 /t/_Inline/
+/t/lua5.1-ast-tests/
 *.ast
 *.diff
 
