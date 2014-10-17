@@ -406,7 +406,7 @@ sub terminals{
 
 #   operators and punctuation -- group matching -- longest to shortest, quote and alternate
     my $op_punc_re = join '|', map { quotemeta } sort { length($b) <=> length($a) }
-        keys $op_punc;
+        keys %$op_punc;
 
     push @terminals, [ $op_punc => qr/$op_punc_re/xms ];
 
@@ -436,7 +436,7 @@ sub extend{
 
     # todo: this is quick hack, use metag.bnf
     # add new literals, keywords and unicorns
-    for my $literal (keys $opts->{literals}){
+    for my $literal (keys %{ $opts->{literals} }){
         my $symbol = $opts->{literals}->{$literal};
 #        say "new literal: $symbol, $literal";
         # save new literal to keywords or other lexemes

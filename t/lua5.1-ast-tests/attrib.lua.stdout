@@ -1,9 +1,0 @@
-testing require
-
- >>> cannot load dynamic library <<<
-
-No such file or directory	open
-+
-testing assignments, logical operators, and constructors
-+
-OK

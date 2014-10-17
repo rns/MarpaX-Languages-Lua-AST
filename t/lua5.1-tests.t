@@ -12,6 +12,7 @@ use warnings;
 use strict;
 
 use Test::More;
+use File::Spec;
 
 BEGIN {
     my $stderr;
@@ -91,9 +92,13 @@ my %lua_files = qw{
 my $pwd = Cwd::cwd();
 
 # shell script run lua interpreter on ast serialized to tokens
-my $run_lua_test = 'run_lua_test.sh';
+my $run_lua_test = $^O eq 'MSWin32' ? 'run_lua_test.bat' : 'run_lua_test.sh';
+
 # prepend t if running under prove
-$run_lua_test = 't/' . $run_lua_test unless $pwd =~ m{ /t$ }x;
+my @dirs = File::Spec->splitdir( $pwd );
+my $under_prove = $dirs[-1] eq 't';
+$run_lua_test = File::Spec->catfile( '.', 't', $run_lua_test ) unless $under_prove;
+
 # test suite dirs
 my $lua_test_suite_dir = 'lua5.1-tests';
 my $lua_ast_test_suite_dir = 'lua5.1-ast-tests';
@@ -110,12 +115,12 @@ LUA_FILE:
         my $flag = $lua_files{$lua_fn};
 
         # prepend test suite path unless a file is from another dir
-        my $lua_ts_fn = $lua_test_suite_dir . '/' . $lua_fn;
-        my $lua_ast_ts_fn = $lua_ast_test_suite_dir . '/' . $lua_fn;
+        my $lua_ts_fn = File::Spec->catfile( $lua_test_suite_dir, $lua_fn );
+        my $lua_ast_ts_fn = File::Spec->catfile( $lua_ast_test_suite_dir, $lua_fn );
 
         # prepend t if running under prove
-        $lua_ts_fn = 't/' . $lua_ts_fn unless $pwd =~ m{ /t$ }x;
-        $lua_ast_ts_fn = 't/' . $lua_ast_ts_fn unless $pwd =~ m{ /t$ }x;
+        $lua_ts_fn = File::Spec->catfile( 't', $lua_ts_fn ) unless $under_prove;
+        $lua_ast_ts_fn = File::Spec->catfile( 't', $lua_ast_ts_fn ) unless $under_prove;
 
 TODO: {
         todo_skip "$lua_fn parses, but runs incorrectly", 1  if $flag == 7;
@@ -148,7 +153,7 @@ $DOWARN = 1;
         whip_up_lua_file( $lua_ast_ts_fn, $parsed_lua_source );
         diag "Serialized AST is in $lua_ast_ts_fn file" if $flag == 6;
         # run lua file
-        system("./$run_lua_test $lua_ast_test_suite_dir $lua_fn 1>$lua_ast_ts_fn.stdout 2>$lua_ast_ts_fn.stderr");
+        system("$run_lua_test $lua_ast_test_suite_dir $lua_fn 1>$lua_ast_ts_fn.stdout 2>$lua_ast_ts_fn.stderr");
         my ($stdout, $stderr) = map { slurp_file($_) } qq{$lua_ast_ts_fn.stdout}, qq{$lua_ast_ts_fn.stderr};
 
         # check for run error, fail and proceed as flagged if any
@@ -157,7 +162,7 @@ $DOWARN = 1;
                 $stderr         # there was run error
             and $flag != 5      # and it is NOT expected
         ){
-            fail "run $lua_ts_fn:\n$stderr";
+            fail "$run_lua_test $lua_ts_fn:\n$stderr";
             if ($flag eq 3){ # reparse and show ast
                 $ast = $p->parse( $lua_slurp );
                 warn "# ast of $lua_ts_fn: ", $p->serialize( $ast );
@@ -167,21 +172,21 @@ $DOWARN = 1;
         # file parses and runs, test its output
         if ($flag == 4){
             # turn $expected_stdout to a regex and test against it
-            if ( $lua_ts_fn =~ m{ lua5.1-tests/sort.lua$ }x ){
+            if ( $lua_ts_fn =~ m{ sort.lua$ }x ){
                 $expected_stdout =~ s{[\d\.]+}{[\\d\\.]+}gx;
-                like $stdout, qr/$expected_stdout/, $lua_fn;
+                like $stdout, qr/$expected_stdout/, $lua_ts_fn;
                 next LUA_FILE;
             }
-            elsif ( $lua_ts_fn =~ m{ lua5.1-tests/files.lua$ }x ){
+            elsif ( $lua_ts_fn =~ m{ files.lua$ }x ){
                 $expected_stdout =~ s{\d{2}/\d{2}/\d{4}}{__DATE__}gx;
                 $expected_stdout =~ s{\d{2}:\d{2}:\d{2}}{__TIME__}gx;
                 $stdout =~ s{\d{2}/\d{2}/\d{4}}{__DATE__}gx;
                 $stdout =~ s{\d{2}:\d{2}:\d{2}}{__TIME__}gx;
-                is $stdout, $expected_stdout, $lua_fn;
+                is $stdout, $expected_stdout, $lua_ts_fn;
                 next LUA_FILE;
             }
         }
-        is $stdout, $expected_stdout, $lua_fn;
+        is $stdout, $expected_stdout, $lua_ts_fn;
 }
 
 } ## for my $lua_fn (@lua_files){
