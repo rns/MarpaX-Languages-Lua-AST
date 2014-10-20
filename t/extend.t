@@ -152,10 +152,16 @@ sub ast_traverse{
         }
         elsif ( $node_id eq 'action'){
 #            say "$node_id: ", Dumper \@children;
-            return { action => join ' ', map { ast_traverse( $_ ) } @children }
+            $children[0]->[1] = 'function';
+            my $action = join ' ', map { ast_traverse( $_ ) } @children;
+            $action =~ s/\(\s+/(/;
+            $action =~ s/\s+\)/)/;
+            $action =~ s/\s+,/,/;
+            $action =~ s/\)\s+/) /;
+            return { action => $action };
         }
         elsif ( $node_id eq 'action parlist'){
-#            say "$node_id: ", Dumper \@children;
+            say "$node_id: ", Dumper \@children;
             return join ' ', map { ast_traverse( $_ ) } @children;
         }
         elsif ( $node_id eq 'block'){
