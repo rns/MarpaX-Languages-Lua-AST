@@ -83,7 +83,7 @@ sequence ::=
 };
 
 # create Lua parser and extend it with BNF rules above
-my $p = MarpaX::Languages::Lua::AST->new;
+my $p = MarpaX::Languages::Lua::AST->new( { discard_comments => 1 } );
 $p->extend({
     # these rules will be incorporated into grammar source
     rules => $bnf,
@@ -119,8 +119,8 @@ function lua_bnf()
         | Expression sub Expression
 
 end
-
-}, q{
+},
+q{
                 stat
                   BNF
                     lhs
@@ -263,7 +263,13 @@ function lua_bnf()
        || Expression op_add Expression, action (e1, e2) return e1 + e2 end
         | Expression op_sub Expression,  action (e1, e2) return e1 - e2 end
 end
+--[[
+function lua_bnf()
 
+    local bnf = { action }
+
+end
+]]
 },
 q{
         block

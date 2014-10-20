@@ -423,9 +423,12 @@ sub grammar{
 }
 
 sub new {
-    my ($class) = @_;
+    my ($class, $opts) = @_;
     my $parser = bless {}, $class;
     $parser->{grammar} = grammar();
+    if (ref $opts eq "HASH"){
+        $parser->{opts} = $opts;
+    }
     return $parser;
 }
 
@@ -533,7 +536,7 @@ sub read{
 
             # skip comments
             # todo: make comment skipping an option
-#            next TOKEN if $token_name =~ /comment/i;
+            next TOKEN if $token_name =~ /comment/i and $parser->{opts}->{discard_comments};
 
 #            warn "# <$token_name>:\n'$lexeme'";
             if ( not defined $recce->lexeme_alternative($token_name) ) {
@@ -613,6 +616,14 @@ sub fmt{
 
     keywords not currently checked
         and break false in nil not or true
+
+\n after comment -- do not prepend \n to the next keyword
+\n after end
+space after == in == nil
+space before do
+\n before comma after end
+
+handlders for extensibility
 
 =cut
 #
