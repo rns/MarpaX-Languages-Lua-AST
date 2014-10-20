@@ -437,6 +437,8 @@ sub extend{
 
     my $rules = $opts->{rules};
 
+    $parser->{handlers} = $opts->{handlers};
+
     # todo: this is quick hack, use metag.bnf
     # add new literals, keywords and unicorns
     for my $literal (keys %{ $opts->{literals} }){
@@ -593,6 +595,7 @@ sub fmt{
     else{ # check for options and set defaults if missing
         $opts->{indent} //= '  ';
     }
+    $opts->{handlers} = $parser->{handlers};
     my $fmt = do_fmt( $ast, $opts );
     $fmt =~ s/^\n//ms;
     return $fmt;
@@ -638,6 +641,7 @@ sub do_fmt{
     state $current_parent_node //= '';
     state $previous_literal_node //= '';
     state $indent = $opts->{indent};
+    state $handlers = $opts->{handlers};
     if (ref $ast){
         my ($node_id, @children) = @$ast;
 
@@ -665,10 +669,18 @@ sub do_fmt{
         # prolog
         $indent_level++ if $node_id eq 'block';
 
-        # recurse
+        # if the node can be processed by handler passed via extend(), doit
+        if (    $node_id eq 'stat'
+            and exists $handlers->{ $children[0]->[0] }
+            and ref $handlers->{ $children[0]->[0] } eq "CODE"
+            ){
+            $s .= $handlers->{ $children[0]->[0] }->( $ast );
+        }
+        else { # proceed as usual
 #        warn "# Entering: $node_id";
-        $s .= join '', grep { defined } do_fmt( $_ ) for @children;
+            $s .= join '', grep { defined } do_fmt( $_ ) for @children;
 #        warn "# Leaving: $node_id ";
+        }
 
         # epilog
         $indent_level-- if $node_id eq 'block';

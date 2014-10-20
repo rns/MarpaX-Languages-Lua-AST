@@ -82,6 +82,21 @@ sequence ::=
 ## end of BNF statement spec
 };
 
+sub bnf2lua {
+    my ($ast, $context) = @_;
+    use Data::Dumper::Concise;
+#    say "BNF:", Dumper $ast;
+    my $s;
+    if (ref $ast eq "ARRAY"){
+        my ($node_id, @children) = @$ast;
+        $s .= join '', grep { defined } bnf2lua( $_, $context ) for @children;
+    }
+    else{
+        $s .= $ast;
+    }
+    return $s;
+}
+
 # create Lua parser and extend it with BNF rules above
 my $p = MarpaX::Languages::Lua::AST->new( { discard_comments => 1 } );
 $p->extend({
@@ -97,7 +112,7 @@ $p->extend({
     },
     # these must return ast subtrees serialized to valid lua
     handlers => {
-        # node_id => sub {}
+        BNF => \&bnf2lua
     },
 });
 
@@ -172,15 +187,17 @@ EOS
 );
 
 for my $test (@tests){
-    my ($name, $lua_bnf, $subtree ) = @$test;
-    my $ast = $p->parse( $lua_bnf );
+    my ($name, $bnf_extended_lua, $expected_lua_bnf ) = @$test;
+    my $ast = $p->parse( $bnf_extended_lua );
     unless (defined $ast){
-        fail "Can't parse:\n$lua_bnf";
+        fail "Can't parse:\n$bnf_extended_lua";
         next;
     }
-    my $lua_bnf_ast = $p->serialize( $ast );
+#    my $lua_bnf_ast = $p->serialize( $ast );
 #    say $lua_bnf_ast;
-    like $lua_bnf_ast, qr/\Q$subtree\E/xms, $name;
+    my $lua_bnf = $p->fmt( $ast );
+    say $lua_bnf;
+    is $lua_bnf, $expected_lua_bnf, $name;
 }
 
 done_testing();
