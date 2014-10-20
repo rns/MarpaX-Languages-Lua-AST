@@ -628,6 +628,23 @@ space before do
 
 handlders for extensibility
 
+todo: generlized context:
+
+my %parents;   # node id's to be pushed to @parents
+my %siblings;  # node id's to be pushed to @siblings
+my %blocks;    # node id's which start blocks
+               # each block inc's level so $block[0] is block start node_id at level 0, etc.
+
+state @parents;
+    $parents[-1] # current_node_id
+    $parents[-2] # parent_node_id
+    $parents[-3] # grand_parent_node_id
+    $parents[-4] # grand_grand_parent_node_id
+state @siblings;
+    $sublings[-1] # previous literal_node
+state @blocks;
+state $level;
+
 =cut
 #
 sub do_fmt{

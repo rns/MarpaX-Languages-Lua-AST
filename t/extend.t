@@ -82,23 +82,101 @@ sequence ::=
 ## end of BNF statement spec
 };
 
-sub bnf2lua {
-    my ($ast, $context) = @_;
-    use Data::Dumper::Concise;
-#    say "BNF:", Dumper $ast;
-    my $s;
-    if (ref $ast eq "ARRAY"){
-        my ($node_id, @children) = @$ast;
-        $s .= join '', grep { defined } bnf2lua( $_, $context ) for @children;
-    }
-    else{
-        $s .= $ast;
-    }
-    return $s;
-}
-
+use Data::Dumper::Concise;
 # create Lua parser and extend it with BNF rules above
 my $p = MarpaX::Languages::Lua::AST->new( { discard_comments => 1 } );
+
+# [ lhs, [ rhs ], adverbs
+sub ast_traverse{
+    my ($ast, $context) = @_;
+    if (ref $ast){
+        my ($node_id, @children) = @$ast;
+        if ($node_id eq 'stat'){
+            ast_traverse(@children);
+        }
+        elsif ($node_id eq 'BNF'){
+#            say Dumper \@children;
+            my ($lhs, $op, $alternatives) = @children;
+#            say "lhs: ", Dumper $lhs;
+#            say "alts: ", Dumper $alternatives;
+            return {
+                lhs => ast_traverse( $lhs ),
+                rhs => ast_traverse( $alternatives ),
+            }
+        }
+        elsif ( $node_id eq 'lhs' ){
+            return $children[0]->[1]->[1]->[1];
+        }
+        elsif ( $node_id eq 'prioritized alternatives' ){
+            # join by '||'
+#            say "$node_id: ", Dumper \@children;
+            return {
+                'prioritized alternatives' => [ map { ast_traverse( $_ ) } @children ]
+            }
+        }
+        elsif ( $node_id eq 'prioritized alternative' ){
+            # join by '|'
+#            say "$node_id: ", Dumper \@children;
+            return {
+                'prioritized alternative' => [ map { ast_traverse( $_ ) } @children ]
+            }
+        }
+        elsif ( $node_id eq 'alternative' ){
+#            say "$node_id: ", Dumper \@children;
+            return [ map { ast_traverse( $_ ) } @children ];
+        }
+        elsif ( $node_id eq 'separated sequence' ){
+#            say "$node_id: ", Dumper \@children;
+            my ($sequence, $separator_sign, $separator_symbol) = @children;
+#            say "seq", Dumper $sequence;
+#            say "sign", Dumper $separator_sign;
+#            say "sep", Dumper $separator_symbol;
+            my $symbol = $sequence->[1]->[1]->[1]->[1];
+            my $quantifier = $sequence->[2]->[1];
+            $separator_sign = $separator_sign->[1];
+            $separator_symbol = $separator_symbol->[1]->[1]->[1]->[1];
+#            say join ', ', $symbol, $quantifier, $separator_sign, $separator_symbol;
+            return {
+                item => $symbol,
+                quantifier => $quantifier,
+                separator => $separator_symbol,
+                proper => $separator_sign eq '%' ? 1 : 0
+            };
+        }
+        elsif ( $node_id eq 'rhs'){
+            return map { ast_traverse( $_ ) } @children
+        }
+        elsif ( $node_id eq 'RH atom'){
+#            say "$node_id: ", Dumper \@children;
+            return map { ast_traverse( $_ ) } @children
+        }
+        elsif ( $node_id eq 'action'){
+#            say "$node_id: ", Dumper \@children;
+            return { action => join ' ', map { ast_traverse( $_ ) } @children }
+        }
+        elsif ( $node_id eq 'action parlist'){
+#            say "$node_id: ", Dumper \@children;
+            return join ' ', map { ast_traverse( $_ ) } @children;
+        }
+        elsif ( $node_id eq 'block'){
+            return $p->fmt($ast);
+        }
+        return ast_traverse( $_ ) for @children;
+    }
+    else{
+#        say "unhandled scalar $ast";
+        return $ast;
+    }
+}
+
+sub bnf2lua {
+    my ($ast) = @_;
+#    say "ast:", Dumper $ast;
+    # gather data
+    my $bnf = ast_traverse($ast);
+    return Dumper $bnf;
+}
+
 $p->extend({
     # these rules will be incorporated into grammar source
     rules => $bnf,
@@ -136,14 +214,30 @@ end
 <<EOS
 function lua_bnf_bare()
   local bnf = {
-    { lhs = 'Script',   rhs = { 'Expression+' }, separator = comma, proper = 1  },
-    { lhs = 'Expression', rhs = { 'Number' }                    },
-    { lhs = 'Expression', rhs = { 'left_paren', 'Expression', 'right_paren' }     },
-    { lhs = 'Expression', rhs = { 'Expression', 'op_exp', 'Expression' }      },
-    { lhs = 'Expression', rhs = { 'Expression', 'op_mul', 'Expression' }      },
-    { lhs = 'Expression', rhs = { 'Expression', 'op_div', 'Expression' }      },
-    { lhs = 'Expression', rhs = { 'Expression', 'op_add', 'Expression' }      },
-    { lhs = 'Expression', rhs = { 'Expression', 'op_sub', 'Expression' }      },
+    { lhs = 'Script',   rhs = { 'Expression+' },
+      separator = 'comma', proper = 1
+    },
+    { lhs = 'Expression', rhs = { 'Number' },
+      precedence = '|'
+    },
+    { lhs = 'Expression', rhs = { 'left_paren', 'Expression', 'right_paren' },
+      precedence = '|'
+    },
+    { lhs = 'Expression', rhs = { 'Expression', 'op_exp', 'Expression' },
+      precedence = '||'
+    },
+    { lhs = 'Expression', rhs = { 'Expression', 'op_mul', 'Expression' },
+      precedence = '||'
+    },
+    { lhs = 'Expression', rhs = { 'Expression', 'op_div', 'Expression' },
+      precedence = '|'
+    },
+    { lhs = 'Expression', rhs = { 'Expression', 'op_add', 'Expression' },
+      precedence = '||'
+    },
+    { lhs = 'Expression', rhs = { 'Expression', 'op_sub', 'Expression' },
+      precedence = '|'
+    },
   }
 end
 EOS
@@ -166,19 +260,42 @@ end
 <<EOS
 function lua_bnf_actions()
   local bnf = {
-    { lhs = 'Script', rhs = { 'Expression+' }, separator = comma, proper = 1 },
-    { lhs = 'Expression', rhs = { 'Number' } },
-    { lhs = 'Expression', rhs = { 'left_paren', 'Expression', 'right_paren' } } ,
-    { lhs = 'Expression', rhs = { 'Expression', 'op_exp', 'Expression' },
-        action = function (e1, e2) return e1 ^ e2 end } ,
-    { lhs = 'Expression', rhs = { 'Expression', 'op_mul', 'Expression' },
-        action  = function (e1, e2) return e1 * e2 end } ,
-    { lhs = 'Expression', rhs = { 'Expression', 'op_div', 'Expression' },
-        action  = function (e1, e2) return e1 / e2 end } ,
-    { lhs = 'Expression', rhs = { 'Expression', 'op_add', 'Expression' },
-        action  = function (e1, e2) return e1 + e2 end } ,
+    { lhs = 'Script',
+      rhs = { 'Expression+' },
+      separator = 'comma', proper = 1
+    },
+    { lhs = 'Expression',
+      rhs = { 'Number' },
+      precedence = '|'
+    },
+    { lhs = 'Expression',
+      rhs = { 'left_paren', 'Expression', 'right_paren' },
+      precedence = '|'
+    },
+    { lhs = 'Expression',
+      rhs = { 'Expression', 'op_exp', 'Expression' },
+      precedence = '||',
+      action = function (e1, e2) return e1 ^ e2 end
+    },
+    { lhs = 'Expression',
+      rhs = { 'Expression', 'op_mul', 'Expression' },
+      precedence = '||',
+      action = function (e1, e2) return e1 * e2 end
+    },
+    { lhs = 'Expression',
+      rhs = { 'Expression', 'op_div', 'Expression' },
+      precedence = '|',
+      action = function (e1, e2) return e1 / e2 end
+    },
+    { lhs = 'Expression',
+      rhs = { 'Expression', 'op_add', 'Expression' },
+      precedence = '||',
+      action = function (e1, e2) return e1 + e2 end
+    },
     { lhs = 'Expression', rhs = { 'Expression', 'op_sub', 'Expression' },
-        action  = function (e1, e2) return e1 - e2 end } ,
+      precedence = '|',
+      action = function (e1, e2) return e1 - e2 end
+    },
   }
 end
 EOS
