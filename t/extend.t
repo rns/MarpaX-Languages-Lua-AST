@@ -122,8 +122,8 @@ sub ast_traverse{
             }
         }
         elsif ( $node_id eq 'alternative' ){
-#            say "$node_id: ", Dumper \@children;
-            return [ map { ast_traverse( $_ ) } @children ];
+            say "$node_id: ", Dumper \@children;
+            return [ map { ast_traverse( $_ ) } grep { $_->[0] ne 'comma' } @children ];
         }
         elsif ( $node_id eq 'separated sequence' ){
 #            say "$node_id: ", Dumper \@children;
@@ -144,6 +144,7 @@ sub ast_traverse{
             };
         }
         elsif ( $node_id eq 'rhs'){
+#            say "$node_id: ", Dumper \@children;
             return map { ast_traverse( $_ ) } @children
         }
         elsif ( $node_id eq 'RH atom'){
@@ -160,8 +161,16 @@ sub ast_traverse{
             $action =~ s/\)\s+/) /;
             return { action => $action };
         }
+        elsif ($node_id eq 'alternative fields'){
+            return {
+                fields => map { ast_traverse( $_ ) } @children
+            }
+        }
+        elsif ($node_id eq 'field'){
+            # to be defined
+        }
         elsif ( $node_id eq 'action parlist'){
-            say "$node_id: ", Dumper \@children;
+#            say "$node_id: ", Dumper \@children;
             return join ' ', map { ast_traverse( $_ ) } @children;
         }
         elsif ( $node_id eq 'block'){
