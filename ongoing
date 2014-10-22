@@ -1,5 +1,6 @@
-﻿# eliminate <* comment> lexemes, use '--' <* string> instead
-	
+﻿# put lua test suite running and formatting under xt/author
+
+# eliminate <* comment> lexemes, use '--' <* string> instead
 	
 # cases for extensible parser -- smart preprocessing
 # malleable syntax -- like the language but hate some of its syntax

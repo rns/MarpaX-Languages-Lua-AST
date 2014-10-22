@@ -691,7 +691,7 @@ sub do_fmt{
             and exists $handlers->{ $children[0]->[0] }
             and ref $handlers->{ $children[0]->[0] } eq "CODE"
             ){
-            $s .= $handlers->{ $children[0]->[0] }->( $ast );
+            $s .= $handlers->{ $children[0]->[0] }->( $ast, $indent, $indent_level );
         }
         else { # proceed as usual
 #        warn "# Entering: $node_id";

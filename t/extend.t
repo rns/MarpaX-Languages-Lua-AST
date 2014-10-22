@@ -97,8 +97,6 @@ sub ast_traverse{
         elsif ($node_id eq 'BNF'){
 #            say Dumper \@children;
             my ($lhs, $op, $alternatives) = @children;
-#            say "lhs: ", Dumper $lhs;
-#            say "alts: ", Dumper $alternatives;
             return {
                 lhs => ast_traverse( $lhs ),
                 rhs => ast_traverse( $alternatives ),
@@ -108,34 +106,30 @@ sub ast_traverse{
             return $children[0]->[1]->[1]->[1];
         }
         elsif ( $node_id eq 'prioritized alternatives' ){
-            # join by '||'
 #            say "$node_id: ", Dumper \@children;
             return {
                 'prioritized alternatives' => [ map { ast_traverse( $_ ) } @children ]
             }
         }
         elsif ( $node_id eq 'prioritized alternative' ){
-            # join by '|'
 #            say "$node_id: ", Dumper \@children;
             return {
-                'prioritized alternative' => [ map { ast_traverse( $_ ) } @children ]
+                'prioritized alternative' => [
+                    map { ast_traverse( $_ ) } @children
+                ]
             }
         }
         elsif ( $node_id eq 'alternative' ){
-            say "$node_id: ", Dumper \@children;
+#            say "$node_id: ", Dumper \@children;
             return [ map { ast_traverse( $_ ) } grep { $_->[0] ne 'comma' } @children ];
         }
         elsif ( $node_id eq 'separated sequence' ){
 #            say "$node_id: ", Dumper \@children;
             my ($sequence, $separator_sign, $separator_symbol) = @children;
-#            say "seq", Dumper $sequence;
-#            say "sign", Dumper $separator_sign;
-#            say "sep", Dumper $separator_symbol;
-            my $symbol = $sequence->[1]->[1]->[1]->[1];
-            my $quantifier = $sequence->[2]->[1];
-            $separator_sign = $separator_sign->[1];
-            $separator_symbol = $separator_symbol->[1]->[1]->[1]->[1];
-#            say join ', ', $symbol, $quantifier, $separator_sign, $separator_symbol;
+            my $symbol           = $sequence->[1]->[1]->[1]->[1];
+            my $quantifier       = $sequence->[2]->[1];
+               $separator_sign   = $separator_sign->[1];
+               $separator_symbol = $separator_symbol->[1]->[1]->[1]->[1];
             return {
                 item => $symbol,
                 quantifier => $quantifier,
@@ -153,10 +147,10 @@ sub ast_traverse{
         }
         elsif ( $node_id eq 'action'){
 #            say "$node_id: ", Dumper \@children;
-            $children[0]->[1] = 'function';
+            $children[0]->[1] = 'function'; # action becomes function in lua
             my $action = join ' ', map { ast_traverse( $_ ) } @children;
-            $action =~ s/\(\s+/(/;
-            $action =~ s/\s+\)/)/;
+            $action =~ s/\(\s+/(/;  # these will apply to the first occurence
+            $action =~ s/\s+\)/)/;  # that is the action parlist
             $action =~ s/\s+,/,/;
             $action =~ s/\)\s+/) /;
             return { action => $action };
@@ -167,14 +161,14 @@ sub ast_traverse{
             }
         }
         elsif ($node_id eq 'field'){
-            # to be defined
+            return $p->fmt($ast); # this is pure lua
         }
         elsif ( $node_id eq 'action parlist'){
 #            say "$node_id: ", Dumper \@children;
             return join ' ', map { ast_traverse( $_ ) } @children;
         }
         elsif ( $node_id eq 'block'){
-            return $p->fmt($ast);
+            return $p->fmt($ast); # this is pure lua too
         }
         return ast_traverse( $_ ) for @children;
     }
@@ -185,11 +179,84 @@ sub ast_traverse{
 }
 
 sub bnf2lua {
-    my ($ast) = @_;
+    my ($ast, $indent, $indent_level) = @_;
 #    say "ast:", Dumper $ast;
     # gather data
     my $bnf = ast_traverse($ast);
-    return Dumper $bnf;
+#    say Dumper $bnf;
+    # translate bnf data to lua tables
+    my $lhs = $bnf->{lhs};
+    my $prioritized_alternatives = $bnf->{rhs}->{"prioritized alternatives"};
+#    say "# rule:\nlhs: ", $lhs;
+    my $lua_bnf = "bnf_rule_$lhs = {\n";
+    # prioritized_alternatives are joined with double bar ||, loosen precedence
+    $indent_level++;
+    for my $pa ( @{ $prioritized_alternatives } ){
+        my @alternatives = $pa->{"prioritized alternative"};
+        # alternatives are joined with bar |, same precedence
+        for my $alternative (@alternatives){
+#            say "alternative:\n", Dumper $alternative;
+            for my $rhs (@$alternative){
+#                say "rhs:\n", Dumper $rhs;
+                # rhs layout
+                # [
+                #   [ rhs_sym1, rhs_sym2, ..., { fields } ]
+                #   or
+                #   [ { rhs_as_hash_ref }, { fields } ]
+                # ]
+                # first extract fields, if any
+                my $fields = (pop @$rhs)->{fields} if @$rhs > 1 and ref $rhs->[-1] eq "HASH";
+                # then set rhs to its hash ref rhs
+                $rhs = $rhs->[0] if ref $rhs->[0] eq "HASH";
+                # add array ref rule
+                if (ref $rhs eq "ARRAY"){
+#                    say "rhs array:\n", Dumper $rhs;
+                    $lua_bnf .= $indent x $indent_level . "$lhs = { " .
+                        join(', ', map { "'$_'" } @$rhs );
+                }
+                # add hash ref rule
+                elsif (ref $rhs eq "HASH"){
+#                    say "rhs hash:\n", Dumper $rhs;
+                    # separated sequence
+                    if ( exists $rhs->{quantifier} ){
+                        my @kv = ();
+                        for my $k ( qw{ item quantifier separator proper } ){
+                            my $kv = [ $k ];
+                            push @$kv, $k eq 'proper' ? $rhs->{$k} : "'$rhs->{$k}'";
+                            push @kv, $kv;
+                        }
+                        $lua_bnf .= $indent x $indent_level . "$lhs = { " .
+                            join( ', ', map { "$_->[0] = $_->[1]" } @kv );
+#                        say $lua_bnf;
+                    }
+                    else{
+                        warn "bnf2lua: unknown rhs type: " . Dumper $rhs;
+                    }
+                }
+                else{
+                    warn "bnf2lua: unknown rhs type $rhs.";
+                }
+                # add fields, if any
+                if (defined $fields){
+#                    say "fields: ", Dumper $fields;
+                    $lua_bnf .=
+                        ",\n" .
+                        $indent x $indent_level . "fields = {\n" .
+                        $indent x ($indent_level + 1)  .
+                        join (
+                            ( ",\n" . $indent x ($indent_level + 1) ),
+                            map { "$_ = $fields->{$_}" } sort keys %$fields
+                        ) .
+                    $indent x $indent_level . "}\n";
+                }
+                # close the table
+                $lua_bnf .= $indent x $indent_level . "},\n"
+            }
+        }
+    }
+    $indent_level--;
+    $lua_bnf .= $indent x $indent_level . "}";
+    return $lua_bnf;
 }
 
 $p->extend({
@@ -227,32 +294,18 @@ function lua_bnf_bare()
 end
 },
 <<EOS
-function lua_bnf_bare()
-  local bnf = {
-    { lhs = 'Script',   rhs = { 'Expression+' },
-      separator = 'comma', proper = 1
-    },
-    { lhs = 'Expression', rhs = { 'Number' },
-      precedence = '|'
-    },
-    { lhs = 'Expression', rhs = { 'left_paren', 'Expression', 'right_paren' },
-      precedence = '|'
-    },
-    { lhs = 'Expression', rhs = { 'Expression', 'op_exp', 'Expression' },
-      precedence = '||'
-    },
-    { lhs = 'Expression', rhs = { 'Expression', 'op_mul', 'Expression' },
-      precedence = '||'
-    },
-    { lhs = 'Expression', rhs = { 'Expression', 'op_div', 'Expression' },
-      precedence = '|'
-    },
-    { lhs = 'Expression', rhs = { 'Expression', 'op_add', 'Expression' },
-      precedence = '||'
-    },
-    { lhs = 'Expression', rhs = { 'Expression', 'op_sub', 'Expression' },
-      precedence = '|'
-    },
+function lua_bnf_bare ()
+  bnf_rule_Script = {
+    Script = { item = 'Expression', quantifier = '+', separator = 'comma', proper = 1    },
+  }
+  bnf_rule_Expression = {
+    Expression = { 'Number'    },
+    Expression = { 'left_paren', 'Expression', 'right_paren'    },
+    Expression = { 'Expression', 'exp', 'Expression'    },
+    Expression = { 'Expression', 'mul', 'Expression'    },
+    Expression = { 'Expression', 'div', 'Expression'    },
+    Expression = { 'Expression', 'add', 'Expression'    },
+    Expression = { 'Expression', 'sub', 'Expression'    },
   }
 end
 EOS
@@ -273,43 +326,32 @@ function lua_bnf_actions()
 end
 },
 <<EOS
-function lua_bnf_actions()
-  local bnf = {
-    { lhs = 'Script',
-      rhs = { 'Expression+' },
-      separator = 'comma', proper = 1
+function lua_bnf_actions ()
+  bnf_rule_Script = {
+    Script = { item = 'Expression', quantifier = '+', separator = 'comma', proper = 1    },
+  }
+  bnf_rule_Expression = {
+    Expression = { 'Number'    },
+    Expression = { 'left_paren', 'Expression', 'right_paren'    },
+    Expression = { 'Expression', 'op_exp', 'Expression',
+    fields = {
+      action = function (e1, e2) return e1 ^ e2 end    }
     },
-    { lhs = 'Expression',
-      rhs = { 'Number' },
-      precedence = '|'
+    Expression = { 'Expression', 'op_mul', 'Expression',
+    fields = {
+      action = function (e1, e2) return e1 * e2 end    }
     },
-    { lhs = 'Expression',
-      rhs = { 'left_paren', 'Expression', 'right_paren' },
-      precedence = '|'
+    Expression = { 'Expression', 'op_div', 'Expression',
+    fields = {
+      action = function (e1, e2) return e1 / e2 end    }
     },
-    { lhs = 'Expression',
-      rhs = { 'Expression', 'op_exp', 'Expression' },
-      precedence = '||',
-      action = function (e1, e2) return e1 ^ e2 end
+    Expression = { 'Expression', 'op_add', 'Expression',
+    fields = {
+      action = function (e1, e2) return e1 + e2 end    }
     },
-    { lhs = 'Expression',
-      rhs = { 'Expression', 'op_mul', 'Expression' },
-      precedence = '||',
-      action = function (e1, e2) return e1 * e2 end
-    },
-    { lhs = 'Expression',
-      rhs = { 'Expression', 'op_div', 'Expression' },
-      precedence = '|',
-      action = function (e1, e2) return e1 / e2 end
-    },
-    { lhs = 'Expression',
-      rhs = { 'Expression', 'op_add', 'Expression' },
-      precedence = '||',
-      action = function (e1, e2) return e1 + e2 end
-    },
-    { lhs = 'Expression', rhs = { 'Expression', 'op_sub', 'Expression' },
-      precedence = '|',
-      action = function (e1, e2) return e1 - e2 end
+    Expression = { 'Expression', 'op_sub', 'Expression',
+    fields = {
+      action = function (e1, e2) return e1 - e2 end    }
     },
   }
 end
@@ -328,7 +370,7 @@ for my $test (@tests){
 #    my $lua_bnf_ast = $p->serialize( $ast );
 #    say $lua_bnf_ast;
     my $lua_bnf = $p->fmt( $ast );
-    say $lua_bnf;
+#    say $lua_bnf;
     is $lua_bnf, $expected_lua_bnf, $name;
 }
 
