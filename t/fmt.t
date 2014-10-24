@@ -57,8 +57,7 @@ end
 
 print("enter a number:")
 a = io.read("*number")  -- read a number
-print(fact(a))
-}
+print(fact(a))}
 ],
 
 # source code
@@ -112,7 +111,7 @@ for my $test (@tests){
 #    say $p->serialize( $ast );
 
     my $fmt = $p->fmt( $ast, { indent => '  ' } );
-    say $fmt;
+#    say $fmt;
 
     eq_or_diff $fmt, $expected_fmt, 'lua code formatting';
 

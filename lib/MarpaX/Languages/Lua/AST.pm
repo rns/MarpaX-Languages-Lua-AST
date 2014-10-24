@@ -599,7 +599,6 @@ sub fmt{
     my $fmt = do_fmt( $ast, $opts );
     $fmt =~ s/^\n//ms;
     $fmt =~ s{[ ]+\n}{\n}gms;
-    $fmt .= "\n";
     return $fmt;
 }
 

@@ -7,6 +7,7 @@ use warnings;
 use strict;
 
 use Test::More;
+use Test::Differences 0.61;
 
 use MarpaX::Languages::Lua::AST;
 
@@ -205,7 +206,7 @@ sub bnf2lua {
 
     # render bnf rules data as lua tables
     my $name = $bnf->{name};
-    my $lua_bnf_start = $indent x $indent_level . "$name = {\n";
+    my $lua_bnf_start = "\n" . $indent x $indent_level . "$name = {\n";
     my $lua_bnf_end = $indent x $indent_level . "}";
 
     my $lua_bnf = $lua_bnf_start;
@@ -468,7 +469,7 @@ for my $test (@tests){
 #    say $lua_bnf;
 
     # test by string matching
-    is $lua_bnf, $expected_lua_bnf, $name;
+    eq_or_diff $lua_bnf, $expected_lua_bnf, $name;
 
     # test by lua compilation
     use File::Temp qw{ tempfile };
