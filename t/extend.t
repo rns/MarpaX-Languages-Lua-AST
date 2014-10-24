@@ -236,7 +236,8 @@ sub bnf2lua {
                     #   [ { rhs_as_hash_ref }, { fields } ]
                     # ]
                     # first extract fields, if any
-                    my $fields = (pop @$rhs)->{fields} if @$rhs > 1 and ref $rhs->[-1] eq "HASH";
+                    my $fields = {};
+                    $fields = (pop @$rhs)->{fields} if @$rhs > 1 and ref $rhs->[-1] eq "HASH";
                     # then set rhs to its hash ref rhs
                     $rhs = $rhs->[0] if ref $rhs->[0] eq "HASH";
                     # add array ref rule
@@ -252,17 +253,14 @@ sub bnf2lua {
                         if ( exists $rhs->{quantifier} ){
                             # sequence item symbol
                             my $item = $rhs->{item};
-                            # other adverbs
-                            my @kv = ();
+                            # other adverbs go to fields
                             for my $k ( qw{ quantifier separator proper } ){
-                                my $kv = [ $k ];
-                                push @$kv, $k eq 'proper' ? $rhs->{$k} : "'$rhs->{$k}'";
-                                push @kv, $kv;
+                                my $v = $k eq 'proper' ? $rhs->{$k} : "'$rhs->{$k}'";
+                                $fields->{$k} = $v;
                             }
                             $lua_bnf_rule =
                                 $indent x $indent_level . "$lhs = { " .
-                                "'" . $item . "', " .
-                                join( ', ', map { "$_->[0] = $_->[1]" } @kv );
+                                "'" . $item . "'";
                         }
                         else{
                             warn "bnf2lua: unknown rhs type: " . Dumper $rhs;
@@ -272,13 +270,13 @@ sub bnf2lua {
                         warn "bnf2lua: unknown rhs type $rhs.";
                     }
 #                    warn $priority if $priority;
-                    $lua_bnf_rule .= ", priority = '$priority', " if $priority;
+                    $fields->{priority} = "'$priority'" if $priority;
                     $lua_bnf .= $lua_bnf_rule;
 #                    warn $lua_bnf_rule;
                     $priority = '|';
 #                        warn $priority if $rhs_ix < @$alternative - 1;
                     # add fields, if any
-                    if (defined $fields){
+                    if (keys %$fields){
     #                    warn "fields: ", Dumper $fields;
                         $lua_bnf .=
                             ",\n" .
@@ -328,7 +326,7 @@ $p->extend({
 # test lua bnf
 my @tests = (
 
-[ 'bare Marpa::R2 synopsys BNF in lua function', q{
+[ 'bare Marpa::R2 synopsys', q{
 -- BNF rules
 function lua_bnf()
   BNF Marpa_R2_synopsys_bare
@@ -346,14 +344,44 @@ end
 <<EOS
 function lua_bnf ()
   Marpa_R2_synopsys_bare = {
-    Script = { item = 'Expression', quantifier = '+', separator = 'comma', proper = 1 },
+    Script = { 'Expression',
+      fields = {
+        proper = 1,
+        quantifier = '+',
+        separator = 'comma'
+      }
+    },
     Expression = { 'Number' },
-    Expression = { 'left_paren', 'Expression', 'right_paren' },
-    Expression = { 'Expression', 'exp', 'Expression' },
-    Expression = { 'Expression', 'mul', 'Expression' },
-    Expression = { 'Expression', 'div', 'Expression' },
-    Expression = { 'Expression', 'add', 'Expression' },
-    Expression = { 'Expression', 'sub', 'Expression' },
+    Expression = { 'left_paren', 'Expression', 'right_paren',
+      fields = {
+        priority = '|'
+      }
+    },
+    Expression = { 'Expression', 'exp', 'Expression',
+      fields = {
+        priority = '||'
+      }
+    },
+    Expression = { 'Expression', 'mul', 'Expression',
+      fields = {
+        priority = '||'
+      }
+    },
+    Expression = { 'Expression', 'div', 'Expression',
+      fields = {
+        priority = '|'
+      }
+    },
+    Expression = { 'Expression', 'add', 'Expression',
+      fields = {
+        priority = '||'
+      }
+    },
+    Expression = { 'Expression', 'sub', 'Expression',
+      fields = {
+        priority = '|'
+      }
+    },
   }
 end
 EOS
@@ -377,32 +405,47 @@ end
 <<EOS
 function lua_bnf ()
   Marpa_R2_synopsys_actions = {
-    Script = { item = 'Expression', quantifier = '+', separator = 'comma', proper = 1 },
+    Script = { 'Expression',
+      fields = {
+        proper = 1,
+        quantifier = '+',
+        separator = 'comma'
+      }
+    },
     Expression = { 'Number' },
-    Expression = { 'left_paren', 'Expression', 'right_paren' },
+    Expression = { 'left_paren', 'Expression', 'right_paren',
+      fields = {
+        priority = '|'
+      }
+    },
     Expression = { 'Expression', 'op_exp', 'Expression',
       fields = {
-        action = function (e1, e2) return e1 ^ e2 end
+        action = function (e1, e2) return e1 ^ e2 end,
+        priority = '||'
       }
     },
     Expression = { 'Expression', 'op_mul', 'Expression',
       fields = {
-        action = function (e1, e2) return e1 * e2 end
+        action = function (e1, e2) return e1 * e2 end,
+        priority = '||'
       }
     },
     Expression = { 'Expression', 'op_div', 'Expression',
       fields = {
-        action = function (e1, e2) return e1 / e2 end
+        action = function (e1, e2) return e1 / e2 end,
+        priority = '|'
       }
     },
     Expression = { 'Expression', 'op_add', 'Expression',
       fields = {
-        action = function (e1, e2) return e1 + e2 end
+        action = function (e1, e2) return e1 + e2 end,
+        priority = '||'
       }
     },
     Expression = { 'Expression', 'op_sub', 'Expression',
       fields = {
-        action = function (e1, e2) return e1 - e2 end
+        action = function (e1, e2) return e1 - e2 end,
+        priority = '|'
       }
     },
   }
@@ -422,8 +465,18 @@ for my $test (@tests){
 #    my $lua_bnf_ast = $p->serialize( $ast );
 #    say $lua_bnf_ast;
     my $lua_bnf = $p->fmt( $ast );
-    say $lua_bnf;
+#    say $lua_bnf;
+
+    # test by string matching
     is $lua_bnf, $expected_lua_bnf, $name;
+
+    # test by lua compilation
+    use File::Temp qw{ tempfile };
+    my ($fh, $filename) = tempfile();
+    binmode( $fh, ":utf8" );
+    say $fh $lua_bnf;
+    my $rc = system "lua $filename";
+    is $rc, 0, "compile with lua";
 }
 
 done_testing();

@@ -35,7 +35,6 @@ BEGIN {
     };
 }
 
-use File::Temp qw{ tempfile };
 use Cwd qw();
 
 use MarpaX::Languages::Lua::AST;
