@@ -748,7 +748,7 @@ sub do_fmt{
             and $previous_literal_node ne 'if'
             and $previous_literal_node ne 'for'
             ){
-            $s .= ( $previous_literal_node ne 'short comment' ? "\n" : '' ) .
+            $s .= ( $previous_literal_node !~ /^(short comment|comma)$/ ? "\n" : '' ) .
                 $indent x $indent_level . $ast;
         }
         elsif ( $current_node =~ m{(^
