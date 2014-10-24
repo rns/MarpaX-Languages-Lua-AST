@@ -203,6 +203,7 @@ sub bnf2lua {
     my $bnf = ast_traverse($ast);
 #    say "BNF intermediate form:", Dumper $bnf;
 
+    # render bnf rules data as lua tables
     my $name = $bnf->{name};
     my $lua_bnf_start = $indent x $indent_level . "$name = {\n";
     my $lua_bnf_end = $indent x $indent_level . "}";
@@ -214,19 +215,20 @@ sub bnf2lua {
     my $rules = $bnf->{rules};
     for my $rule (@$rules){
 
-        # translate bnf data to lua tables
         my $lhs = $rule->{lhs};
-
+        my $priority;
     #    say "# rule:\nlhs: ", $lhs;
         # prioritized_alternatives are joined with double bar ||, loosen precedence
         my $prioritized_alternatives = $rule->{rhs}->{"prioritized alternatives"};
-        for my $pa ( @{ $prioritized_alternatives } ){
+        for my $pa_ix ( 0 .. @{ $prioritized_alternatives } - 1){
+            my $pa = $prioritized_alternatives->[$pa_ix];
             my @alternatives = $pa->{"prioritized alternative"};
             # alternatives are joined with bar |, same precedence
             for my $alternative (@alternatives){
-    #            say "alternative:\n", Dumper $alternative;
-                for my $rhs (@$alternative){
-    #                say "rhs:\n", Dumper $rhs;
+    #            warn "alternative:\n", Dumper $alternative;
+                for my $rhs_ix ( 0 .. @$alternative - 1){
+                    my $rhs = $alternative->[$rhs_ix];
+    #                warn "rhs:\n", Dumper $rhs;
                     # rhs layout
                     # [
                     #   [ rhs_sym1, rhs_sym2, ..., { fields } ]
@@ -238,14 +240,14 @@ sub bnf2lua {
                     # then set rhs to its hash ref rhs
                     $rhs = $rhs->[0] if ref $rhs->[0] eq "HASH";
                     # add array ref rule
+                    my $lua_bnf_rule;
                     if (ref $rhs eq "ARRAY"){
-    #                    say "rhs array:\n", Dumper $rhs;
-                        $lua_bnf .= $indent x $indent_level . "$lhs = { " .
+                        $lua_bnf_rule =
+                            $indent x $indent_level . "$lhs = { " .
                             join(', ', map { "'$_'" } @$rhs );
                     }
                     # add hash ref rule
                     elsif (ref $rhs eq "HASH"){
-    #                    say "rhs hash:\n", Dumper $rhs;
                         # separated sequence
                         if ( exists $rhs->{quantifier} ){
                             my @kv = ();
@@ -254,9 +256,9 @@ sub bnf2lua {
                                 push @$kv, $k eq 'proper' ? $rhs->{$k} : "'$rhs->{$k}'";
                                 push @kv, $kv;
                             }
-                            $lua_bnf .= $indent x $indent_level . "$lhs = { " .
+                            $lua_bnf_rule =
+                                $indent x $indent_level . "$lhs = { " .
                                 join( ', ', map { "$_->[0] = $_->[1]" } @kv );
-    #                        say $lua_bnf;
                         }
                         else{
                             warn "bnf2lua: unknown rhs type: " . Dumper $rhs;
@@ -265,9 +267,15 @@ sub bnf2lua {
                     else{
                         warn "bnf2lua: unknown rhs type $rhs.";
                     }
+#                    warn $priority if $priority;
+                    $lua_bnf_rule .= ", priority = '$priority', " if $priority;
+                    $lua_bnf .= $lua_bnf_rule;
+#                    warn $lua_bnf_rule;
+                    $priority = '|';
+#                        warn $priority if $rhs_ix < @$alternative - 1;
                     # add fields, if any
                     if (defined $fields){
-    #                    say "fields: ", Dumper $fields;
+    #                    warn "fields: ", Dumper $fields;
                         $lua_bnf .=
                             ",\n" .
                             $indent x ($indent_level + 1) . "fields = {\n" .
@@ -284,9 +292,12 @@ sub bnf2lua {
                     else {
                         $lua_bnf .= " },\n"
                     }
-                }
-            }
-        }
+                } ## for my $rhs (@$alternative){
+                $priority = '';
+            } ## for my $alternative (@alternatives){
+            $priority = '||';
+#            warn '||' if $pa_ix < @{ $prioritized_alternatives } - 1;
+        } ## for my $pa ( @{ $prioritized_alternatives } ){
     } ## for my $rule (@$rules)
     $lua_bnf .= $lua_bnf_end;
     return $lua_bnf;
@@ -297,12 +308,12 @@ $p->extend({
     rules => $bnf,
     # these literals will be made tokens for external lexing
     literals => {
-            '%%' => 'Perl separation',
-            '::=' => 'op declare bnf',
-            '?' => 'question',
-            'action' => 'action literal',
-            'BNF' => 'BNF literal',
-            '[]' => 'empty symbol',
+            '%%'    => 'Perl separation',
+            '::='   => 'op declare bnf',
+            '?'     => 'question',
+            '[]'    => 'empty symbol',
+            'action'    => 'action literal',
+            'BNF'       => 'BNF literal',
     },
     # these must return ast subtrees serialized to valid lua
     handlers => {
@@ -407,7 +418,7 @@ for my $test (@tests){
 #    my $lua_bnf_ast = $p->serialize( $ast );
 #    say $lua_bnf_ast;
     my $lua_bnf = $p->fmt( $ast );
-#    say $lua_bnf;
+    say $lua_bnf;
     is $lua_bnf, $expected_lua_bnf, $name;
 }
 
