@@ -675,7 +675,7 @@ sub do_fmt{
             unless(    $children[0]->[0] eq 'functioncall'
                 and $children[0]->[1]->[1]->[0] eq 'left paren'){
                 $indent_level_0_stat = 1;
-                $s .= "\n" . $indent x $indent_level unless defined $s;
+                $s .= "\n" unless defined $s;
             }
         }
 
@@ -691,7 +691,14 @@ sub do_fmt{
             and exists $handlers->{ $children[0]->[0] }
             and ref $handlers->{ $children[0]->[0] } eq "CODE"
             ){
-            $s .= $handlers->{ $children[0]->[0] }->( $ast, $indent, $indent_level );
+            # call handler
+            $s .= $handlers->{ $children[0]->[0] }->(
+                $ast,
+                {
+                    indent       => $indent,
+                    indent_level => $indent_level,
+                }
+            );
         }
         else { # proceed as usual
 #        warn "# Entering: $node_id";

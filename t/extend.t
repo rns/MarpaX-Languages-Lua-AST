@@ -17,9 +17,13 @@ my $bnf = q{
 ## BNF statement
 stat ::= BNF
 
+BNF ::= <BNF literal> Name <BNF rules>
+
+<BNF rules> ::= <BNF rule>+
+
 # There is only one BNF statement,
 # combining priorities, sequences, and alternation
-BNF ::= lhs '::=' <prioritized alternatives>
+<BNF rule> ::= lhs '::=' <prioritized alternatives>
 <prioritized alternatives> ::= <prioritized alternative>+ separator => <double bar>
 <prioritized alternative> ::= <alternative>+ separator => <bar>
 <alternative> ::= rhs | rhs ',' <alternative fields>
@@ -88,14 +92,25 @@ my $p = MarpaX::Languages::Lua::AST->new( { discard_comments => 1 } );
 
 # [ lhs, [ rhs ], adverbs
 sub ast_traverse{
-    my ($ast, $context) = @_;
+    my ($ast) = @_;
     if (ref $ast){
         my ($node_id, @children) = @$ast;
         if ($node_id eq 'stat'){
             ast_traverse(@children);
         }
         elsif ($node_id eq 'BNF'){
-#            say Dumper \@children;
+#            say "$node_id: ", Dumper \@children;
+            my (undef, $name, $rules) = @children;
+            return {
+                name => $name->[1],
+                rules => ast_traverse( $rules )
+            }
+        }
+        elsif ($node_id eq 'BNF rules'){
+            return [ map { ast_traverse( $_ ) } @children ]
+        }
+        elsif ($node_id eq 'BNF rule'){
+#            say "$node_id: ", Dumper \@children;
             my ($lhs, $op, $alternatives) = @children;
             return {
                 lhs => ast_traverse( $lhs ),
@@ -179,83 +194,101 @@ sub ast_traverse{
 }
 
 sub bnf2lua {
-    my ($ast, $indent, $indent_level) = @_;
+    my ($ast, $context) = @_;
 #    say "ast:", Dumper $ast;
+#    say Dumper $bnf;
+    my ($indent, $indent_level) = map { $context->{$_} } qw { indent indent_level };
+
     # gather data
     my $bnf = ast_traverse($ast);
-#    say Dumper $bnf;
-    # translate bnf data to lua tables
-    my $lhs = $bnf->{lhs};
-    my $prioritized_alternatives = $bnf->{rhs}->{"prioritized alternatives"};
-#    say "# rule:\nlhs: ", $lhs;
-    my $lua_bnf = "bnf_rule_$lhs = {\n";
-    # prioritized_alternatives are joined with double bar ||, loosen precedence
+#    say "BNF intermediate form:", Dumper $bnf;
+
+    my $name = $bnf->{name};
+    my $lua_bnf_start = $indent x $indent_level . "$name = {\n";
+    my $lua_bnf_end = $indent x $indent_level . "}";
+
+    my $lua_bnf = $lua_bnf_start;
+
+    # rules in the grammer need more indent
     $indent_level++;
-    for my $pa ( @{ $prioritized_alternatives } ){
-        my @alternatives = $pa->{"prioritized alternative"};
-        # alternatives are joined with bar |, same precedence
-        for my $alternative (@alternatives){
-#            say "alternative:\n", Dumper $alternative;
-            for my $rhs (@$alternative){
-#                say "rhs:\n", Dumper $rhs;
-                # rhs layout
-                # [
-                #   [ rhs_sym1, rhs_sym2, ..., { fields } ]
-                #   or
-                #   [ { rhs_as_hash_ref }, { fields } ]
-                # ]
-                # first extract fields, if any
-                my $fields = (pop @$rhs)->{fields} if @$rhs > 1 and ref $rhs->[-1] eq "HASH";
-                # then set rhs to its hash ref rhs
-                $rhs = $rhs->[0] if ref $rhs->[0] eq "HASH";
-                # add array ref rule
-                if (ref $rhs eq "ARRAY"){
-#                    say "rhs array:\n", Dumper $rhs;
-                    $lua_bnf .= $indent x $indent_level . "$lhs = { " .
-                        join(', ', map { "'$_'" } @$rhs );
-                }
-                # add hash ref rule
-                elsif (ref $rhs eq "HASH"){
-#                    say "rhs hash:\n", Dumper $rhs;
-                    # separated sequence
-                    if ( exists $rhs->{quantifier} ){
-                        my @kv = ();
-                        for my $k ( qw{ item quantifier separator proper } ){
-                            my $kv = [ $k ];
-                            push @$kv, $k eq 'proper' ? $rhs->{$k} : "'$rhs->{$k}'";
-                            push @kv, $kv;
-                        }
+    my $rules = $bnf->{rules};
+    for my $rule (@$rules){
+
+        # translate bnf data to lua tables
+        my $lhs = $rule->{lhs};
+
+    #    say "# rule:\nlhs: ", $lhs;
+        # prioritized_alternatives are joined with double bar ||, loosen precedence
+        my $prioritized_alternatives = $rule->{rhs}->{"prioritized alternatives"};
+        for my $pa ( @{ $prioritized_alternatives } ){
+            my @alternatives = $pa->{"prioritized alternative"};
+            # alternatives are joined with bar |, same precedence
+            for my $alternative (@alternatives){
+    #            say "alternative:\n", Dumper $alternative;
+                for my $rhs (@$alternative){
+    #                say "rhs:\n", Dumper $rhs;
+                    # rhs layout
+                    # [
+                    #   [ rhs_sym1, rhs_sym2, ..., { fields } ]
+                    #   or
+                    #   [ { rhs_as_hash_ref }, { fields } ]
+                    # ]
+                    # first extract fields, if any
+                    my $fields = (pop @$rhs)->{fields} if @$rhs > 1 and ref $rhs->[-1] eq "HASH";
+                    # then set rhs to its hash ref rhs
+                    $rhs = $rhs->[0] if ref $rhs->[0] eq "HASH";
+                    # add array ref rule
+                    if (ref $rhs eq "ARRAY"){
+    #                    say "rhs array:\n", Dumper $rhs;
                         $lua_bnf .= $indent x $indent_level . "$lhs = { " .
-                            join( ', ', map { "$_->[0] = $_->[1]" } @kv );
-#                        say $lua_bnf;
+                            join(', ', map { "'$_'" } @$rhs );
+                    }
+                    # add hash ref rule
+                    elsif (ref $rhs eq "HASH"){
+    #                    say "rhs hash:\n", Dumper $rhs;
+                        # separated sequence
+                        if ( exists $rhs->{quantifier} ){
+                            my @kv = ();
+                            for my $k ( qw{ item quantifier separator proper } ){
+                                my $kv = [ $k ];
+                                push @$kv, $k eq 'proper' ? $rhs->{$k} : "'$rhs->{$k}'";
+                                push @kv, $kv;
+                            }
+                            $lua_bnf .= $indent x $indent_level . "$lhs = { " .
+                                join( ', ', map { "$_->[0] = $_->[1]" } @kv );
+    #                        say $lua_bnf;
+                        }
+                        else{
+                            warn "bnf2lua: unknown rhs type: " . Dumper $rhs;
+                        }
                     }
                     else{
-                        warn "bnf2lua: unknown rhs type: " . Dumper $rhs;
+                        warn "bnf2lua: unknown rhs type $rhs.";
+                    }
+                    # add fields, if any
+                    if (defined $fields){
+    #                    say "fields: ", Dumper $fields;
+                        $lua_bnf .=
+                            ",\n" .
+                            $indent x ($indent_level + 1) . "fields = {\n" .
+                            $indent x ($indent_level + 2)  .
+                            join (
+                                ( ",\n" . $indent x ($indent_level + 2) ),
+                                map { "$_ = $fields->{$_}" } sort keys %$fields
+                            ) .
+                            "\n" . $indent x ($indent_level + 1) . "}\n";
+                        # close the table with fields
+                        $lua_bnf .= $indent x $indent_level . "},\n";
+                    }
+                    # close the table without fields
+                    else {
+                        $lua_bnf .= " },\n"
                     }
                 }
-                else{
-                    warn "bnf2lua: unknown rhs type $rhs.";
-                }
-                # add fields, if any
-                if (defined $fields){
-#                    say "fields: ", Dumper $fields;
-                    $lua_bnf .=
-                        ",\n" .
-                        $indent x $indent_level . "fields = {\n" .
-                        $indent x ($indent_level + 1)  .
-                        join (
-                            ( ",\n" . $indent x ($indent_level + 1) ),
-                            map { "$_ = $fields->{$_}" } sort keys %$fields
-                        ) .
-                    $indent x $indent_level . "}\n";
-                }
-                # close the table
-                $lua_bnf .= $indent x $indent_level . "},\n"
             }
         }
-    }
-    $indent_level--;
-    $lua_bnf .= $indent x $indent_level . "}";
+    } ## for my $rule (@$rules)
+    $lua_bnf .= $lua_bnf_end;
     return $lua_bnf;
 }
 
@@ -268,6 +301,7 @@ $p->extend({
             '::=' => 'op declare bnf',
             '?' => 'question',
             'action' => 'action literal',
+            'BNF' => 'BNF literal',
             '[]' => 'empty symbol',
     },
     # these must return ast subtrees serialized to valid lua
@@ -281,31 +315,30 @@ my @tests = (
 
 [ 'bare Marpa::R2 synopsys BNF in lua function', q{
 -- BNF rules
-function lua_bnf_bare()
-  Script ::= Expression+ % comma
-  Expression ::=
-    Number
-    | left_paren Expression right_paren
-   || Expression exp Expression
-   || Expression mul Expression
-    | Expression div Expression
-   || Expression add Expression
-    | Expression sub Expression
+function lua_bnf()
+  BNF Marpa_R2_synopsys_bare
+    Script ::= Expression+ % comma
+    Expression ::=
+      Number
+      | left_paren Expression right_paren
+     || Expression exp Expression
+     || Expression mul Expression
+      | Expression div Expression
+     || Expression add Expression
+      | Expression sub Expression
 end
 },
 <<EOS
-function lua_bnf_bare ()
-  bnf_rule_Script = {
-    Script = { item = 'Expression', quantifier = '+', separator = 'comma', proper = 1    },
-  }
-  bnf_rule_Expression = {
-    Expression = { 'Number'    },
-    Expression = { 'left_paren', 'Expression', 'right_paren'    },
-    Expression = { 'Expression', 'exp', 'Expression'    },
-    Expression = { 'Expression', 'mul', 'Expression'    },
-    Expression = { 'Expression', 'div', 'Expression'    },
-    Expression = { 'Expression', 'add', 'Expression'    },
-    Expression = { 'Expression', 'sub', 'Expression'    },
+function lua_bnf ()
+  Marpa_R2_synopsys_bare = {
+    Script = { item = 'Expression', quantifier = '+', separator = 'comma', proper = 1 },
+    Expression = { 'Number' },
+    Expression = { 'left_paren', 'Expression', 'right_paren' },
+    Expression = { 'Expression', 'exp', 'Expression' },
+    Expression = { 'Expression', 'mul', 'Expression' },
+    Expression = { 'Expression', 'div', 'Expression' },
+    Expression = { 'Expression', 'add', 'Expression' },
+    Expression = { 'Expression', 'sub', 'Expression' },
   }
 end
 EOS
@@ -313,45 +346,49 @@ EOS
 
 [ 'Marpa::R2 synopsys with actions in Lua functions',
 q{
-function lua_bnf_actions()
-  Script ::= Expression+ % comma
-  Expression ::=
-    Number
-    | left_paren Expression right_paren
-   || Expression op_exp Expression, action (e1, e2) return e1 ^ e2 end
-   || Expression op_mul Expression, action (e1, e2) return e1 * e2 end
-    | Expression op_div Expression, action (e1, e2) return e1 / e2 end
-   || Expression op_add Expression, action (e1, e2) return e1 + e2 end
+function lua_bnf()
+  BNF Marpa_R2_synopsys_actions
+    Script ::= Expression+ % comma
+    Expression ::=
+      Number
+      | left_paren Expression right_paren
+     || Expression op_exp Expression, action (e1, e2) return e1 ^ e2 end
+     || Expression op_mul Expression, action (e1, e2) return e1 * e2 end
+      | Expression op_div Expression, action (e1, e2) return e1 / e2 end
+     || Expression op_add Expression, action (e1, e2) return e1 + e2 end
     | Expression op_sub Expression,  action (e1, e2) return e1 - e2 end
 end
 },
 <<EOS
-function lua_bnf_actions ()
-  bnf_rule_Script = {
-    Script = { item = 'Expression', quantifier = '+', separator = 'comma', proper = 1    },
-  }
-  bnf_rule_Expression = {
-    Expression = { 'Number'    },
-    Expression = { 'left_paren', 'Expression', 'right_paren'    },
+function lua_bnf ()
+  Marpa_R2_synopsys_actions = {
+    Script = { item = 'Expression', quantifier = '+', separator = 'comma', proper = 1 },
+    Expression = { 'Number' },
+    Expression = { 'left_paren', 'Expression', 'right_paren' },
     Expression = { 'Expression', 'op_exp', 'Expression',
-    fields = {
-      action = function (e1, e2) return e1 ^ e2 end    }
+      fields = {
+        action = function (e1, e2) return e1 ^ e2 end
+      }
     },
     Expression = { 'Expression', 'op_mul', 'Expression',
-    fields = {
-      action = function (e1, e2) return e1 * e2 end    }
+      fields = {
+        action = function (e1, e2) return e1 * e2 end
+      }
     },
     Expression = { 'Expression', 'op_div', 'Expression',
-    fields = {
-      action = function (e1, e2) return e1 / e2 end    }
+      fields = {
+        action = function (e1, e2) return e1 / e2 end
+      }
     },
     Expression = { 'Expression', 'op_add', 'Expression',
-    fields = {
-      action = function (e1, e2) return e1 + e2 end    }
+      fields = {
+        action = function (e1, e2) return e1 + e2 end
+      }
     },
     Expression = { 'Expression', 'op_sub', 'Expression',
-    fields = {
-      action = function (e1, e2) return e1 - e2 end    }
+      fields = {
+        action = function (e1, e2) return e1 - e2 end
+      }
     },
   }
 end
