@@ -19,7 +19,7 @@ BEGIN {
     my $ilv = '0.09';
     eval {
         require Inline::Lua;
-        $Inline::Lua::VERSION eq $ilv;
+        $Inline::Lua::VERSION >= $ilv;
     } or do {
         plan skip_all => "Inline::Lua is not installed";
     };
