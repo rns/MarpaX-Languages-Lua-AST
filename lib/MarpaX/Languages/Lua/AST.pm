@@ -715,14 +715,16 @@ sub do_fmt{
         # append current literal
 
         if    ( $ast =~ /^(function|for|while|repeat)$/   ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
-        elsif ( $ast =~ /^do$/         ){ $s .= ' ' . $ast . ' ';
-        }
+
         elsif ( $ast =~ /^if$/         ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
         elsif ( $ast =~ /^local$/      ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
-        elsif ( $ast =~ /^else$/       ){ $s .= "\n" . $indent x $indent_level . $ast }
         elsif ( $ast =~ /^elseif$/     ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
         elsif ( $ast =~ /^until$/      ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
+        elsif ( $ast =~ /^else$/       ){ $s .= "\n" . $indent x $indent_level . $ast }
+
+        elsif ( $ast =~ /^do$/         ){ $s .= ' ' . $ast . ' ' }
         elsif ( $ast =~ /^then$/       ){ $s .= ' ' . $ast }
+
         elsif ( $ast =~ /^end$/        ){ $s .= "\n" . $indent x $indent_level . $ast;
                                            # add newline after function end
                                            $s .= "\n" if $indent_level_blocks[$indent_level] =~ /^(function|local|do)$/;
