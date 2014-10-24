@@ -36,7 +36,29 @@ end
 print("enter a number:")
 a = io.read("*number")        -- read a number
 print(fact(a))
-}, # formatted code is expected to match the source
+},
+# formatted code
+q{
+function fact (n)
+  if n == 0 then
+    return 1
+  else
+    return n * fact(n - 1)
+  end
+end
+
+function tcheck (t1, t2)
+  table.remove(t1, 1)  -- remove code
+  assert(table.getn(t1) == table.getn(t2))
+  for i = 1, table.getn(t1) do
+    assert(t1[i] == t2[i])
+  end
+end
+
+print("enter a number:")
+a = io.read("*number")  -- read a number
+print(fact(a))
+}
 ],
 
 # source code
@@ -50,7 +72,7 @@ return function ( a , b , c , d , e )
   return x
 end , { a = 1 , b = 2 >= 1 , } or { 1 };
 ]]
-f = string.gsub(f, "%s+", "\n");   -- force a SETLINE between opcodes
+f = string.gsub(f, "%s+", "\n");  -- force a SETLINE between opcodes
 f,a = loadstring(f)();
 },
 # expected formatted code
@@ -62,7 +84,7 @@ return function ( a, b, c, d, e )
   return x
 end, { a = 1, b = 2 >= 1, } or { 1 };
 ]]
-f = string.gsub(f, "%s+", "\n");        -- force a SETLINE between opcodes
+f = string.gsub(f, "%s+", "\n");  -- force a SETLINE between opcodes
 f, a = loadstring(f)();
 } ],
 
@@ -90,7 +112,7 @@ for my $test (@tests){
 #    say $p->serialize( $ast );
 
     my $fmt = $p->fmt( $ast, { indent => '  ' } );
-#    say $fmt;
+    say $fmt;
 
     eq_or_diff $fmt, $expected_fmt, 'lua code formatting';
 

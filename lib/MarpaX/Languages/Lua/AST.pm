@@ -598,6 +598,8 @@ sub fmt{
     $opts->{handlers} = $parser->{handlers};
     my $fmt = do_fmt( $ast, $opts );
     $fmt =~ s/^\n//ms;
+    $fmt =~ s{[ ]+\n}{\n}gms;
+    $fmt .= "\n";
     return $fmt;
 }
 
@@ -628,25 +630,9 @@ space before do
 
 handlders for extensibility
 
-todo: generlized context:
-
-my %parents;   # node id's to be pushed to @parents
-my %siblings;  # node id's to be pushed to @siblings
-my %blocks;    # node id's which start blocks
-               # each block inc's level so $block[0] is block start node_id at level 0, etc.
-
-state @parents;
-    $parents[-1] # current_node_id
-    $parents[-2] # parent_node_id
-    $parents[-3] # grand_parent_node_id
-    $parents[-4] # grand_grand_parent_node_id
-state @siblings;
-    $sublings[-1] # previous literal_node
-state @blocks;
-state $level;
-
 =cut
 #
+
 sub do_fmt{
     my ($ast, $opts) = @_;
     state $indent_level;
@@ -663,23 +649,33 @@ sub do_fmt{
         my ($node_id, @children) = @$ast;
 
         $current_node = $node_id;
-        if ($node_id =~ m{^(binop|Number|String|Comment|unop)}xms){ # save current node as parent of its children nodes
+        # save current node as parent of its children nodes
+        if ( $node_id =~ m{^(binop|Number|String|Comment|unop)$}xms ){
+            $current_parent_node = $node_id;
+        }
+        # save intermediate
+        elsif ( $node_id eq 'stat' and $children[0]->[0] eq 'functioncall' ){
+            $current_parent_node = 'functioncall';
+        }
+        elsif ( $node_id eq 'stat' ){
             $current_parent_node = $node_id;
         }
 
         if (    $node_id eq 'stat'
-            and $children[0]->[0] ne 'Comment' # todo: check for short comments: they include trailing newlines
+            and $children[0]->[0] ne 'Comment'
+            # todo: check for short comments: they include trailing newlines
             and $children[0]->[0] ne 'semicolon'
             ){
             # no newline before stat ::= functioncall
             unless(    $children[0]->[0] eq 'functioncall'
-                and $children[0]->[1]->[1]->[0] eq 'left paren'){
+                or $previous_literal_node eq 'short comment'
+                ){
                 $indent_level_0_stat = 1;
-                $s .= "\n" unless defined $s;
+#                $s .= "\n" unless defined $s;
             }
         }
 
-        if ($node_id =~ /^(function|if|else|elseif|then|for|do|while|repeat)$/) {
+        if ($node_id =~ /^(function|if|else|elseif|then|for|while|repeat)$/) {
             $indent_level_blocks[$indent_level] = $node_id;
         }
 
@@ -708,13 +704,22 @@ sub do_fmt{
 
         # epilog
         $indent_level-- if $node_id eq 'block';
-
     }
     else{ # handlers: order matters
-        if    ( $ast =~ /^(function|for|while|repeat)$/   ){ $s .= $ast . ' ' }
-        elsif ( $ast =~ /^do$/         ){ $s .= ' ' . $ast . ' ' }
-        elsif ( $ast =~ /^if$/         ){ $s .= $ast . ' ' }
-        elsif ( $ast =~ /^local$/      ){ $s .= $ast . ' ' }
+
+        # print literal and its context
+#        say "# $current_node: '$ast'";
+#        say "  current parent node   : '$current_parent_node'" if $current_parent_node;
+#        say "  indent level          : $indent_level";
+#        say "  indent level blocks   : ", join ' ', @indent_level_blocks if @indent_level_blocks;
+#        say "  previous literal node : '$previous_literal_node'" if $previous_literal_node;
+        # append current literal
+
+        if    ( $ast =~ /^(function|for|while|repeat)$/   ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
+        elsif ( $ast =~ /^do$/         ){ $s .= ' ' . $ast . ' ';
+        }
+        elsif ( $ast =~ /^if$/         ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
+        elsif ( $ast =~ /^local$/      ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
         elsif ( $ast =~ /^else$/       ){ $s .= "\n" . $indent x $indent_level . $ast }
         elsif ( $ast =~ /^elseif$/     ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
         elsif ( $ast =~ /^until$/      ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
@@ -734,9 +739,19 @@ sub do_fmt{
         elsif ( $current_node eq 'short comment' ){
 #            say "# $current_parent_node/$current_node: '$ast'";
 #            chomp $ast;
-            $s .= '        ' . $ast
+            $s .= '  ' . $ast;
         }
         elsif ( $current_node eq 'assignment'   ){ $s .= ' ' . $ast . ' ' }
+        # stat/functioncall/Name
+        elsif ( $current_node eq 'Name'
+            and $current_parent_node =~ /^(stat|functioncall)$/
+            and $previous_literal_node ne 'assignment'
+            and $previous_literal_node ne 'if'
+            and $previous_literal_node ne 'for'
+            ){
+            $s .= ( $previous_literal_node ne 'short comment' ? "\n" : '' ) .
+                $indent x $indent_level . $ast;
+        }
         elsif ( $current_node =~ m{(^
                     double\ quoted\ string|single\ quoted\ string|
                     left\ paren|right\ paren|left\ bracket|right\ bracket|
@@ -770,14 +785,7 @@ sub do_fmt{
                 $current_node =~ /^(in|and|or)$/
             ){ $s .= ' ' . $ast . ' ' }
         else{
-
-            # print literal and its context
-#            say "$indent_level, @level_blocks" if @level_blocks;
-#            say "$current_node '$ast'";
-#            say "$previous_literal_node";
-            # append current literal
-#            say "# $current_node: '$ast'";
-            $s .= ' ' . $ast;
+            $s .= $indent x $indent_level . $ast;
         }
         # set context item
         $previous_literal_node = $current_node;
