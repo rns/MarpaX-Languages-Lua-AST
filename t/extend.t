@@ -250,14 +250,18 @@ sub bnf2lua {
                     elsif (ref $rhs eq "HASH"){
                         # separated sequence
                         if ( exists $rhs->{quantifier} ){
+                            # sequence item symbol
+                            my $item = $rhs->{item};
+                            # other adverbs
                             my @kv = ();
-                            for my $k ( qw{ item quantifier separator proper } ){
+                            for my $k ( qw{ quantifier separator proper } ){
                                 my $kv = [ $k ];
                                 push @$kv, $k eq 'proper' ? $rhs->{$k} : "'$rhs->{$k}'";
                                 push @kv, $kv;
                             }
                             $lua_bnf_rule =
                                 $indent x $indent_level . "$lhs = { " .
+                                "'" . $item . "', " .
                                 join( ', ', map { "$_->[0] = $_->[1]" } @kv );
                         }
                         else{
