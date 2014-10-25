@@ -86,7 +86,7 @@ f = string.gsub(f, "%s+", "\n");  -- force a SETLINE between opcodes
 f, a = loadstring(f)();
 } ],
 
-# [ q{}, ] # formatted code is expected to match the source
+# [ q{}, ]
 # [ q{}, q{} ]
 );
 
@@ -94,11 +94,10 @@ my $p = MarpaX::Languages::Lua::AST->new;
 
 for my $test (@tests){
     my ($lua_src, $expected_fmt) = @$test;
+
     # trim spaces
     $expected_fmt =~ s/^\s+//ms;
-    $expected_fmt =~ s/\s+$//ms;
-    # and massage slightly -- don't know why on Earth I can't get that newline right
-    $expected_fmt =~ s/end\nfunction tcheck/end\n\nfunction tcheck/ms;
+    chomp $expected_fmt;
 
     # parse/reparse with diagnostics on error
     my $ast = $p->parse( $lua_src );
