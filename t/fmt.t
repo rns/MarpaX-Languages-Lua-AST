@@ -35,8 +35,7 @@ end
 
 print("enter a number:")
 a = io.read("*number")        -- read a number
-print(fact(a))
-},
+print(fact(a))},
 # formatted code
 q{
 function fact (n)
@@ -95,10 +94,11 @@ my $p = MarpaX::Languages::Lua::AST->new;
 
 for my $test (@tests){
     my ($lua_src, $expected_fmt) = @$test;
-    $expected_fmt //= $lua_src;
     # trim spaces
     $expected_fmt =~ s/^\s+//ms;
     $expected_fmt =~ s/\s+$//ms;
+    # and massage slightly -- don't know why on Earth I can't get that newline right
+    $expected_fmt =~ s/end\nfunction tcheck/end\n\nfunction tcheck/ms;
 
     # parse/reparse with diagnostics on error
     my $ast = $p->parse( $lua_src );

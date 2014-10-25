@@ -602,36 +602,6 @@ sub fmt{
     return $fmt;
 }
 
-=pod
-    just enough info to know how to format every literal
-
-        every stat at indent level 0, except Comment starts with a newline
-
-        structural nodes (block) inc/dec indent level
-
-        block start nodes (function if else then elseif do for while repeat)
-        are saved for each indent level as indent_level_blocks
-
-        block end nodes (end) set block start node to ''
-
-        immediate context nodes define literal spacing
-            current node
-            previous literal node
-
-    keywords not currently checked
-        and break false in nil not or true
-
-\n after comment -- do not prepend \n to the next keyword
-\n after end
-space after == in == nil
-space before do
-\n before comma after end
-
-handlders for extensibility
-
-=cut
-#
-
 sub do_fmt{
     my ($ast, $opts) = @_;
     my $s;
