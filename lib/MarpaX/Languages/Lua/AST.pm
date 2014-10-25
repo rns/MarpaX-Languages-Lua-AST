@@ -634,21 +634,23 @@ handlders for extensibility
 
 sub do_fmt{
     my ($ast, $opts) = @_;
-    state $indent_level;
-    $indent_level //= 0;
     my $s;
-    state $indent_level_0_stat;
-    state @indent_level_blocks; # $indent_level_stats[0] is block node_id at level 0
+    # options
+    state $indent = $opts->{indent};
+    state $handlers = $opts->{handlers};
+    # context
     state $current_node //= '';
     state $current_parent_node //= '';
     state $previous_literal_node //= '';
-    state $indent = $opts->{indent};
-    state $handlers = $opts->{handlers};
+    # indenting
+    state $indent_level //= 0;
+    state @indent_level_blocks; # $indent_level_stats[0] is block node_id at level 0
+    # node is a literal or has children?
     if (ref $ast){
         my ($node_id, @children) = @$ast;
-
+        # save context for nodes down the ast
         $current_node = $node_id;
-        # save current node as parent of its children literal nodes
+        # current node as parent of its children literal nodes
         if ( $node_id =~ m{^(binop|Number|String|Comment|unop)$}xms ){
             $current_parent_node = $node_id;
         }
@@ -659,24 +661,16 @@ sub do_fmt{
         elsif ( $node_id eq 'stat' ){
             $current_parent_node = $node_id;
         }
-
-        if (    $node_id eq 'stat'
-            and $children[0]->[0] ne 'functioncall'
-            ){
-            $indent_level_0_stat = 1;
-        }
-
+        # indenting
         if ($node_id =~ /^(function|if|else|elseif|then|for|while|repeat)$/) {
             $indent_level_blocks[$indent_level] = $node_id;
         }
-
-        # prolog
         $indent_level++ if $node_id eq 'block';
 
         # if the node can be processed by handler passed via extend(), doit
         if (    $node_id eq 'stat'
             and exists $handlers->{ $children[0]->[0] }
-            and ref $handlers->{ $children[0]->[0] } eq "CODE"
+            and    ref $handlers->{ $children[0]->[0] } eq "CODE"
             ){
             # call handler
             $s .= $handlers->{ $children[0]->[0] }->(
@@ -688,16 +682,12 @@ sub do_fmt{
             );
         }
         else { # proceed as usual
-#        warn "# Entering: $node_id";
             $s .= join '', grep { defined } do_fmt( $_ ) for @children;
-#        warn "# Leaving: $node_id ";
         }
-
-        # epilog
+        # indenting
         $indent_level-- if $node_id eq 'block';
     }
     else{ # handlers: order matters
-
         # print literal and its context
 #        say "# $current_node: '$ast'";
 #        say "  current parent node   : '$current_parent_node'" if $current_parent_node;
@@ -713,6 +703,7 @@ sub do_fmt{
         elsif ( $ast =~ /^local$/      ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
         elsif ( $ast =~ /^elseif$/     ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
         elsif ( $ast =~ /^until$/      ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
+        elsif ( $ast =~ /^return$/     ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
 
         elsif ( $ast =~ /^else$/       ){ $s .= "\n" . $indent x $indent_level . $ast }
 
@@ -721,11 +712,10 @@ sub do_fmt{
 
         elsif ( $ast =~ /^end$/        ){ $s .= "\n" . $indent x $indent_level . $ast;
                                           # add newline after function/local/do end
-                                          $s .= "\n" if $indent_level_blocks[$indent_level] =~ /^(function|local|do)$/;
+                                          $s .= "\n"
+                                                if $indent_level_blocks[$indent_level] =~
+                                                /^(function|local|do)$/;
                                           $indent_level_blocks[$indent_level] = '';
-                                        }
-        elsif ( $ast =~ /^return$/     ){ $s .= ($indent_level_0_stat ? "\n" : '') .
-                                                $indent x $indent_level . $ast . ' '
                                         }
         elsif ( $previous_literal_node eq 'function' ){
 #            say "# $current_node: '$ast'";
