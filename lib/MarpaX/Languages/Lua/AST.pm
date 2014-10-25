@@ -648,11 +648,11 @@ sub do_fmt{
         my ($node_id, @children) = @$ast;
 
         $current_node = $node_id;
-        # save current node as parent of its children nodes
+        # save current node as parent of its children literal nodes
         if ( $node_id =~ m{^(binop|Number|String|Comment|unop)$}xms ){
             $current_parent_node = $node_id;
         }
-        # save intermediate
+        # save stat/functioncall
         elsif ( $node_id eq 'stat' and $children[0]->[0] eq 'functioncall' ){
             $current_parent_node = 'functioncall';
         }
@@ -661,17 +661,9 @@ sub do_fmt{
         }
 
         if (    $node_id eq 'stat'
-            and $children[0]->[0] ne 'Comment'
-            # todo: check for short comments: they include trailing newlines
-            and $children[0]->[0] ne 'semicolon'
+            and $children[0]->[0] ne 'functioncall'
             ){
-            # no newline before stat ::= functioncall
-            unless(    $children[0]->[0] eq 'functioncall'
-                or $previous_literal_node eq 'short comment'
-                ){
-                $indent_level_0_stat = 1;
-#                $s .= "\n" unless defined $s;
-            }
+            $indent_level_0_stat = 1;
         }
 
         if ($node_id =~ /^(function|if|else|elseif|then|for|while|repeat)$/) {
@@ -712,23 +704,25 @@ sub do_fmt{
 #        say "  indent level          : $indent_level";
 #        say "  indent level blocks   : ", join ' ', @indent_level_blocks if @indent_level_blocks;
 #        say "  previous literal node : '$previous_literal_node'" if $previous_literal_node;
-        # append current literal
 
-        if    ( $ast =~ /^(function|for|while|repeat)$/   ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
+        # append current literal
+        if    ( $ast =~ /^(function|for|while|repeat)$/   ){
+                                          $s .= "\n" . $indent x $indent_level . $ast . ' ' }
 
         elsif ( $ast =~ /^if$/         ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
         elsif ( $ast =~ /^local$/      ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
         elsif ( $ast =~ /^elseif$/     ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
         elsif ( $ast =~ /^until$/      ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
+
         elsif ( $ast =~ /^else$/       ){ $s .= "\n" . $indent x $indent_level . $ast }
 
         elsif ( $ast =~ /^do$/         ){ $s .= ' ' . $ast . ' ' }
         elsif ( $ast =~ /^then$/       ){ $s .= ' ' . $ast }
 
         elsif ( $ast =~ /^end$/        ){ $s .= "\n" . $indent x $indent_level . $ast;
-                                           # add newline after function end
-                                           $s .= "\n" if $indent_level_blocks[$indent_level] =~ /^(function|local|do)$/;
-                                           $indent_level_blocks[$indent_level] = '';
+                                          # add newline after function/local/do end
+                                          $s .= "\n" if $indent_level_blocks[$indent_level] =~ /^(function|local|do)$/;
+                                          $indent_level_blocks[$indent_level] = '';
                                         }
         elsif ( $ast =~ /^return$/     ){ $s .= ($indent_level_0_stat ? "\n" : '') .
                                                 $indent x $indent_level . $ast . ' '
@@ -765,7 +759,6 @@ sub do_fmt{
                 $}xms
             ){
 # todo: look into: [[ ]] strings are somehow returned with space before comma
-#       write a test case for marpa based on sl_external1.t
         # for now just substitute
 #            say "# $current_parent_node/$current_node: '$ast'";
             if ($current_node =~ /string$/){
