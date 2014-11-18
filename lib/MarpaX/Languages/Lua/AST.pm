@@ -129,8 +129,6 @@ lexeme default = action => [ name, value ] latm => 1
     explist ::= explist <comma> exp
     explist ::= explist <comma> Comment exp
 
-
-
     exp ::= <nil>
     exp ::= <false>
     exp ::= <true>
