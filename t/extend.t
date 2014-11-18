@@ -222,6 +222,8 @@ sub bnf2luatable {
         $indent_level++;
         $default_grammar = 1;
     }
+    warn "bnf2luatable: Exp/Def:", $explicit_grammar, '/', $default_grammar;
+    die "Default grammar can't follow explicit grammar and in a single Lua script" if $explicit_grammar and $default_grammar;
 
     my $lua_bnf = $lua_bnf_start;
 
@@ -303,7 +305,7 @@ sub bnf2luatable {
                         # close the table with fields
                         $lua_bnf .=
                               $indent x $indent_level
-                            . $default_grammar ? "},\n" : "}\n";
+                            . ( $default_grammar ? "},\n" : "}\n" );
                     }
                     # close the table without fields
                     else {
@@ -322,6 +324,8 @@ sub bnf2luatable {
 
 sub do_grammarexp{
     my ($ast, $context) = @_;
+    warn "do_grammarexp: Exp/Def:", $explicit_grammar, '/', $default_grammar;
+    die "Explicit grammar can't follow default grammar in a single Lua script" if $default_grammar;
 #    say "# do_grammarexp\nast:", Dumper $ast;
     my $g_name = $ast->[1]->[1]->[1];
     my $g_body = $ast->[1]->[2];
@@ -370,13 +374,11 @@ g = grammar ()
   end
 end
 },
-q{
-g = grammar ()
-local x = 1
+q{g = grammar ()
+  local x = 1
   a = { 'b', 'c' }
   w = { 'x', 'y', 'z' }
-  -- not just BNF, but pure Lua statements are allowed in a grammar
-  for i = 2,n do
+  for i = 2, n do
     x = x * i
   end
 end
@@ -555,35 +557,39 @@ q{
 );
 
 sub init_globals{
-    $default_grammar    = 0;
-    $explicit_grammar   = 0;
+    $default_grammar  = 0;
+    $explicit_grammar = 0;
 }
 
 for my $test (@tests){
     my ($name, $bnf_extended_lua, $expected_lua_bnf ) = @$test;
+    init_globals();
     my $ast = $p->parse( $bnf_extended_lua );
     unless (defined $ast){
         fail "Can't parse:\n$bnf_extended_lua";
         next;
     }
-    init_globals();
-
-#    my $lua_bnf_ast = $p->serialize( $ast );
-#    say $lua_bnf_ast;
-    my $lua_bnf = $p->fmt( $ast );
-#    say $lua_bnf;
-
-    # test by string matching
-    eq_or_diff $lua_bnf, $expected_lua_bnf, $name;
-
-    # test by lua compilation
     unless ($name =~ /^fatal/){
+#        my $lua_bnf_ast = $p->serialize( $ast );
+#        say $lua_bnf_ast;
+        my $lua_bnf = $p->fmt( $ast );
+#        say $lua_bnf;
+
+        # test by string matching
+        eq_or_diff $lua_bnf, $expected_lua_bnf, $name;
+
+        # test by lua compilation
         my ($fh, $filename) = tempfile();
         binmode( $fh, ":utf8" );
         say $fh $lua_bnf;
         my $rc = system "lua $filename";
         is $rc, 0, "compile with lua";
     }
+    else{
+        eval { $p->fmt( $ast ) };
+        ok $@, $@;
+    }
+
 }
 
 done_testing();
