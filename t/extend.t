@@ -98,27 +98,27 @@ use Data::Dumper::Concise;
 my $p = MarpaX::Languages::Lua::AST->new( { discard_comments => 1 } );
 
 # [ lhs, [ rhs ], adverbs
-sub ast_traverse{
+sub bnf_ast_traverse{
     my ($ast) = @_;
     if (ref $ast){
         my ($node_id, @children) = @$ast;
         if ($node_id eq 'stat'){
-            ast_traverse(@children);
+            bnf_ast_traverse(@children);
         }
         elsif ($node_id eq 'BNF'){
 #            say "$node_id: ", Dumper \@children;
             my (undef, $name, $rules) = @children;
             return {
                 name => $name->[1],
-                rules => [ map { ast_traverse( $_ ) } @children ]
+                rules => [ map { bnf_ast_traverse( $_ ) } @children ]
             }
         }
         elsif ($node_id eq 'BNF rule'){
 #            say "$node_id: ", Dumper \@children;
             my ($lhs, $op, $alternatives) = @children;
             return {
-                lhs => ast_traverse( $lhs ),
-                rhs => ast_traverse( $alternatives ),
+                lhs => bnf_ast_traverse( $lhs ),
+                rhs => bnf_ast_traverse( $alternatives ),
             }
         }
         elsif ( $node_id eq 'lhs' ){
@@ -127,20 +127,20 @@ sub ast_traverse{
         elsif ( $node_id eq 'prioritized alternatives' ){
 #            say "$node_id: ", Dumper \@children;
             return {
-                'prioritized alternatives' => [ map { ast_traverse( $_ ) } @children ]
+                'prioritized alternatives' => [ map { bnf_ast_traverse( $_ ) } @children ]
             }
         }
         elsif ( $node_id eq 'prioritized alternative' ){
 #            say "$node_id: ", Dumper \@children;
             return {
                 'prioritized alternative' => [
-                    map { ast_traverse( $_ ) } @children
+                    map { bnf_ast_traverse( $_ ) } @children
                 ]
             }
         }
         elsif ( $node_id eq 'alternative' ){
 #            say "$node_id: ", Dumper \@children;
-            return [ map { ast_traverse( $_ ) } grep { $_->[0] ne 'comma' } @children ];
+            return [ map { bnf_ast_traverse( $_ ) } grep { $_->[0] ne 'comma' } @children ];
         }
         elsif ( $node_id eq 'separated sequence' ){
 #            say "$node_id: ", Dumper \@children;
@@ -158,16 +158,16 @@ sub ast_traverse{
         }
         elsif ( $node_id eq 'rhs'){
 #            say "$node_id: ", Dumper \@children;
-            return map { ast_traverse( $_ ) } @children
+            return map { bnf_ast_traverse( $_ ) } @children
         }
         elsif ( $node_id eq 'RH atom'){
 #            say "$node_id: ", Dumper \@children;
-            return map { ast_traverse( $_ ) } @children
+            return map { bnf_ast_traverse( $_ ) } @children
         }
         elsif ( $node_id eq 'action'){
 #            say "$node_id: ", Dumper \@children;
             $children[0]->[1] = 'function'; # action becomes function in lua
-            my $action = join ' ', map { ast_traverse( $_ ) } @children;
+            my $action = join ' ', map { bnf_ast_traverse( $_ ) } @children;
             $action =~ s/\(\s+/(/;  # these will apply to the first occurence
             $action =~ s/\s+\)/)/;  # that is the action parlist
             $action =~ s/\s+,/,/;
@@ -176,7 +176,7 @@ sub ast_traverse{
         }
         elsif ($node_id eq 'alternative fields'){
             return {
-                fields => map { ast_traverse( $_ ) } @children
+                fields => map { bnf_ast_traverse( $_ ) } @children
             }
         }
         elsif ($node_id eq 'field'){
@@ -184,12 +184,12 @@ sub ast_traverse{
         }
         elsif ( $node_id eq 'action parlist'){
 #            say "$node_id: ", Dumper \@children;
-            return join ' ', map { ast_traverse( $_ ) } @children;
+            return join ' ', map { bnf_ast_traverse( $_ ) } @children;
         }
         elsif ( $node_id eq 'block'){
             return $p->fmt($ast); # this is pure lua too
         }
-        return ast_traverse( $_ ) for @children;
+        return bnf_ast_traverse( $_ ) for @children;
     }
     else{
 #        say "unhandled scalar $ast";
@@ -197,14 +197,14 @@ sub ast_traverse{
     }
 }
 
-sub bnf2lua {
+sub bnf2luatable {
     my ($ast, $context) = @_;
 #    say "ast:", Dumper $ast;
 #    say Dumper $bnf;
     my ($indent, $indent_level) = map { $context->{$_} } qw { indent indent_level };
 
     # gather data
-    my $bnf = ast_traverse($ast);
+    my $bnf = bnf_ast_traverse($ast);
 #    say "BNF intermediate form:", Dumper $bnf;
 
     # render bnf rules data as lua tables
@@ -267,11 +267,11 @@ sub bnf2lua {
                                 "'" . $item . "'";
                         }
                         else{
-                            warn "bnf2lua: unknown rhs type: " . Dumper $rhs;
+                            warn "bnf2luatable: unknown rhs type: " . Dumper $rhs;
                         }
                     }
                     else{
-                        warn "bnf2lua: unknown rhs type $rhs.";
+                        warn "bnf2luatable: unknown rhs type $rhs.";
                     }
 #                    warn $priority if $priority;
                     $fields->{priority} = "'$priority'" if $priority;
@@ -309,6 +309,14 @@ sub bnf2lua {
     return $lua_bnf;
 }
 
+sub do_grammarexp{
+    my ($ast, $context) = @_;
+#    say "ast:", Dumper $ast;
+#    say Dumper $bnf;
+    my ($indent, $indent_level) = map { $context->{$_} } qw { indent indent_level };
+    return $p->fmt($ast);
+}
+
 $p->extend({
     # these rules will be incorporated into grammar source
     rules => $bnf,
@@ -323,7 +331,8 @@ $p->extend({
     },
     # these must return ast subtrees serialized to valid lua
     handlers => {
-        BNF => \&bnf2lua
+        BNF => \&bnf2luatable,
+        grammarexp => \&do_grammarexp,
     },
 });
 
