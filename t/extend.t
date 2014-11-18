@@ -109,7 +109,6 @@ sub bnf_ast_traverse{
 #            say "$node_id: ", Dumper \@children;
             my (undef, $name, $rules) = @children;
             return {
-                name => $name->[1],
                 rules => [ map { bnf_ast_traverse( $_ ) } @children ]
             }
         }
@@ -197,6 +196,9 @@ sub bnf_ast_traverse{
     }
 }
 
+my $default_grammar; # default grammar was processed
+my $explicit_grammar; # explicit grammar was processed
+
 sub bnf2luatable {
     my ($ast, $context) = @_;
 #    say "ast:", Dumper $ast;
@@ -208,14 +210,21 @@ sub bnf2luatable {
 #    say "BNF intermediate form:", Dumper $bnf;
 
     # render bnf rules data as lua tables
-    my $name = $bnf->{name};
-    my $lua_bnf_start = "\n" . $indent x $indent_level . "$name = {\n";
-    my $lua_bnf_end = $indent x $indent_level . "}";
+    my ($lua_bnf_start, $lua_bnf_end);
+    if ($explicit_grammar){
+        $lua_bnf_start = "\n";
+        $lua_bnf_end = '';
+    }
+    else{ # default grammar
+        $lua_bnf_start = "\n" . $indent x $indent_level . "default_grammar = {\n";
+        $lua_bnf_end = $indent x $indent_level . "}";
+        # rules in the default grammar need more indent
+        $indent_level++;
+        $default_grammar = 1;
+    }
 
     my $lua_bnf = $lua_bnf_start;
 
-    # rules in the grammer need more indent
-    $indent_level++;
     my $rules = $bnf->{rules};
     for my $rule (@$rules){
 
@@ -292,11 +301,13 @@ sub bnf2luatable {
                             ) .
                             "\n" . $indent x ($indent_level + 1) . "}\n";
                         # close the table with fields
-                        $lua_bnf .= $indent x $indent_level . "},\n";
+                        $lua_bnf .=
+                              $indent x $indent_level
+                            . $default_grammar ? "},\n" : "}\n";
                     }
                     # close the table without fields
                     else {
-                        $lua_bnf .= " },\n"
+                        $lua_bnf .= $default_grammar ? " },\n" : " }\n"
                     }
                 } ## for my $rhs (@$alternative){
                 $priority = '';
@@ -311,10 +322,19 @@ sub bnf2luatable {
 
 sub do_grammarexp{
     my ($ast, $context) = @_;
-#    say "ast:", Dumper $ast;
-#    say Dumper $bnf;
+#    say "# do_grammarexp\nast:", Dumper $ast;
+    my $g_name = $ast->[1]->[1]->[1];
+    my $g_body = $ast->[1]->[2];
+    shift $g_body; # strip node name
+    pop $g_body;   # strip 'end'
+#    say "# $g_name:\n", Dumper $g_body; exit;
+
+    my $g_block   = pop $g_body;
+    my $g_parlist = $g_body;
+#    say "# $g_name:\n", Dumper $g_parlist, $g_block; exit;
     my ($indent, $indent_level) = map { $context->{$_} } qw { indent indent_level };
-    return $p->fmt($ast);
+    $explicit_grammar = 1;
+    return $g_name . "\n" . $p->fmt($g_block) . "\nend\n";
 }
 
 $p->extend({
@@ -534,6 +554,11 @@ q{
 #[ '...', q{...}, q{...} ],
 );
 
+sub init_globals{
+    $default_grammar    = 0;
+    $explicit_grammar   = 0;
+}
+
 for my $test (@tests){
     my ($name, $bnf_extended_lua, $expected_lua_bnf ) = @$test;
     my $ast = $p->parse( $bnf_extended_lua );
@@ -541,6 +566,8 @@ for my $test (@tests){
         fail "Can't parse:\n$bnf_extended_lua";
         next;
     }
+    init_globals();
+
 #    my $lua_bnf_ast = $p->serialize( $ast );
 #    say $lua_bnf_ast;
     my $lua_bnf = $p->fmt( $ast );

@@ -636,7 +636,7 @@ sub do_fmt{
         $indent_level++ if $node_id eq 'block';
 
         # if the node can be processed by handler passed via extend(), doit
-        if (    $node_id eq 'stat'
+        if (    ref $children[0] eq "ARRAY"
             and exists $handlers->{ $children[0]->[0] }
             and    ref $handlers->{ $children[0]->[0] } eq "CODE"
             ){
