@@ -12,8 +12,6 @@ use File::Temp qw{ tempfile };
 
 use MarpaX::Languages::Lua::LUIF;
 
-use Data::Dumper::Concise;
-# create Lua parser and extend it with BNF rules above
 my $p = MarpaX::Languages::Lua::LUIF->new( { discard_comments => 1 } );
 
 # test lua bnf
