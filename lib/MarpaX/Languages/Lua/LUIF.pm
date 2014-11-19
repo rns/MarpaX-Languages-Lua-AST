@@ -330,7 +330,7 @@ sub do_grammarexp{
     pop @$g_body;   # strip 'end'
 #    say "# $g_name:\n", Dumper $g_body; exit;
 
-    my $g_block   = pop $g_body;
+    my $g_block   = pop @$g_body;
     my $g_parlist = $g_body;
 #    say "# $g_name:\n", Dumper $g_parlist;
     my ($indent, $indent_level) = map { $context->{$_} } qw { indent indent_level };

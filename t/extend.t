@@ -12,7 +12,7 @@ use File::Temp qw{ tempfile };
 
 use MarpaX::Languages::Lua::LUIF;
 
-my $p = MarpaX::Languages::Lua::LUIF->new( { discard_comments => 1 } );
+my $p = MarpaX::Languages::Lua::LUIF->new();
 
 # test lua bnf
 my @tests = (
