@@ -594,6 +594,7 @@ sub fmt{
         $opts->{indent} //= '  ';
     }
     $opts->{handlers} = $parser->{handlers};
+    $opts->{parser}   = $parser;
     my $fmt = do_fmt( $ast, $opts );
     $fmt =~ s/^\n//ms;
     $fmt =~ s{[ ]+\n}{\n}gms;
@@ -604,8 +605,9 @@ sub do_fmt{
     my ($ast, $opts) = @_;
     my $s;
     # options
-    state $indent = $opts->{indent};
+    state $indent   = $opts->{indent};
     state $handlers = $opts->{handlers};
+    state $parser   = $opts->{parser};
     # context
     state $current_node //= '';
     state $current_parent_node //= '';
@@ -642,6 +644,7 @@ sub do_fmt{
             ){
             # call handler
             $s .= $handlers->{ $children[0]->[0] }->(
+                $parser,
                 $ast,
                 {
                     indent       => $indent,
