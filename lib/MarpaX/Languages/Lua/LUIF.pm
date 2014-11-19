@@ -321,7 +321,7 @@ sub bnf2luatable {
 
 sub do_grammarexp{
     my ($parser, $ast, $context) = @_;
-    warn "do_grammarexp: Exp/Def:", $explicit_grammar, '/', $default_grammar;
+#    warn "do_grammarexp: Exp/Def:", $explicit_grammar, '/', $default_grammar;
     die "Explicit grammar can't follow default grammar in a single Lua script" if $default_grammar;
 #    say "# do_grammarexp\nast:", Dumper $ast;
     my $g_name = $ast->[1]->[1]->[1];
@@ -335,7 +335,7 @@ sub do_grammarexp{
 #    say "# $g_name:\n", Dumper $g_parlist;
     my ($indent, $indent_level) = map { $context->{$_} } qw { indent indent_level };
     $explicit_grammar = 1;
-    return "function()\n" . $parser->fmt($g_block) . "\nend\n";
+    return "function ()\n" . $parser->fmt($g_block) . "\nend\n";
 }
 
 our @ISA = qw(MarpaX::Languages::Lua::AST);

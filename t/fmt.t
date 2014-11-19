@@ -66,6 +66,7 @@ a = f
 
 f = [[
 return function ( a , b , c , d , e )
+  local y = 1
   local x = a >= b or c or ( d and e ) or nil
   return x
 end , { a = 1 , b = 2 >= 1 , } or { 1 };
@@ -78,6 +79,7 @@ q{
 a = f(g).x(a)
 f = [[
 return function ( a, b, c, d, e )
+  local y = 1
   local x = a >= b or c or ( d and e ) or nil
   return x
 end, { a = 1, b = 2 >= 1, } or { 1 };

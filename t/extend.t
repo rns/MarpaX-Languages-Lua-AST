@@ -32,6 +32,7 @@ q{g = function()
   local x = 1
   a = { 'b', 'c' }
   w = { 'x', 'y', 'z' }
+  -- not just BNF, but pure Lua statements are allowed in a grammar
   for i = 2, n do
     x = x * i
   end
@@ -52,6 +53,7 @@ Expression ::=
   | Expression sub Expression
 },
 <<EOS
+-- BNF rules
 default_grammar = {
   Script = { 'Expression',
     fields = {
@@ -117,43 +119,43 @@ Marpa_R2_synopsys_actions = function ()
       quantifier = '+',
       separator = 'comma'
     }
-  },
-  Expression = { 'Number' },
+  }
+  Expression = { 'Number' }
   Expression = { 'left_paren', 'Expression', 'right_paren',
     fields = {
       priority = '|'
     }
-  },
+  }
   Expression = { 'Expression', 'op_exp', 'Expression',
     fields = {
       action = function (e1, e2) return e1 ^ e2 end,
       priority = '||'
     }
-  },
+  }
   Expression = { 'Expression', 'op_mul', 'Expression',
     fields = {
       action = function (e1, e2) return e1 * e2 end,
       priority = '||'
     }
-  },
+  }
   Expression = { 'Expression', 'op_div', 'Expression',
     fields = {
       action = function (e1, e2) return e1 / e2 end,
       priority = '|'
     }
-  },
+  }
   Expression = { 'Expression', 'op_add', 'Expression',
     fields = {
       action = function (e1, e2) return e1 + e2 end,
       priority = '||'
     }
-  },
+  }
   Expression = { 'Expression', 'op_sub', 'Expression',
     fields = {
       action = function (e1, e2) return e1 - e2 end,
       priority = '|'
     }
-  },
+  }
 end
 EOS
 ],
