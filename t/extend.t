@@ -17,6 +17,7 @@ my $p = MarpaX::Languages::Lua::LUIF->new();
 # test lua bnf
 my @tests = (
 [ 'LUIF design note',
+# LUIF
 q{
 g = grammar ()
   local x = 1
@@ -28,7 +29,8 @@ g = grammar ()
   end
 end
 },
-q{g = function()
+# expected lua
+q{g = function ()
   local x = 1
   a = { 'b', 'c' }
   w = { 'x', 'y', 'z' }
@@ -39,9 +41,10 @@ q{g = function()
 end
 }
 ],
+
 [ 'Marpa::R2 synopsis with default name',
+# LUIF
 q{
--- BNF rules
 Script ::= Expression+ % comma
 Expression ::=
   Number
@@ -52,8 +55,8 @@ Expression ::=
  || Expression add Expression
   | Expression sub Expression
 },
+# expected lua
 <<EOS
--- BNF rules
 default_grammar = {
   Script = { 'Expression',
     fields = {
@@ -98,6 +101,7 @@ EOS
 ],
 
 [ 'Marpa::R2 synopsys with actions in Lua functions',
+# LUIF
 q{
 Marpa_R2_synopsys_actions = grammar ()
   Script ::= Expression+ % comma
@@ -111,6 +115,7 @@ Marpa_R2_synopsys_actions = grammar ()
     | Expression op_sub Expression, action (e1, e2) return e1 - e2 end
 end
 },
+# expected lua
 <<EOS
 Marpa_R2_synopsys_actions = function ()
   Script = { 'Expression',
@@ -159,7 +164,9 @@ Marpa_R2_synopsys_actions = function ()
 end
 EOS
 ],
+
 [ 'fatal: both grammar() and BNF rules are used, BNF after grammar()',
+# LUIF
 q{
 g = grammar ()
 local x = 1
@@ -184,7 +191,9 @@ q{
 ...
 }
 ],
+
 [ 'fatal: both grammar() and BNF rules are used, BNF before grammar()',
+# LUIF
 q{
 Script ::= Expression+ % comma
 Expression ::=
