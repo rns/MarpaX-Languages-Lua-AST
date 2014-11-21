@@ -194,9 +194,6 @@ sub bnf_ast_traverse{
     }
 }
 
-my $default_grammar; # default grammar was processed
-my $explicit_grammar; # explicit grammar was processed
-
 sub bnf2luatable {
     my ($parser, $ast, $context) = @_;
 #    say "ast:", Dumper $ast;
@@ -208,21 +205,23 @@ sub bnf2luatable {
 #    say "BNF intermediate form:", Dumper $bnf;
 
     # render bnf rules data as lua tables
-    my ($lua_bnf_start, $lua_bnf_end);
-    if ($explicit_grammar){
-        die "Default grammar can't follow explicit grammar and in a single Lua script" if $explicit_grammar and $default_grammar;
-        $lua_bnf_start = "\n";
-        $lua_bnf_end = '';
+    my ($luatable_start, $luatable_end);
+    if ($parser->{bnf_in_explicit_grammar}){
+        $luatable_start = "\n";
+        $luatable_end   = '';
     }
     else{ # default grammar
-        $lua_bnf_start = "\n" . $indent x $indent_level . "default_grammar = {\n";
-        $lua_bnf_end = $indent x $indent_level . "}";
+        $luatable_start = "\n" . $indent x $indent_level . "default_grammar = {\n";
+        $luatable_end   = $indent x $indent_level . "}\n";
         # rules in the default grammar need more indent
         $indent_level++;
-        $default_grammar = 1;
+        $parser->{default_grammar} = 1;
     }
+    die "Default grammar can't follow explicit grammar and in a single Lua script"
+        if $parser->{explicit_grammar} and $parser->{default_grammar};
+#    warn "bnf2luatable: Exp/Def:", $parser->{explicit_grammar}, '/', $parser->{default_grammar};
 
-    my $lua_bnf = $lua_bnf_start;
+    my $luatable = $luatable_start;
 
     my $rules = $bnf->{rules};
     for my $rule (@$rules){
@@ -230,11 +229,13 @@ sub bnf2luatable {
         my $lhs = $rule->{lhs};
         my $priority;
     #    say "# rule:\nlhs: ", $lhs;
+
         # prioritized_alternatives are joined with double bar ||, loosen precedence
         my $prioritized_alternatives = $rule->{rhs}->{"prioritized alternatives"};
         for my $pa_ix ( 0 .. @{ $prioritized_alternatives } - 1){
             my $pa = $prioritized_alternatives->[$pa_ix];
             my @alternatives = $pa->{"prioritized alternative"};
+
             # alternatives are joined with bar |, same precedence
             for my $alternative (@alternatives){
     #            warn "alternative:\n", Dumper $alternative;
@@ -253,9 +254,9 @@ sub bnf2luatable {
                     # then set rhs to its hash ref rhs
                     $rhs = $rhs->[0] if ref $rhs->[0] eq "HASH";
                     # add array ref rule
-                    my $lua_bnf_rule;
+                    my $luatable_rule;
                     if (ref $rhs eq "ARRAY"){
-                        $lua_bnf_rule =
+                        $luatable_rule =
                             $indent x $indent_level . "$lhs = { " .
                             join(', ', map { "'$_'" } @$rhs );
                     }
@@ -270,7 +271,7 @@ sub bnf2luatable {
                                 my $v = $k eq 'proper' ? $rhs->{$k} : "'$rhs->{$k}'";
                                 $fields->{$k} = $v;
                             }
-                            $lua_bnf_rule =
+                            $luatable_rule =
                                 $indent x $indent_level . "$lhs = { " .
                                 "'" . $item . "'";
                         }
@@ -283,30 +284,30 @@ sub bnf2luatable {
                     }
 #                    warn $priority if $priority;
                     $fields->{priority} = "'$priority'" if $priority;
-                    $lua_bnf .= $lua_bnf_rule;
-#                    warn $lua_bnf_rule;
+                    $luatable .= $luatable_rule;
+#                    warn $luatable_rule;
                     $priority = '|';
-#                        warn $priority if $rhs_ix < @$alternative - 1;
+#                    warn $priority if $rhs_ix < @$alternative - 1;
                     # add fields, if any
                     if (keys %$fields){
     #                    warn "fields: ", Dumper $fields;
-                        $lua_bnf .=
-                            ",\n" .
-                            $indent x ($indent_level + 1) . "fields = {\n" .
-                            $indent x ($indent_level + 2)  .
-                            join (
+                        $luatable .=
+                              ",\n"
+                            . $indent x ($indent_level + 1) . "fields = {\n"
+                            . $indent x ($indent_level + 2)
+                            . join (
                                 ( ",\n" . $indent x ($indent_level + 2) ),
                                 map { "$_ = $fields->{$_}" } sort keys %$fields
-                            ) .
-                            "\n" . $indent x ($indent_level + 1) . "}\n";
+                              )
+                            . "\n" . $indent x ($indent_level + 1) . "}\n";
                         # close the table with fields
-                        $lua_bnf .=
+                        $luatable .=
                               $indent x $indent_level
-                            . ( $default_grammar ? "},\n" : "}\n" );
+                            . ( $parser->{bnf_in_explicit_grammar} ? "}\n" : "},\n" );
                     }
                     # close the table without fields
                     else {
-                        $lua_bnf .= $default_grammar ? " },\n" : " }\n"
+                        $luatable .= $parser->{bnf_in_explicit_grammar} ? " }\n" : " },\n"
                     }
                 } ## for my $rhs (@$alternative){
                 $priority = '';
@@ -315,27 +316,35 @@ sub bnf2luatable {
 #            warn '||' if $pa_ix < @{ $prioritized_alternatives } - 1;
         } ## for my $pa ( @{ $prioritized_alternatives } ){
     } ## for my $rule (@$rules)
-    $lua_bnf .= $lua_bnf_end;
-    return $lua_bnf;
+    $luatable .= $luatable_end;
+    return $luatable;
 }
 
 sub do_grammarexp{
     my ($parser, $ast, $context) = @_;
-#    warn "do_grammarexp: Exp/Def:", $explicit_grammar, '/', $default_grammar;
-    die "Explicit grammar can't follow default grammar in a single Lua script" if $default_grammar;
+
+#    warn "do_grammarexp: Exp/Def:", $parser->{explicit_grammar}, '/', $parser->{default_grammar};
+    die "Explicit grammar can't follow default grammar in a single Lua script"
+        if $parser->{default_grammar};
+
+    # extract grammar name, parameter list and block nodes
 #    say "# do_grammarexp\nast:", Dumper $ast;
     my $g_name = $ast->[1]->[1]->[1];
     my $g_body = $ast->[1]->[2];
     shift @$g_body; # strip node name
     pop @$g_body;   # strip 'end'
 #    say "# $g_name:\n", Dumper $g_body; exit;
-
     my $g_block   = pop @$g_body;
     my $g_parlist = $g_body;
 #    say "# $g_name:\n", Dumper $g_parlist;
+
+    # transpile to lua
     my ($indent, $indent_level) = map { $context->{$_} } qw { indent indent_level };
-    $explicit_grammar = 1;
-    return "function ()\n" . $parser->fmt($g_block) . "\nend\n";
+    $parser->{bnf_in_explicit_grammar} = 1;
+    $parser->{explicit_grammar} = 1;
+    my $grammarexp = "function ()\n" . $parser->fmt($g_block) . "\nend\n";
+    $parser->{bnf_in_explicit_grammar} = 0;
+    return $grammarexp;
 }
 
 our @ISA = qw(MarpaX::Languages::Lua::AST);
@@ -368,9 +377,24 @@ sub new {
 
 sub parse {
     my ( $parser, $source, $recce_opts ) = @_;
-    $default_grammar  = 0;
-    $explicit_grammar = 0;
+
+    $parser->{bnf_in_explicit_grammar} = 0; # BNF rules belong to an explicit grammar
+
+    $parser->{default_grammar}  = 0; # the default grammar is met in the LUIF source
+    $parser->{explicit_grammar} = 0; # an explicit grammar is met in the LUIF source
+
     return $parser->SUPER::parse( $source, $recce_opts );
 }
 
+# LUIF source to lua
+sub transpile{
+    my ( $parser, $luif, $recce_opts ) = @_;
+
+    my $ast = $parser->parse( $luif, $recce_opts );
+    return unless defined $ast; # can't parse
+    my $lua = $parser->fmt( $ast );
+
+    $lua =~ s/}\n\nend/}\nend/ms;
+    return $lua;
+}
 1;

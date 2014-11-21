@@ -665,10 +665,11 @@ sub do_fmt{
 #        say "  indent level          : $indent_level";
 #        say "  indent level blocks   : ", join ' ', @indent_level_blocks if @indent_level_blocks;
 #        say "  previous literal node : '$previous_literal_node'" if $previous_literal_node;
-
         # append current literal
         if    ( $ast =~ /^(function|for|while|repeat)$/   ){
-                                          $s .= "\n" . $indent x $indent_level . $ast . ' ' }
+            $s .= ( $previous_literal_node !~ /^(short comment)$/ ? "\n" : '' )
+                . $indent x $indent_level . $ast . ' '
+        }
 
         elsif ( $ast =~ /^if$/         ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
         elsif ( $ast =~ /^local$/      ){ $s .= "\n" . $indent x $indent_level . $ast . ' ' }
@@ -681,13 +682,13 @@ sub do_fmt{
         elsif ( $ast =~ /^do$/         ){ $s .= ' ' . $ast . ' ' }
         elsif ( $ast =~ /^then$/       ){ $s .= ' ' . $ast }
 
-        elsif ( $ast =~ /^end$/        ){ $s .= "\n" . $indent x $indent_level . $ast;
-                                          # add newline after function/local/do end
-                                          $s .= "\n"
-                                                if $indent_level_blocks[$indent_level] =~
-                                                /^(function|local|do)$/;
-                                          $indent_level_blocks[$indent_level] = '';
-                                        }
+        elsif ( $ast =~ /^end$/        ){
+            $s .= $indent_level_blocks[$indent_level] eq 'handler' ? '' : "\n";
+            $s .= $indent x $indent_level . $ast;
+            # add newline after function/local/do end
+            $s .= $indent_level_blocks[$indent_level] =~ /^(function|local|do)$/ ? "\n" : '';
+            $indent_level_blocks[$indent_level] = '';
+        }
         elsif ( $previous_literal_node eq 'function' ){
 #            say "# $current_node: '$ast'";
             $s .= $ast . ' ';
@@ -704,6 +705,7 @@ sub do_fmt{
             and $previous_literal_node ne 'assignment'
             and $previous_literal_node ne 'if'
             and $previous_literal_node ne 'for'
+            and $previous_literal_node ne 'local'
             ){
             $s .= ( $previous_literal_node !~ /^(short comment|comma)$/ ? "\n" : '' ) .
                 $indent x $indent_level . $ast;
@@ -738,7 +740,9 @@ sub do_fmt{
         }
         elsif ( $current_parent_node eq 'binop' or
                 $current_node =~ /^(in|and|or)$/
-            ){ $s .= ' ' . $ast . ' ' }
+            ){
+            $s .= ' ' . $ast . ' '
+            }
         else{
             $s .= $indent x $indent_level . $ast;
         }

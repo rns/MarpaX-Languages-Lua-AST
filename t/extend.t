@@ -14,10 +14,11 @@ use MarpaX::Languages::Lua::LUIF;
 
 my $p = MarpaX::Languages::Lua::LUIF->new();
 
-# test lua bnf
+# test LUIF to lua transpiling
 my @tests = (
+
 [ 'LUIF design note',
-# LUIF
+# source LUIF
 q{
 g = grammar ()
   local x = 1
@@ -42,8 +43,8 @@ end
 }
 ],
 
-[ 'Marpa::R2 synopsis with default name',
-# LUIF
+[ 'Marpa::R2 synopsis as default grammar',
+# source LUIF
 q{
 Script ::= Expression+ % comma
 Expression ::=
@@ -100,8 +101,8 @@ default_grammar = {
 EOS
 ],
 
-[ 'Marpa::R2 synopsys with actions in Lua functions',
-# LUIF
+[ 'Marpa::R2 synopsys with actions as explicit grammar',
+# source LUIF
 q{
 Marpa_R2_synopsys_actions = grammar ()
   Script ::= Expression+ % comma
@@ -166,7 +167,7 @@ EOS
 ],
 
 [ 'fatal: both grammar() and BNF rules are used, BNF after grammar()',
-# LUIF
+# source LUIF
 q{
 g = grammar ()
 local x = 1
@@ -193,7 +194,7 @@ q{
 ],
 
 [ 'fatal: both grammar() and BNF rules are used, BNF before grammar()',
-# LUIF
+# source LUIF
 q{
 Script ::= Expression+ % comma
 Expression ::=
@@ -222,33 +223,34 @@ q{
 );
 
 for my $test (@tests){
-    my ($name, $bnf_extended_lua, $expected_lua_bnf ) = @$test;
-    my $ast = $p->parse( $bnf_extended_lua );
-    unless (defined $ast){
-        fail "Can't parse:\n$bnf_extended_lua";
-        next;
-    }
-    unless ($name =~ /^fatal/){
-#        my $lua_bnf_ast = $p->serialize( $ast );
-#        say $lua_bnf_ast;
-        my $lua_bnf = $p->fmt( $ast );
-#        say $lua_bnf;
 
-        # test by string matching
-        eq_or_diff $lua_bnf, $expected_lua_bnf, $name;
+    my ($test_desc, $luif, $expected_lua ) = @$test;
 
-        # test by lua compilation
+    unless ($test_desc =~ /^fatal/){
+
+        my $transpiled_lua = $p->transpile( $luif );
+#        say $transpiled_lua;
+
+        eq_or_diff $transpiled_lua, $expected_lua, $test_desc;
+
+        # transpiled LUIF must compile with lua
         my ($fh, $filename) = tempfile();
         binmode( $fh, ":utf8" );
-        say $fh $lua_bnf;
+        say $fh $transpiled_lua;
         my $rc = system "lua $filename";
+
         is $rc, 0, "compile with lua";
+
     }
     else{
-        eval { $p->fmt( $ast ) };
-        ok $@, $@;
-    }
 
+        eval { $p->transpile( $luif ) };
+        my $msg = $@;
+        $msg =~ s/single Lua script.*$/single Lua script/ms;
+
+        ok $msg, $msg;
+
+    }
 }
 
 done_testing();
