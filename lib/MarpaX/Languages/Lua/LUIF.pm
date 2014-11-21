@@ -338,6 +338,9 @@ sub do_grammarexp{
     my $g_parlist = $g_body;
 #    say "# $g_name:\n", Dumper $g_parlist;
 
+    # todo: traverse ast to create a symbol table of variables used in grammarexp block
+    #       to differentiate them from bare BNF symbols (which need to be included as literals in lua table)
+
     # transpile to lua
     my ($indent, $indent_level) = map { $context->{$_} } qw { indent indent_level };
     $parser->{bnf_in_explicit_grammar} = 1;

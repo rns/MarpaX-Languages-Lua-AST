@@ -1,27 +1,58 @@
 #!perl
 # Copyright 2014 Ruslan Shvedov
 
-# read LUIF source from standard input, transpile it to lua
-# and print the result to standard output
+# read LUIF source from the file specified on the command line or standard input
+# if no output file is specified transpile it to lua and print the result to the
+# file specified on the command line appending '.lua' to its name unless it already
+# has such extension or the standard output if no output file is specified
 
 use v5.14.2;
 use warnings;
 use strict;
 
+sub usage {
+    my $msg = shift || '';
+    say STDERR $msg if $msg;
+    die "Usage: perl luif2lua.pl [<] input.luif [output[.lua]]";
+}
+
+# input
+my $luif;
+if (defined $ARGV[0]){
+    if ( -e $ARGV[0] ){
+        open my $in, "<$ARGV[0]" or usage( "Can't open $ARGV[0]: $!." );
+        $luif = do { local $/ = undef; <$in> };
+        close $in;
+    }
+    else{
+        usage( "Input file $ARGV[0] doesn't exist." );
+    }
+}
+elsif ( not -t STDIN) {
+    $luif = do { local $/ = undef; <> };
+}
+
+usage( "Input is not specified." ) unless $luif;
+
+# transpile
 use MarpaX::Languages::Lua::LUIF;
 my $p = MarpaX::Languages::Lua::LUIF->new();
+my $lua = $p->transpile( $luif ) or die "Can't parse LUIF source";
 
-my $luif = do { local $/ = undef; <> };
-
-unless ($luif){
-    say "Usage: perl luif2lua.pl < input.luif > output.lua";
-    exit 1;
+# output
+my $out_fn;
+if (defined $ARGV[1]){
+    $out_fn = $ARGV[1];
+}
+elsif (defined $ARGV[0] and -e $ARGV[0]){
+    $out_fn = $ARGV[0];
+    $out_fn =~ s/\..*$/.lua/ unless $out_fn =~ /.lua$/ms;
+}
+else { # write to standard output and exit
+    say $lua;
+    exit 0;
 }
 
-my $ast = $p->parse( $luif );
-unless (defined $ast){
-    die "Can't transpile input: parse error";
-    next;
-}
-my $lua_bnf = $p->fmt( $ast );
-say $lua_bnf;
+open my $out, ">$out_fn" or usage( "Can't create $out_fn: $!." );
+say $out $lua;
+close $out;
