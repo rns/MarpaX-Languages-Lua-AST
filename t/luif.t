@@ -229,7 +229,7 @@ for my $test (@tests){
     unless ($test_desc =~ /^fatal/){
 
         my $transpiled_lua = $p->transpile( $luif );
-#        say $transpiled_lua;
+#        warn $transpiled_lua;
 
         eq_or_diff $transpiled_lua, $expected_lua, $test_desc;
 
