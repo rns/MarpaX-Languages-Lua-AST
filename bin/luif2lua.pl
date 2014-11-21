@@ -16,6 +16,8 @@ sub usage {
     die "Usage: perl luif2lua.pl [<] input.luif [output[.lua]]";
 }
 
+use lib qw{lib ../lib};
+
 # input
 my $luif;
 if (defined $ARGV[0]){
