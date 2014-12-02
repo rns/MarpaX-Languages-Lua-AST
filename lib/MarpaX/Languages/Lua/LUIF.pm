@@ -57,6 +57,7 @@ rhs ::= <RH atom>+
    | <separated sequence>
    | <named symbol>
    | '(' alternative ')'
+   | '[' alternative ']'
 
 # The sequence notation is extended to counted sequences,
 # and a separator notation adopted from Perl 6 is used

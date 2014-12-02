@@ -219,6 +219,31 @@ q{
 ...
 }
 ],
+
+[ 'first cut at JSON LUIF grammar',
+q{
+            json         ::= object
+                           | array
+            object       ::= [lcurly rcurly]
+                           | [lcurly] members [rcurly]
+            members      ::= pair* % comma
+            pair         ::= string [colon] value
+            value        ::= string
+                           | object
+                           | number
+                           | array
+                           | json_true
+                           | json_false
+                           | null
+            array        ::= [lsquare rsquare]
+                           | [lsquare] elements [rsquare]
+            elements     ::= value+ % comma
+            string       ::= lstring
+},
+q{...
+}
+],
+
 #[ '...', q{...}, q{...} ],
 );
 
