@@ -58,3 +58,5 @@ else { # write to standard output and exit
 open my $out, ">$out_fn" or usage( "Can't create $out_fn: $!." );
 say $out $lua;
 close $out;
+
+say STDERR "Transpiled LUIF has been written to $out_fn.";
