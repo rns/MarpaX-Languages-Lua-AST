@@ -203,7 +203,7 @@ sub bnf2luatable {
 
     # gather data
     my $bnf = bnf_ast_traverse($parser, $ast);
-#    say "BNF intermediate form:", Dumper $bnf;
+    say "BNF intermediate form:", Dumper $bnf;
 
     # render bnf rules data as lua tables
     my ($luatable_start, $luatable_end);
@@ -229,7 +229,8 @@ sub bnf2luatable {
 
         my $lhs = $rule->{lhs};
         my $priority;
-    #    say "# rule:\nlhs: ", $lhs;
+        my $lhs_rhs_ix = 0;
+        say "# rule:\nlhs: ", $lhs;
 
         # prioritized_alternatives are joined with double bar ||, loosen precedence
         my $prioritized_alternatives = $rule->{rhs}->{"prioritized alternatives"};
@@ -238,12 +239,14 @@ sub bnf2luatable {
             my @alternatives = $pa->{"prioritized alternative"};
 
             # alternatives are joined with bar |, same precedence
-            for my $alternative (@alternatives){
+            for my $a_ix (0 .. @alternatives - 1){
+                my $alternative = $alternatives[$a_ix];
     #            warn "alternative:\n", Dumper $alternative;
                 for my $rhs_ix ( 0 .. @$alternative - 1){
                     my $rhs = $alternative->[$rhs_ix];
-    #                warn "rhs:\n", Dumper $rhs;
-                    # rhs layout
+#                    warn "rhs:\n", Dumper $rhs;
+                    $lhs_rhs_ix++;
+                    # alternative layout
                     # [
                     #   [ rhs_sym1, rhs_sym2, ..., { fields } ]
                     #   or
@@ -258,7 +261,7 @@ sub bnf2luatable {
                     my $luatable_rule;
                     if (ref $rhs eq "ARRAY"){
                         $luatable_rule =
-                            $indent x $indent_level . "$lhs = { " .
+                            $indent x $indent_level . "$lhs\[$lhs_rhs_ix\] = { " .
                             join(', ', map { "'$_'" } @$rhs );
                     }
                     # add hash ref rule
@@ -273,15 +276,15 @@ sub bnf2luatable {
                                 $fields->{$k} = $v;
                             }
                             $luatable_rule =
-                                $indent x $indent_level . "$lhs = { " .
+                                $indent x $indent_level . "$lhs\[$lhs_rhs_ix\] = { " .
                                 "'" . $item . "'";
                         }
                         else{
-                            warn "bnf2luatable: unknown rhs type: " . Dumper $rhs;
+                            warn "bnf2luatable: unknown alternative type: " . Dumper $a;
                         }
                     }
                     else{
-                        warn "bnf2luatable: unknown rhs type $rhs.";
+                        warn "bnf2luatable: unknown alternative type $a.";
                     }
 #                    warn $priority if $priority;
                     $fields->{priority} = "'$priority'" if $priority;
@@ -310,9 +313,9 @@ sub bnf2luatable {
                     else {
                         $luatable .= $parser->{bnf_in_explicit_grammar} ? " }\n" : " },\n"
                     }
-                } ## for my $rhs (@$alternative){
+                } ## for my $rhs_ix ( 0 .. @$alternative - 1)
                 $priority = '';
-            } ## for my $alternative (@alternatives){
+            } ## for my $a_ix (0 .. @alternatives - 1)
             $priority = '||';
 #            warn '||' if $pa_ix < @{ $prioritized_alternatives } - 1;
         } ## for my $pa ( @{ $prioritized_alternatives } ){
