@@ -1,4 +1,4 @@
-#!perl
+#!/usr/bin/env perl
 # Copyright 2014 Ruslan Shvedov
 
 # read LUIF source from the file specified on the command line or standard input
@@ -16,7 +16,7 @@ sub usage {
     die "Usage: perl luif2lua.pl [<] input.luif [output[.lua]]";
 }
 
-use lib qw{lib ../lib};
+use lib qw{/home/Ruslan/MarpaX-Languages-Lua-AST/lib};
 
 # input
 my $luif;
