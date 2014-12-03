@@ -30,15 +30,17 @@ g = grammar ()
   end
 end
 },
-# expected lua
-q{g = function ()
+# expected: transpiled lua
+q{
+g = function ()
   local x = 1
-  a = { 'b', 'c' }
-  w = { 'x', 'y', 'z' }
+  a[1] = { 'b', 'c' }
+  w[1] = { 'x', 'y', 'z' }
   -- not just BNF, but pure Lua statements are allowed in a grammar
   for i = 2, n do
     x = x * i
   end
+  return { a, w }
 end
 }
 ],
@@ -56,49 +58,50 @@ Expression ::=
  || Expression add Expression
   | Expression sub Expression
 },
-# expected lua
-<<EOS
-default_grammar = {
-  Script = { 'Expression',
+# expected: transpiled lua
+q{
+default_grammar = function()
+  Script[1] = { 'Expression',
     fields = {
       proper = 1,
       quantifier = '+',
       separator = 'comma'
     }
-  },
-  Expression = { 'Number' },
-  Expression = { 'left_paren', 'Expression', 'right_paren',
+  }
+  Expression[1] = { 'Number' }
+  Expression[2] = { 'left_paren', 'Expression', 'right_paren',
     fields = {
       priority = '|'
     }
-  },
-  Expression = { 'Expression', 'exp', 'Expression',
+  }
+  Expression[3] = { 'Expression', 'exp', 'Expression',
     fields = {
       priority = '||'
     }
-  },
-  Expression = { 'Expression', 'mul', 'Expression',
+  }
+  Expression[4] = { 'Expression', 'mul', 'Expression',
     fields = {
       priority = '||'
     }
-  },
-  Expression = { 'Expression', 'div', 'Expression',
+  }
+  Expression[5] = { 'Expression', 'div', 'Expression',
     fields = {
       priority = '|'
     }
-  },
-  Expression = { 'Expression', 'add', 'Expression',
+  }
+  Expression[6] = { 'Expression', 'add', 'Expression',
     fields = {
       priority = '||'
     }
-  },
-  Expression = { 'Expression', 'sub', 'Expression',
+  }
+  Expression[7] = { 'Expression', 'sub', 'Expression',
     fields = {
       priority = '|'
     }
-  },
+  }
+  return { Script, Expression }
+end
 }
-EOS
 ],
 
 [ 'Marpa::R2 synopsys with actions as explicit grammar',
@@ -116,54 +119,55 @@ Marpa_R2_synopsys_actions = grammar ()
     | Expression op_sub Expression, action (e1, e2) return e1 - e2 end
 end
 },
-# expected lua
-<<EOS
+# expected: transpiled lua
+q{
 Marpa_R2_synopsys_actions = function ()
-  Script = { 'Expression',
+  Script[1] = { 'Expression',
     fields = {
       proper = 1,
       quantifier = '+',
       separator = 'comma'
     }
   }
-  Expression = { 'Number' }
-  Expression = { 'left_paren', 'Expression', 'right_paren',
+  Expression[1] = { 'Number' }
+  Expression[2] = { 'left_paren', 'Expression', 'right_paren',
     fields = {
       priority = '|'
     }
   }
-  Expression = { 'Expression', 'op_exp', 'Expression',
+  Expression[3] = { 'Expression', 'op_exp', 'Expression',
     fields = {
       action = function (e1, e2) return e1 ^ e2 end,
       priority = '||'
     }
   }
-  Expression = { 'Expression', 'op_mul', 'Expression',
+  Expression[4] = { 'Expression', 'op_mul', 'Expression',
     fields = {
       action = function (e1, e2) return e1 * e2 end,
       priority = '||'
     }
   }
-  Expression = { 'Expression', 'op_div', 'Expression',
+  Expression[5] = { 'Expression', 'op_div', 'Expression',
     fields = {
       action = function (e1, e2) return e1 / e2 end,
       priority = '|'
     }
   }
-  Expression = { 'Expression', 'op_add', 'Expression',
+  Expression[6] = { 'Expression', 'op_add', 'Expression',
     fields = {
       action = function (e1, e2) return e1 + e2 end,
       priority = '||'
     }
   }
-  Expression = { 'Expression', 'op_sub', 'Expression',
+  Expression[7] = { 'Expression', 'op_sub', 'Expression',
     fields = {
       action = function (e1, e2) return e1 - e2 end,
       priority = '|'
     }
   }
+  return { Script, Expression }
 end
-EOS
+}
 ],
 
 [ 'fatal: both grammar() and BNF rules are used, BNF after grammar()',
@@ -220,7 +224,7 @@ q{
 }
 ],
 
-[ 'first cut at JSON LUIF grammar',
+[ 'JSON LUIF grammar for Kollos',
 q{
             json         ::= object
                            | array
@@ -240,7 +244,75 @@ q{
             elements     ::= value+ % comma
             string       ::= lstring
 },
-q{...
+q{
+default_grammar = function()
+  json[1] = { 'object' }
+  json[2] = { 'array',
+    fields = {
+      priority = '|'
+    }
+  }
+  object[1] = { '[', 'lcurly', 'rcurly', ']' }
+  object[2] = { '[', 'lcurly', ']', 'members', '[', 'rcurly', ']',
+    fields = {
+      priority = '|'
+    }
+  }
+  members[1] = { 'pair',
+    fields = {
+      proper = 1,
+      quantifier = '*',
+      separator = 'comma'
+    }
+  }
+  pair[1] = { 'string', '[', 'colon', ']', 'value' }
+  value[1] = { 'string' }
+  value[2] = { 'object',
+    fields = {
+      priority = '|'
+    }
+  }
+  value[3] = { 'number',
+    fields = {
+      priority = '|'
+    }
+  }
+  value[4] = { 'array',
+    fields = {
+      priority = '|'
+    }
+  }
+  value[5] = { 'json_true',
+    fields = {
+      priority = '|'
+    }
+  }
+  value[6] = { 'json_false',
+    fields = {
+      priority = '|'
+    }
+  }
+  value[7] = { 'null',
+    fields = {
+      priority = '|'
+    }
+  }
+  array[1] = { '[', 'lsquare', 'rsquare', ']' }
+  array[2] = { '[', 'lsquare', ']', 'elements', '[', 'rsquare', ']',
+    fields = {
+      priority = '|'
+    }
+  }
+  elements[1] = { 'value',
+    fields = {
+      proper = 1,
+      quantifier = '+',
+      separator = 'comma'
+    }
+  }
+  string[1] = { 'lstring' }
+  return { json, object, members, pair, value, array, elements, string }
+end
 }
 ],
 
@@ -256,7 +328,8 @@ for my $test (@tests){
         my $transpiled_lua = $p->transpile( $luif );
 #        warn $transpiled_lua;
 
-        eq_or_diff $transpiled_lua, $expected_lua, $test_desc;
+        $expected_lua =~ s/^\s+//ms;
+        eq_or_diff $transpiled_lua, $expected_lua, "$test_desc: transpile into lua";
 
         # transpiled LUIF must compile with lua
         my ($fh, $filename) = tempfile();
@@ -264,7 +337,7 @@ for my $test (@tests){
         say $fh $transpiled_lua;
         my $rc = system "lua $filename";
 
-        is $rc, 0, "compile with lua";
+        is $rc, 0, "$test_desc: compile with lua";
 
     }
     else{

@@ -212,8 +212,8 @@ sub bnf2luatable {
         $luatable_end   = '';
     }
     else{ # default grammar
-        $luatable_start = "\n" . $indent x $indent_level . "default_grammar = {\n";
-        $luatable_end   = $indent x $indent_level . "}\n";
+        $luatable_start = "\n" . $indent x $indent_level . "default_grammar = function()\n";
+        $luatable_end   = $indent x $indent_level . "end\n";
         # rules in the default grammar need more indent
         $indent_level++;
         $parser->{default_grammar} = 1;
@@ -224,10 +224,12 @@ sub bnf2luatable {
 
     my $luatable = $luatable_start;
 
+    $parser->{LHSes} = [];
     my $rules = $bnf->{rules};
     for my $rule (@$rules){
 
         my $lhs = $rule->{lhs};
+        push @{ $parser->{LHSes} }, $lhs;
         my $priority;       # priority of the rhs alternative
         my $rhs_alt_ix = 0; # index of the rhs alternative in table named after lhs
 #        say "# rule:\nlhs: ", $lhs;
@@ -307,11 +309,11 @@ sub bnf2luatable {
                         # close the table with fields
                         $luatable .=
                               $indent x $indent_level
-                            . ( $parser->{bnf_in_explicit_grammar} ? "}\n" : "},\n" );
+                            . ( $parser->{bnf_in_explicit_grammar} ? "}\n" : "}\n" );
                     }
                     # close the table without fields
                     else {
-                        $luatable .= $parser->{bnf_in_explicit_grammar} ? " }\n" : " },\n"
+                        $luatable .= $parser->{bnf_in_explicit_grammar} ? " }\n" : " }\n"
                     }
                 } ## for my $rhs_ix ( 0 .. @$alternative - 1)
                 $priority = '';
@@ -320,7 +322,17 @@ sub bnf2luatable {
 #            warn '||' if $pa_ix < @{ $prioritized_alternatives } - 1;
         } ## for my $pa ( @{ $prioritized_alternatives } ){
     } ## for my $rule (@$rules)
-    $luatable .= $luatable_end;
+
+    # end the table
+    if ( $parser->{default_grammar} ){
+        chomp $luatable;
+        $luatable .=
+              "\n" . ($indent x ($indent_level)) . "return { " . join(', ', @{ $parser->{LHSes} } ) . ' }'
+            . "\n" . $luatable_end;
+    }
+    else{
+        $luatable .= $luatable_end;
+    }
     return $luatable;
 }
 
@@ -349,7 +361,11 @@ sub do_grammarexp{
     my ($indent, $indent_level) = map { $context->{$_} } qw { indent indent_level };
     $parser->{bnf_in_explicit_grammar} = 1;
     $parser->{explicit_grammar} = 1;
-    my $grammarexp = "function ()\n" . $parser->fmt($g_block) . "\nend\n";
+    my $grammarexp = "function ()" . "\n" . $parser->fmt($g_block);
+    chomp $grammarexp;
+    $grammarexp .=
+          "\n" . ($indent x ($indent_level + 1)) . "return { " . join(', ', @{ $parser->{LHSes} } ) . ' }'
+        . "\n" . "end\n";
     $parser->{bnf_in_explicit_grammar} = 0;
     return $grammarexp;
 }
