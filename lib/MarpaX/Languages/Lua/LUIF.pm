@@ -203,7 +203,7 @@ sub bnf2luatable {
 
     # gather data
     my $bnf = bnf_ast_traverse($parser, $ast);
-    say "BNF intermediate form:", Dumper $bnf;
+#    say "BNF intermediate form:", Dumper $bnf;
 
     # render bnf rules data as lua tables
     my ($luatable_start, $luatable_end);
@@ -228,9 +228,9 @@ sub bnf2luatable {
     for my $rule (@$rules){
 
         my $lhs = $rule->{lhs};
-        my $priority;
-        my $lhs_rhs_ix = 0;
-        say "# rule:\nlhs: ", $lhs;
+        my $priority;       # priority of the rhs alternative
+        my $rhs_alt_ix = 0; # index of the rhs alternative in table named after lhs
+#        say "# rule:\nlhs: ", $lhs;
 
         # prioritized_alternatives are joined with double bar ||, loosen precedence
         my $prioritized_alternatives = $rule->{rhs}->{"prioritized alternatives"};
@@ -245,7 +245,7 @@ sub bnf2luatable {
                 for my $rhs_ix ( 0 .. @$alternative - 1){
                     my $rhs = $alternative->[$rhs_ix];
 #                    warn "rhs:\n", Dumper $rhs;
-                    $lhs_rhs_ix++;
+                    $rhs_alt_ix++;
                     # alternative layout
                     # [
                     #   [ rhs_sym1, rhs_sym2, ..., { fields } ]
@@ -261,8 +261,8 @@ sub bnf2luatable {
                     my $luatable_rule;
                     if (ref $rhs eq "ARRAY"){
                         $luatable_rule =
-                            $indent x $indent_level . "$lhs\[$lhs_rhs_ix\] = { " .
-                            join(', ', map { "'$_'" } @$rhs );
+                            $indent x $indent_level . "$lhs\[$rhs_alt_ix\] = { " .
+                            join(', ', map { ref eq "ARRAY" ? "'" . join("', '", @$_) . "'" : "'$_'" } @$rhs );
                     }
                     # add hash ref rule
                     elsif (ref $rhs eq "HASH"){
@@ -276,7 +276,7 @@ sub bnf2luatable {
                                 $fields->{$k} = $v;
                             }
                             $luatable_rule =
-                                $indent x $indent_level . "$lhs\[$lhs_rhs_ix\] = { " .
+                                $indent x $indent_level . "$lhs\[$rhs_alt_ix\] = { " .
                                 "'" . $item . "'";
                         }
                         else{
