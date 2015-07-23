@@ -129,26 +129,103 @@ lexeme default = action => [ name, value ] latm => 1
     explist ::= explist <comma> exp
     explist ::= explist <comma> Comment exp
 
-    exp ::= <nil>
-    exp ::= <false>
-    exp ::= <true>
-    exp ::= Number
-    exp ::= String
-    exp ::= <ellipsis>
-    exp ::= functionexp
-    exp ::= prefixexp
-    exp ::= tableconstructor
-    exp ::= exp binop exp
-    exp ::= exp binop Comment exp
-    exp ::= exp Comment binop Comment exp
-    exp ::= unop exp
-    exp ::= unop Comment exp
-    exp ::= unop exp Comment
+# todo: enforce that exp before functioncall is a prefixexp above
+#       as per 2.5.8 – Function Calls
+
+    exp ::=
+
+           var
+
+         | <left paren> exp <right paren> assoc => group name => 'exp'
+
+        || exp args assoc => right name => 'functioncall'
+        || exp <colon> Name args assoc => right name => 'functioncall'
+
+         | <nil> name => 'exp'
+         | <false> name => 'exp'
+         | <true> name => 'exp'
+         | Number name => 'exp'
+         | String name => 'exp'
+         | <ellipsis> name => 'exp'
+         | tableconstructor name => 'exp'
+         | function funcbody name => 'exp'
+
+        || exp <exponentiation> exp assoc => right name => 'binop'
+         | exp <exponentiation> Comment exp assoc => right name => 'binop'
+         | exp Comment <exponentiation> Comment exp assoc => right name => 'binop'
+
+        || <not> exp name => 'unop'
+         | <not> Comment exp name => 'unop'
+         | <not> exp Comment name => 'unop'
+
+         | <length> exp name => 'unop'
+         | <length> Comment exp name => 'unop'
+         | <length> exp Comment name => 'unop'
+
+         | <subtraction> exp name => 'unop'
+         | <subtraction> Comment exp name => 'unop'
+         | <subtraction> exp Comment name => 'unop'
+
+        || exp <multiplication> exp name => 'binop'
+         | exp <multiplication> Comment exp name => 'binop'
+         | exp Comment <multiplication> Comment exp name => 'binop'
+
+         | exp <division> exp name => 'binop'
+         | exp <division> Comment exp name => 'binop'
+         | exp Comment <division> Comment exp name => 'binop'
+
+         | exp <modulo> exp name => 'binop'
+         | exp <modulo> Comment exp name => 'binop'
+         | exp Comment <modulo> Comment exp name => 'binop'
+
+        || exp <addition> exp name => 'binop'
+         | exp <addition> Comment exp name => 'binop'
+         | exp Comment <addition> Comment exp name => 'binop'
+
+         | exp <subtraction> exp name => 'binop'
+         | exp <subtraction> Comment exp name => 'binop'
+         | exp Comment <subtraction> Comment exp name => 'binop'
+
+        || exp <concatenation> exp assoc => right name => 'binop'
+         | exp <concatenation> Comment exp assoc => right name => 'binop'
+         | exp Comment <concatenation> Comment exp assoc => right name => 'binop'
+
+        || exp <less than> exp name => 'binop'
+         | exp <less than> Comment exp name => 'binop'
+         | exp Comment <less than> Comment exp name => 'binop'
+
+         | exp <less or equal> exp name => 'binop'
+         | exp <less or equal> Comment exp name => 'binop'
+         | exp Comment <less or equal> Comment exp name => 'binop'
+
+         | exp <greater than> exp name => 'binop'
+         | exp <greater than> Comment exp name => 'binop'
+         | exp Comment <greater than> Comment exp name => 'binop'
+
+         | exp <greater or equal> exp name => 'binop'
+         | exp <greater or equal> Comment exp name => 'binop'
+         | exp Comment <greater or equal> Comment exp name => 'binop'
+
+         | exp <equality> exp name => 'binop'
+         | exp <equality> Comment exp name => 'binop'
+         | exp Comment <equality> Comment exp name => 'binop'
+
+         | exp <negation> exp name => 'binop'
+         | exp <negation> Comment exp name => 'binop'
+         | exp Comment <negation> Comment exp name => 'binop'
+
+        || exp <and> exp name => 'binop'
+         | exp <and> Comment exp name => 'binop'
+         | exp Comment <and> Comment exp name => 'binop'
+
+        || exp <or> exp name => 'binop'
+         | exp <or> Comment exp name => 'binop'
+         | exp Comment <or> Comment exp name => 'binop'
 
     prefixexp ::= var
     prefixexp ::= functioncall
     prefixexp ::= <left paren> exp <right paren>
-# As an exception to the free-format syntax of Lua, you cannot put a line break
+# todo: As an exception to the free-format syntax of Lua, you cannot put a line break
 # before the '(' in a function call. This restriction avoids some
 # ambiguities in the language.
 
@@ -160,8 +237,6 @@ lexeme default = action => [ name, value ] latm => 1
     args ::= <left paren> explist <right paren>
     args ::= tableconstructor
     args ::= String
-
-    functionexp ::= <function> funcbody
 
 #    funcbody ::= '(' [parlist] ')' block <end>
     funcbody ::= <left paren> parlist <right paren> block <end>
@@ -194,28 +269,6 @@ lexeme default = action => [ name, value ] latm => 1
     field ::= <left bracket> exp <right bracket> <assignment> exp
     field ::= Name <assignment> exp
     field ::= exp
-
-#   binary operators
-    binop ::= <addition>
-    binop ::= <minus>
-    binop ::= <multiplication>
-    binop ::= <division>
-    binop ::= <exponentiation>
-    binop ::= <percent>
-    binop ::= <concatenation>
-    binop ::= <less than>
-    binop ::= <less or equal>
-    binop ::= <greater than>
-    binop ::= <greater or equal>
-    binop ::= <equality>
-    binop ::= <negation>
-    binop ::= <and>
-    binop ::= <or>
-
-#   unary operators
-    unop ::= <minus>
-    unop ::= <not>
-    unop ::= <length>
 
     Number ::= Int | Float | Hex
 
@@ -277,13 +330,13 @@ my @unicorns = (
     '<less or equal>',
     '<less than>',
     '<local>',
-    '<minus>',
+    '<subtraction>',
     '<multiplication>',
     '<negation>',
     '<nil>',
     '<not>',
     '<or>',
-    '<percent>',
+    '<modulo>',
     '<period>',
     '<repeat>',
     '<return>',
@@ -319,8 +372,8 @@ my $op_punc = {
 
             '.' =>  'concatenation',    '<' =>  'less than',
             '>' =>  'greater than',     '+' =>  'addition',
-            '-' =>  'minus',            '*' =>  'multiplication',
-            '/' =>  'division',         '%' =>  'percent',
+            '-' =>  'subtraction',      '*' =>  'multiplication',
+            '/' =>  'division',         '%' =>  'modulo',
             '#' =>  'length',           '^' =>  'exponentiation',
             ':' =>  'colon',            '[' =>  'left bracket',
             ']' =>  'right bracket',    '(' =>  'left paren',
@@ -557,14 +610,12 @@ sub read{
         return
     } ## end TOKEN: while (1)
     # return ast or undef on parse failure
-=pod
     if ($recce->ambiguity_metric() > 1){
         my $i = 0;
         while (defined $recce->value() and $i <= 100){ $i++;  }
-        warn "Ambiguous parse: ", ($i > 100 ? "over 100" : $i), " alternatives."
+        warn "Ambiguous parse: ", ($i > 100 ? "over 100" : $i), " alternatives.";
+        $recce->series_restart();
     }
-=cut
-    $recce->series_restart();
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         warn "No parse was found, after reading the entire input.\n";
@@ -735,7 +786,7 @@ sub do_fmt{
             $s .= $ast . ' ';
         }
         elsif ( $current_parent_node eq 'binop'
-            and $current_node eq 'minus' ){
+            and $current_node eq 'subtraction' ){
             $s .= ' ' . $ast . ' '
         }
         elsif ( $current_parent_node eq 'binop' or
