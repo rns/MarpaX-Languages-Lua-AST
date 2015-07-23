@@ -70,14 +70,14 @@ my %lua_files = qw{
     closure.lua        1
     code.lua           1
     constructs.lua     1
-    db.lua             7
-    errors.lua         7
+    db.lua             1
+    errors.lua         1
     events.lua         1
     files.lua          4
     gc.lua             1
     literals.lua       1
     locals.lua         1
-    main.lua           7
+    main.lua           1
     math.lua           1
     nextvar.lua        1
     pm.lua             1
