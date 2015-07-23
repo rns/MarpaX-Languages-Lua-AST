@@ -40,7 +40,9 @@ lexeme default = action => [ name, value ] latm => 1
     chunk ::=
     chunk ::= statements
     chunk ::= statements laststat
+    chunk ::= statements laststat Comment
     chunk ::= statements laststat <semicolon>
+    chunk ::= statements laststat <semicolon> Comment
     chunk ::= laststat <semicolon>
     chunk ::= laststat <semicolon> Comment
     chunk ::= laststat
