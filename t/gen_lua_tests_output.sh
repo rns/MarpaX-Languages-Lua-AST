@@ -1,5 +1,5 @@
 #! /usr/bin/sh
-# run Lua 5.1 test suite
+# generate output files by running Lua 5.1 test suite
 
 # Lua Test Suite's README:
 # go to the test directory
