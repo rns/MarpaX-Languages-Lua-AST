@@ -1,5 +1,5 @@
 #!perl
-# Copyright 2014 Ruslan Shvedov
+# Copyright 2015 Ruslan Shvedov
 
 # test parsing of lua code snippets from the Reference manual
 

@@ -1,5 +1,5 @@
 #!perl
-# Copyright 2014 Ruslan Shvedov
+# Copyright 2015 Ruslan Shvedov
 
 # take a source code of a lua function and test its execution results
 # returned via Inline::Lua for the original source code and

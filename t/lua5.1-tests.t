@@ -1,5 +1,5 @@
 #!perl
-# Copyright 2014 Ruslan Shvedov
+# Copyright 2015 Ruslan Shvedov
 
 # take a source code of a lua program and test its execution results
 # returned by the lua interpreter for the original source code and

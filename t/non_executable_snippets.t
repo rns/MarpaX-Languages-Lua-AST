@@ -1,5 +1,5 @@
 #!perl
-# Copyright 2014 Ruslan Shvedov
+# Copyright 2015 Ruslan Shvedov
 
 #
 use v5.14.2;

@@ -1,6 +1,6 @@
-# Copyright 2014 Ruslan Shvedov
+# Copyright 2015 Ruslan Shvedov
 
-# Lua 5.1 Parser in barebones (external scanning, no priotitized rules, no sequences) SLIF
+# Lua 5.1 Parser in SLIF with left recursion instead of sequences and external scanning
 
 package MarpaX::Languages::Lua::AST;
 
@@ -24,8 +24,6 @@ my $grammar = q{
 lexeme default = action => [ name, value ] latm => 1
 
     # source: 8 – The Complete Syntax of Lua, Lua 5.1 Reference Manual
-    # discussion on #marpa -- http://irclog.perlgeek.de/marpa/2014-10-06#i_9463520
-    #    -- http://www.lua.org/manual/5.1/manual.html
     # The Lua Book -- http://www.lua.org/pil/contents.html
     # More parser tests: http://lua-users.org/wiki/LuaGrammar
 
