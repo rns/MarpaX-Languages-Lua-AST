@@ -126,7 +126,6 @@ lexeme default = action => [ name, value ] latm => 1
 #    explist ::= {exp ','} exp
 #    explist ::= exp+ separator => [,]
     explist ::= exp
-    explist ::= exp Comment
     explist ::= Comment exp
     explist ::= explist <comma> exp
     explist ::= explist <comma> Comment exp
@@ -261,7 +260,6 @@ lexeme default = action => [ name, value ] latm => 1
     fieldlist ::= field Comment
     fieldlist ::= fieldlist fieldsep field
     fieldlist ::= fieldlist fieldsep Comment field
-    fieldlist ::= fieldlist fieldsep Comment field Comment
     fieldlist ::= fieldlist fieldsep field fieldsep
     fieldlist ::= fieldlist fieldsep field Comment fieldsep
 
