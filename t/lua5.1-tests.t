@@ -67,7 +67,7 @@ my %lua_files = qw{
     big.lua            5
     calls.lua          1
     checktable.lua     1
-    closure.lua        7
+    closure.lua        1
     code.lua           1
     constructs.lua     1
     db.lua             7
