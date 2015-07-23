@@ -64,7 +64,6 @@ lexeme default = action => [ name, value ] latm => 1
 #   Empty statements are ok in Lua 5.2 http://www.lua.org/manual/5.2/manual.html#3.3.1
 #
 #   possible todo: better optional semicolon
-    stat ::= <semicolon>
 
     block ::= chunk
 
