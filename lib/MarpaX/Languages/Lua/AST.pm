@@ -50,11 +50,11 @@ lexeme default = action => [ name, value ] latm => 1
 
 #    {stat [';']}
     statements ::= stat
-                 | Comment
-                 | stat <semicolon>
-                 | statements stat
-                 | statements Comment
-                 | statements stat <semicolon>
+    statements ::= Comment
+    statements ::= stat <semicolon>
+    statements ::= statements stat
+    statements ::= statements Comment
+    statements ::= statements stat <semicolon>
 
 #   [';'] from {stat [';']}
 #   not in line with "There are no empty statements and thus ';;' is not legal"
