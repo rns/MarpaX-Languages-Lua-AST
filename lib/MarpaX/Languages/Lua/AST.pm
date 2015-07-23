@@ -613,6 +613,8 @@ sub read{
         while (defined $recce->value() and $i <= 100){ $i++;  }
         warn "Ambiguous parse: ", ($i > 100 ? "over 100" : $i), " alternatives.";
         $recce->series_restart();
+        warn $recce->ambiguous();
+        $recce->series_restart();
     }
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
