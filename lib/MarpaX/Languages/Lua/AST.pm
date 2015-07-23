@@ -50,11 +50,11 @@ lexeme default = action => [ name, value ] latm => 1
 
 #    {stat [';']}
     statements ::= stat
-    statements ::= Comment
-    statements ::= stat <semicolon>
-    statements ::= statements stat
-    statements ::= statements Comment
-    statements ::= statements stat <semicolon>
+                 | Comment
+                 | stat <semicolon>
+                 | statements stat
+                 | statements Comment
+                 | statements stat <semicolon>
 
 #   [';'] from {stat [';']}
 #   not in line with "There are no empty statements and thus ';;' is not legal"
@@ -129,9 +129,6 @@ lexeme default = action => [ name, value ] latm => 1
     explist ::= Comment exp
     explist ::= explist <comma> exp
     explist ::= explist <comma> Comment exp
-
-# todo: enforce that exp before functioncall is a prefixexp above
-#       as per 2.5.8 – Function Calls
 
     exp ::=
 
