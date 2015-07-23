@@ -45,10 +45,15 @@ lexeme default = action => [ name, value ] latm => 1
     chunk ::= laststat <semicolon> Comment
     chunk ::= laststat
     chunk ::= laststat Comment
+
 #    {stat [';']}
     statements ::= stat
-    statements ::= statements stat
-    statements ::= statements <semicolon> stat
+                 | Comment
+                 | stat <semicolon>
+                 | statements stat
+                 | statements Comment
+                 | statements stat <semicolon>
+
 #   [';'] from {stat [';']}
 #   not in line with "There are no empty statements and thus ';;' is not legal"
 #   in http://www.lua.org/manual/5.1/manual.html#2.4.1, but api.lua:163
@@ -87,8 +92,6 @@ lexeme default = action => [ name, value ] latm => 1
 #    <local> namelist [<assignment> explist]
     stat ::= <local> namelist <assignment> explist
     stat ::= <local> namelist
-
-    stat ::= Comment
 
     <one or more elseifs> ::= <one elseif>
     <one or more elseifs> ::= <one or more elseifs> <one elseif>
