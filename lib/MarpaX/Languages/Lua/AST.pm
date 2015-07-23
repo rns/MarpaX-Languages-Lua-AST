@@ -148,6 +148,10 @@ lexeme default = action => [ name, value ] latm => 1
          | tableconstructor name => 'exp'
          | function funcbody name => 'exp'
 
+        || <subtraction> exp name => 'unop' assoc => right
+         | <subtraction> Comment exp name => 'unop'
+         | <subtraction> exp Comment name => 'unop'
+
         || exp <exponentiation> exp assoc => right name => 'binop'
          | exp <exponentiation> Comment exp assoc => right name => 'binop'
          | exp Comment <exponentiation> Comment exp assoc => right name => 'binop'
@@ -159,10 +163,6 @@ lexeme default = action => [ name, value ] latm => 1
          | <length> exp name => 'unop'
          | <length> Comment exp name => 'unop'
          | <length> exp Comment name => 'unop'
-
-         | <subtraction> exp name => 'unop'
-         | <subtraction> Comment exp name => 'unop'
-         | <subtraction> exp Comment name => 'unop'
 
         || exp <multiplication> exp name => 'binop'
          | exp <multiplication> Comment exp name => 'binop'
