@@ -112,9 +112,10 @@ lexeme default = action => [ name, value ] latm => 1
 #    varlist ::= var {',' var}
 #    varlist ::= var+ separator => [,]
     varlist ::= var
+    varlist ::= Comment
     varlist ::= varlist <comma> var
-    varlist ::= var Comment
-    varlist ::= varlist <comma> Comment var
+    varlist ::= varlist Comment
+#    varlist ::= varlist <comma> Comment var
 
     var ::=  Name | prefixexp <left bracket> exp <right bracket> | prefixexp <period> Name
 
