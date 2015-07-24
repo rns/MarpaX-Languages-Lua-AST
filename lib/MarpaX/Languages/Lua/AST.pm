@@ -609,11 +609,15 @@ sub read{
     # return ast or undef on parse failure
     if ($recce->ambiguity_metric() > 1){
         my $i = 0;
-        while (defined $recce->value() and $i <= 100){ $i++;  }
+        my @v;
+        while (my $v = $recce->value() and $i <= 100){ $i++; push @v, $v }
         warn "Ambiguous parse: ", ($i > 100 ? "over 100" : $i), " alternatives.";
         $recce->series_restart();
         warn $recce->ambiguous();
         $recce->series_restart();
+        if (wantarray){
+            return @v;
+        }
     }
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
