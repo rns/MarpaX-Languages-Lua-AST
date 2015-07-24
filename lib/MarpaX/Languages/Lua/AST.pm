@@ -129,6 +129,7 @@ lexeme default = action => [ name, value ] latm => 1
 #    explist ::= exp+ separator => [,]
     explist ::= exp
     explist ::= Comment exp
+    explist ::= explist Comment exp
     explist ::= explist <comma> exp
     explist ::= explist <comma> Comment exp
 
@@ -248,8 +249,8 @@ lexeme default = action => [ name, value ] latm => 1
     parlist ::= <ellipsis>
 
 #    tableconstructor ::= '{' [fieldlist] '}'
-    tableconstructor ::= <left curly> fieldlist <right curly>
     tableconstructor ::= <left curly> <right curly>
+    tableconstructor ::= <left curly> fieldlist <right curly>
     tableconstructor ::= <left curly> Comment <right curly>
     tableconstructor ::= <left curly> Comment fieldlist <right curly>
     tableconstructor ::= <left curly> fieldlist Comment <right curly>
