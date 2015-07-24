@@ -256,11 +256,10 @@ lexeme default = action => [ name, value ] latm => 1
 
 #    fieldlist ::= field {fieldsep field} [fieldsep]
     fieldlist ::= field
-    fieldlist ::= field Comment
+    fieldlist ::= Comment
+    fieldlist ::= fieldlist Comment
     fieldlist ::= fieldlist fieldsep field
-    fieldlist ::= fieldlist fieldsep Comment field
     fieldlist ::= fieldlist fieldsep field fieldsep
-    fieldlist ::= fieldlist fieldsep field Comment fieldsep
 
     fieldsep ::= <comma>
     fieldsep ::= <semicolon>
