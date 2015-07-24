@@ -158,7 +158,7 @@ $DOWARN = 0; # see above
         my $parsed_lua_source = $p->fmt($ast);
 $DOWARN = 1;
         # hack out malformed number near '2..3' lua error
-        # todo: do it in formatter, check if versions after 5.1.5 have this flaw
+        # todo: do it in formatter, versions after 5.1.5 don't have this flaw
         $parsed_lua_source =~ s/(\d)\.\./$1 ../g;
 
         whip_up_lua_file( $lua_ast_ts_fn, $parsed_lua_source );
