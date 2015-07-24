@@ -67,22 +67,22 @@ my %lua_files = qw{
     big.lua            5
     calls.lua          1
     checktable.lua     1
-    closure.lua        1
+    closure.lua        7
     code.lua           1
-    constructs.lua     7
-    db.lua             1
-    errors.lua         1
-    events.lua         7
+    constructs.lua     1
+    db.lua             7
+    errors.lua         7
+    events.lua         1
     files.lua          4
     gc.lua             1
-    literals.lua       7
+    literals.lua       1
     locals.lua         1
-    main.lua           1
+    main.lua           7
     math.lua           1
     nextvar.lua        1
     pm.lua             1
     sort.lua           4
-    strings.lua        7
+    strings.lua        1
     vararg.lua         1
     verybig.lua        1
 };
@@ -122,8 +122,15 @@ LUA_FILE:
         $lua_ts_fn = File::Spec->catfile( 't', $lua_ts_fn ) unless $under_prove;
         $lua_ast_ts_fn = File::Spec->catfile( 't', $lua_ast_ts_fn ) unless $under_prove;
 
-TODO: {
-        todo_skip "$lua_fn parses, but runs incorrectly", 1  if $flag == 7;
+SKIP: {
+        if ($flag == 7){
+            if ($lua_fn eq 'main.lua'){
+                skip "$lua_fn: parses, but fails just as the source file when run as part of the test suite", 1;
+            }
+            else{
+                skip "$lua_fn: parses, but fails because uses line numbers, which are not exactly reproduced", 1;
+            }
+        }
 
         # As an example, consider the following code:
         my $lua_slurp = slurp_file( $lua_ts_fn );
