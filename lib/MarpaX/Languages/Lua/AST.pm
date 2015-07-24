@@ -49,10 +49,10 @@ lexeme default = action => [ name, value ] latm => 1
     chunk ::= laststat Comment
 
 #    {stat [';']}
-    statements ::= stat
+    statements ::= stat rank => 0
                  | Comment
                  | stat <semicolon>
-                 | statements stat
+                 | statements stat rank => -1
                  | statements Comment
                  | statements stat <semicolon>
 
@@ -69,7 +69,7 @@ lexeme default = action => [ name, value ] latm => 1
 
     stat ::= varlist <assignment> explist
 
-    stat ::= functioncall
+    stat ::= functioncall rank => -1
 
     stat ::= <do> block <end>
     stat ::= <while> exp <do> block <end>
@@ -621,14 +621,14 @@ sub read{
 #        warn "Showing progress:\n", $recce->show_progress();
         return
     }
-    return ${$value_ref};
+    return wantarray ? ( $value_ref ) : ${$value_ref};
 }
 
 sub parse {
     my ( $parser, $source, $recce_opts ) = @_;
     # add grammar
     $recce_opts->{grammar} = $parser->{grammar};
-    my $recce = Marpa::R2::Scanless::R->new( $recce_opts );
+    my $recce = Marpa::R2::Scanless::R->new( $recce_opts, { ranking_method => 'high_rule_only' } );
     return $parser->read($recce, $source);
 } ## end sub parse
 
