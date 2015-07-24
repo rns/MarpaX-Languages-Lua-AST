@@ -69,20 +69,20 @@ my %lua_files = qw{
     checktable.lua     1
     closure.lua        1
     code.lua           1
-    constructs.lua     1
+    constructs.lua     7
     db.lua             1
     errors.lua         1
-    events.lua         1
+    events.lua         7
     files.lua          4
     gc.lua             1
-    literals.lua       1
+    literals.lua       7
     locals.lua         1
     main.lua           1
     math.lua           1
     nextvar.lua        1
     pm.lua             1
     sort.lua           4
-    strings.lua        1
+    strings.lua        7
     vararg.lua         1
     verybig.lua        1
 };
