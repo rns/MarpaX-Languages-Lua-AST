@@ -69,7 +69,7 @@ lexeme default = action => [ name, value ] latm => 1
 
     stat ::= varlist <assignment> explist
 
-    stat ::= functioncall rank => -1
+    stat ::= functioncall rank => -1 # to resolve ambiguity with exp, e.g. t = loadstring('s = 1')()
 
     stat ::= <do> block <end>
     stat ::= <while> exp <do> block <end>
