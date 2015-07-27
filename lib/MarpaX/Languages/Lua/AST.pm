@@ -568,7 +568,12 @@ sub read{
     TOKEN: while (1) {
         my $start_of_lexeme = pos $string;
         last TOKEN if $start_of_lexeme >= $length;
-        next TOKEN if $string =~ m/\G\s+/gcxms;     # skip whitespace
+        if ($string =~ m/\G(\s+)/gcxms){     # skip whitespace
+            my $whitespace = $1;
+            my $length_of_lexeme = length $whitespace;
+#            warn qq{'$whitespace' \@ $start_of_lexeme:$length_of_lexeme};
+            next TOKEN;
+        }
 #        warn "# matching at $start_of_lexeme:\n", substr( $string, $start_of_lexeme, 40 );
         TOKEN_TYPE: for my $t (@terminals) {
 
@@ -588,7 +593,11 @@ sub read{
 
             # skip comments
             # todo: make comment skipping an option
-            next TOKEN if $token_name =~ /comment/i and $parser->{opts}->{discard_comments};
+            if ($token_name =~ /comment/i){
+                my $length_of_lexeme = length $lexeme;
+#                warn qq{'$lexeme' \@ $start_of_lexeme:$length_of_lexeme};
+                next TOKEN if $parser->{opts}->{discard_comments};
+            }
 
 #            warn "# <$token_name>:\n'$lexeme'";
             if ( not defined $recce->lexeme_alternative($token_name) ) {
