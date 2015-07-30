@@ -151,6 +151,9 @@ lexeme default = action => [ name, value ] latm => 1
          | tableconstructor name => 'exp'
          | function funcbody name => 'exp'
 
+# todo: this violates precedence, but
+#       assert(2^- 2==1/4 and - 2^- - 2==- - - 4)
+#           doesn't parse without it
         || <subtraction> exp name => 'unop' assoc => right
          | <subtraction> Comment exp name => 'unop'
          | <subtraction> exp Comment name => 'unop'
