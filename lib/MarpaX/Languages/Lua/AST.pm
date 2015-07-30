@@ -133,6 +133,7 @@ lexeme default = action => [ name, start, length, value ] latm => 1
     explist ::= explist <comma> exp
     explist ::= explist <comma> Comment exp
 
+# todo: add more meaningful names than 'exp' once roundtripping works
     exp ::=
 
            var
@@ -154,6 +155,8 @@ lexeme default = action => [ name, start, length, value ] latm => 1
 # todo: this violates precedence, but
 #       assert(2^- 2==1/4 and - 2^- - 2==- - - 4)
 #           doesn't parse without it
+#       try this:
+#       https://github.com/ronsavage/MarpaX-Languages-Lua-Parser/issues/2#issuecomment-126476823
         || <subtraction> exp name => 'unop' assoc => right
          | <subtraction> Comment exp name => 'unop'
          | <subtraction> exp Comment name => 'unop'
