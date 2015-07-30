@@ -20,8 +20,8 @@ use Marpa::R2 2.096;
 
 my $grammar = q{
 
-:default ::= action => [ name, values ]
-lexeme default = action => [ name, value ] latm => 1
+:default ::= action => [ name, start, length, values ]
+lexeme default = action => [ name, start, length, value ] latm => 1
 
     # source: 8 – The Complete Syntax of Lua, Lua 5.1 Reference Manual
     # The Lua Book -- http://www.lua.org/pil/contents.html
