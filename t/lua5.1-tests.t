@@ -106,7 +106,7 @@ my $lua_test_suite_dir = 'lua5.1-tests';
 my $lua_ast_test_suite_dir = 'lua5.1-ast-tests';
 
 # this is used below to silence "Deep recursion warning ... on tokens()"
-# todo: check if the recursion is really deep
+# todo: move to sequences for statements
 my $DOWARN = 1;
 BEGIN { $SIG{'__WARN__'} = sub { warn $_[0] if $DOWARN } }
 
@@ -160,9 +160,9 @@ SKIP: {
 $DOWARN = 0; # see above
         my $parsed_lua_source = $p->fmt($ast);
 $DOWARN = 1;
-        # todo: fix the current formatter - it’s so crappy we hack the fixes out below
-        # hack out malformed number near '2..3' lua error
-        # todo: do it in formatter, versions after 5.1.5 don't have this flaw
+        # todo: this needs to be done in the new formatter after roundtripping works
+        #       the current one is so crappy it’s easier to hack the fixes out as below
+        # hack out malformed number near '2..3' lua error (versions after 5.1.5 don't have this flaw)
         $parsed_lua_source =~ s/(\d)\.\./$1 ../g;
         # negated exponent in constructs.lua
         $parsed_lua_source =~ s/--2==/- - 2 ==/g;

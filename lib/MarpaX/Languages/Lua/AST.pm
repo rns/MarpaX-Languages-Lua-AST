@@ -384,7 +384,7 @@ sub terminals{
 #   keywords -- group matching
     $keywords = { map { $_ => $_ } @keywords };
 #   add new keywords, if any
-    # todo: move to general lexing
+    # possible todo: move to capture group based lexing
     while (my ($literal, $symbol) = each %{ $parser->{new_keywords} } ){
         $keywords->{$literal} = $symbol;
     }
@@ -725,7 +725,6 @@ sub do_fmt{
                     String|Number
                 $}xms
             ){
-# todo: look into: [[ ]] strings are somehow returned with space before comma
         # for now just substitute
 #            say "# $current_parent_node/$current_node: '$ast'";
             if ($current_node =~ /string$/){
