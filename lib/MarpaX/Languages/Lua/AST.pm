@@ -617,7 +617,7 @@ sub read{
             if ($token_name =~ /comment/i){
                 my $length_of_lexeme = length $lexeme;
 #                warn qq{'$lexeme' \@ $start_of_lexeme:$length_of_lexeme};
-                next TOKEN if $parser->{opts}->{discard_comments};
+                next TOKEN;
             }
 
 #            warn "# <$token_name>:\n'$lexeme'";
