@@ -20,8 +20,10 @@ use Marpa::R2 2.096;
 
 my $grammar = q{
 
-:default ::= action => [ name, start, length, values ]
-lexeme default = action => [ name, start, length, value ] latm => 1
+#:default ::= action => [ name, start, length, values ]
+#lexeme default = action => [ name, start, length, value ] latm => 1
+:default ::= action => [ name, values ]
+lexeme default = action => [ name, value ] latm => 1
 
     # source: 8 – The Complete Syntax of Lua, Lua 5.1 Reference Manual
     # The Lua Book -- http://www.lua.org/pil/contents.html
@@ -40,20 +42,14 @@ lexeme default = action => [ name, start, length, value ] latm => 1
     chunk ::=
     chunk ::= statements
     chunk ::= statements laststat
-    chunk ::= statements laststat Comment
     chunk ::= statements laststat <semicolon>
-    chunk ::= statements laststat <semicolon> Comment
     chunk ::= laststat <semicolon>
-    chunk ::= laststat <semicolon> Comment
     chunk ::= laststat
-    chunk ::= laststat Comment
 
 #    {stat [';']}
     statements ::= stat rank => 0
-                 | Comment
                  | stat <semicolon>
                  | statements stat rank => -1
-                 | statements Comment
                  | statements stat <semicolon>
 
 #   [';'] from {stat [';']}
@@ -112,37 +108,26 @@ lexeme default = action => [ name, start, length, value ] latm => 1
 #    varlist ::= var {',' var}
 #    varlist ::= var+ separator => [,]
     varlist ::= var
-    varlist ::= Comment
     varlist ::= varlist <comma> var
-    varlist ::= varlist Comment
 
     var ::=  Name | prefixexp <left bracket> exp <right bracket> | prefixexp <period> Name
 
 #    namelist ::= Name {',' Name}
 #    namelist ::= Name+ separator => [,]
     namelist ::= Name
-    namelist ::= Comment
     namelist ::= namelist <comma> Name
-    namelist ::= namelist Comment
 
 #    explist ::= {exp ','} exp
 #    explist ::= exp+ separator => [,]
     explist ::= exp
-    explist ::= Comment exp
-    explist ::= explist Comment exp
     explist ::= explist <comma> exp
-    explist ::= explist <comma> Comment exp
 
 # todo: add more meaningful names than 'exp' once roundtripping works
     exp ::=
-
            var
-
          | <left paren> exp <right paren> assoc => group name => 'exp'
-
         || exp args assoc => right name => 'functioncall'
         || exp <colon> Name args assoc => right name => 'functioncall'
-
          | <nil> name => 'exp'
          | <false> name => 'exp'
          | <true> name => 'exp'
@@ -151,80 +136,26 @@ lexeme default = action => [ name, start, length, value ] latm => 1
          | <ellipsis> name => 'exp'
          | tableconstructor name => 'exp'
          | function funcbody name => 'exp'
-
         # based on Jeffrey’s solution
         # -- https://github.com/ronsavage/MarpaX-Languages-Lua-Parser/issues/2
         || exp <exponentiation> exponent assoc => right name => 'binop'
-         | exp <exponentiation> Comment exponent assoc => right name => 'binop'
-         | exp Comment <exponentiation> Comment exponent assoc => right name => 'binop'
-
         || <not> exp name => 'unop'
-         | <not> Comment exp name => 'unop'
-         | <not> exp Comment name => 'unop'
-
          | <length> exp name => 'unop'
-         | <length> Comment exp name => 'unop'
-         | <length> exp Comment name => 'unop'
-
          | <subtraction> exp name => 'unop' assoc => right
-         | <subtraction> Comment exp name => 'unop'
-         | <subtraction> exp Comment name => 'unop'
-
         || exp <multiplication> exp name => 'binop'
-         | exp <multiplication> Comment exp name => 'binop'
-         | exp Comment <multiplication> Comment exp name => 'binop'
-
          | exp <division> exp name => 'binop'
-         | exp <division> Comment exp name => 'binop'
-         | exp Comment <division> Comment exp name => 'binop'
-
          | exp <modulo> exp name => 'binop'
-         | exp <modulo> Comment exp name => 'binop'
-         | exp Comment <modulo> Comment exp name => 'binop'
-
         || exp <addition> exp name => 'binop'
-         | exp <addition> Comment exp name => 'binop'
-         | exp Comment <addition> Comment exp name => 'binop'
-
          | exp <subtraction> exp name => 'binop'
-         | exp <subtraction> Comment exp name => 'binop'
-         | exp Comment <subtraction> Comment exp name => 'binop'
-
         || exp <concatenation> exp assoc => right name => 'binop'
-         | exp <concatenation> Comment exp assoc => right name => 'binop'
-         | exp Comment <concatenation> Comment exp assoc => right name => 'binop'
-
         || exp <less than> exp name => 'binop'
-         | exp <less than> Comment exp name => 'binop'
-         | exp Comment <less than> Comment exp name => 'binop'
-
          | exp <less or equal> exp name => 'binop'
-         | exp <less or equal> Comment exp name => 'binop'
-         | exp Comment <less or equal> Comment exp name => 'binop'
-
          | exp <greater than> exp name => 'binop'
-         | exp <greater than> Comment exp name => 'binop'
-         | exp Comment <greater than> Comment exp name => 'binop'
-
          | exp <greater or equal> exp name => 'binop'
-         | exp <greater or equal> Comment exp name => 'binop'
-         | exp Comment <greater or equal> Comment exp name => 'binop'
-
          | exp <equality> exp name => 'binop'
-         | exp <equality> Comment exp name => 'binop'
-         | exp Comment <equality> Comment exp name => 'binop'
-
          | exp <negation> exp name => 'binop'
-         | exp <negation> Comment exp name => 'binop'
-         | exp Comment <negation> Comment exp name => 'binop'
-
         || exp <and> exp name => 'binop'
-         | exp <and> Comment exp name => 'binop'
-         | exp Comment <and> Comment exp name => 'binop'
-
         || exp <or> exp name => 'binop'
-         | exp <or> Comment exp name => 'binop'
-         | exp Comment <or> Comment exp name => 'binop'
 
 
     exponent ::=
@@ -272,14 +203,9 @@ lexeme default = action => [ name, start, length, value ] latm => 1
 #    tableconstructor ::= '{' [fieldlist] '}'
     tableconstructor ::= <left curly> <right curly>
     tableconstructor ::= <left curly> fieldlist <right curly>
-    tableconstructor ::= <left curly> Comment <right curly>
-    tableconstructor ::= <left curly> Comment fieldlist <right curly>
-    tableconstructor ::= <left curly> fieldlist Comment <right curly>
 
 #    fieldlist ::= field {fieldsep field} [fieldsep]
     fieldlist ::= field
-    fieldlist ::= Comment
-    fieldlist ::= fieldlist Comment
     fieldlist ::= fieldlist fieldsep field
     fieldlist ::= fieldlist fieldsep field fieldsep
 
@@ -291,10 +217,6 @@ lexeme default = action => [ name, start, length, value ] latm => 1
     field ::= exp
 
     Number ::= Int | Float | Hex
-
-    Comment ::= <long nestable comment>
-    Comment ::= <long unnestable comment>
-    Comment ::= <short comment>
 
     String ::= <long nestable string>
     String ::= <long unnestable string>
@@ -311,10 +233,6 @@ my @unicorns = (
 
     'Int', 'Float', 'Hex',
     'Name',
-
-    '<long nestable comment>',
-    '<long unnestable comment>',
-    '<short comment>',
 
     '<long nestable string>',
     '<long unnestable string>',
