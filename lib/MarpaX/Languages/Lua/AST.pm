@@ -587,7 +587,7 @@ sub parse {
     my $recce = Marpa::R2::Scanless::R->new( $recce_opts, { ranking_method => 'high_rule_only' } );
     $parser->{discardables} = MarpaX::Languages::Lua::AST::Discardables->new;
     return $parser->read($recce, $source);
-} ## end sub parse
+}
 
 sub fmt{
     my ($parser, $ast, $opts) = @_;
