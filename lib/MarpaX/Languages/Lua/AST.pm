@@ -20,8 +20,8 @@ use Marpa::R2 2.096;
 
 my $grammar = q{
 
-:default ::= action => [ name, start, length, values ]
-lexeme default = action => [ name, start, length, value ] latm => 1
+:default ::= action => [ name, values ]
+lexeme default = action => [ name, value ] latm => 1
 
     # source: 8 – The Complete Syntax of Lua, Lua 5.1 Reference Manual
     # The Lua Book -- http://www.lua.org/pil/contents.html
@@ -152,18 +152,11 @@ lexeme default = action => [ name, start, length, value ] latm => 1
          | tableconstructor name => 'exp'
          | function funcbody name => 'exp'
 
-# todo: this violates precedence, but
-#       assert(2^- 2==1/4 and - 2^- - 2==- - - 4)
-#           doesn't parse without it
-#       try this:
-#       https://github.com/ronsavage/MarpaX-Languages-Lua-Parser/issues/2#issuecomment-126536776
-        || <subtraction> exp name => 'unop' assoc => right
-         | <subtraction> Comment exp name => 'unop'
-         | <subtraction> exp Comment name => 'unop'
-
-        || exp <exponentiation> exp assoc => right name => 'binop'
-         | exp <exponentiation> Comment exp assoc => right name => 'binop'
-         | exp Comment <exponentiation> Comment exp assoc => right name => 'binop'
+        # based on Jeffrey’s solution
+        # -- https://github.com/ronsavage/MarpaX-Languages-Lua-Parser/issues/2
+        || exp <exponentiation> exponent assoc => right name => 'binop'
+         | exp <exponentiation> Comment exponent assoc => right name => 'binop'
+         | exp Comment <exponentiation> Comment exponent assoc => right name => 'binop'
 
         || <not> exp name => 'unop'
          | <not> Comment exp name => 'unop'
@@ -172,6 +165,10 @@ lexeme default = action => [ name, start, length, value ] latm => 1
          | <length> exp name => 'unop'
          | <length> Comment exp name => 'unop'
          | <length> exp Comment name => 'unop'
+
+         | <subtraction> exp name => 'unop' assoc => right
+         | <subtraction> Comment exp name => 'unop'
+         | <subtraction> exp Comment name => 'unop'
 
         || exp <multiplication> exp name => 'binop'
          | exp <multiplication> Comment exp name => 'binop'
@@ -228,6 +225,24 @@ lexeme default = action => [ name, start, length, value ] latm => 1
         || exp <or> exp name => 'binop'
          | exp <or> Comment exp name => 'binop'
          | exp Comment <or> Comment exp name => 'binop'
+
+
+    exponent ::=
+           var name => 'exp'
+         | <left paren> exp <right paren> name => 'exp'
+        || exponent args name => 'exp'
+        || exponent <colon> Name args name => 'exp'
+         | <nil> name => 'exp'
+         | <false> name => 'exp'
+         | <true> name => 'exp'
+         | Number name => 'exp'
+         | String name => 'exp'
+         | <ellipsis> name => 'exp'
+         | tableconstructor name => 'exp'
+         | function name => 'exp'
+        || <not> exponent name => 'exp'
+         | <length> exponent name => 'exp'
+         | <subtraction> exponent name => 'exp'
 
     prefixexp ::= var
     prefixexp ::= functioncall
