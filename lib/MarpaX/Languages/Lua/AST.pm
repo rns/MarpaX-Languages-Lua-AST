@@ -224,7 +224,7 @@ lexeme default = action => [ name, value ] latm => 1
     String ::= <single quoted string>
 
 #   unicorns
-    # unicorn rules will be added in the constructor for extensibility
+    # unicorn rules will be added in the constructor
     unicorn ~ [^\s\S]
 
 };
@@ -589,9 +589,6 @@ sub parse {
     return $parser->read($recce, $source);
 } ## end sub parse
 
-# so at least some of what http://perltidy.sourceforge.net/ does for perl
-# 1. indenting
-# ...
 sub fmt{
     my ($parser, $ast, $opts) = @_;
     if (defined $opts and ref $opts ne "HASH"){
@@ -781,32 +778,6 @@ sub serialize{
     return $s;
 }
 
-# quick hack to test against Inline::Lua:
-# serialize $ast to a stream of tokens separated with a space
-sub tokens{
-    my ($parser, $ast) = @_;
-    my $tokens;
-    if (ref $ast){
-        my ($node_id, @children) = @$ast;
-        $tokens .= join q{}, grep { defined } map { $parser->tokens( $_ ) } @children;
-    }
-    else{
-        my $separator = ' ';
-        if ( # no spaces before and after ' and "
-               (defined $tokens and $tokens =~ m{['"\[]$}ms) #'
-            or (defined $ast    and $ast    =~ m{^['"\]]}ms) #'
-        ){
-            $separator = '';
-        }
-        if (defined $ast and $ast =~ /^(and|or|assert|function|while|repeat|return|do|if|end|else|elseif|for|local)$/){
-            $separator = "\n";
-        }
-        $tokens .= $separator . $ast if defined $ast;
-        $tokens .= "\n" if defined $ast and $ast eq 'end';
-    }
-    return $tokens;
-}
-
 package MarpaX::Languages::Lua::AST::Discardables;
 
 use v5.14.2;
@@ -817,6 +788,8 @@ use Data::Dumper;
 $Data::Dumper::Indent = 1;
 $Data::Dumper::Terse = 1;
 $Data::Dumper::Deepcopy = 1;
+
+# todo: find and handle contiguous discardables
 
 =pod Overview
 
