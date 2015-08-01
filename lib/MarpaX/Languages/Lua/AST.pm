@@ -540,7 +540,7 @@ sub read{
             if ($token_name =~ /comment/i){
                 my $length_of_lexeme = length $lexeme;
 #                warn qq{'$lexeme' \@ $start_of_lexeme:$length_of_lexeme};
-                $parser->{discardables}->post('comment', $start_of_lexeme, $length_of_lexeme, $lexeme);
+                $parser->{discardables}->post($token_name, $start_of_lexeme, $length_of_lexeme, $lexeme);
                 next TOKEN;
             }
 
