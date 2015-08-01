@@ -1,7 +1,6 @@
 #!perl
 # Copyright 2015 Ruslan Shvedov
 
-#
 use v5.14.2;
 use warnings;
 use strict;
@@ -10,8 +9,7 @@ use Test::More;
 
 use MarpaX::Languages::Lua::AST;
 
-# non-executable snippets which can't be wrapped to a function
-# will be tested by comparison with formatted ast
+# lua code snippets for special cases
 
 my @tests = (
 
@@ -66,17 +64,15 @@ for my $test (@tests){
         fail "Can't parse:\n$snippet";
         next TEST;
     }
+    else{
+        ok 1, "parse";
+    }
 
     my $fmt = $p->serialize( $ast );
 
-    my $tokens = $p->tokens( $ast );
-    say $tokens;
-
     TODO: {
-        todo_skip <<END, 1 unless $expected_fmt;
-AST serialization to formatted source shelved until
-lua test suite parsing is done. In a meanwhile, AST serialized to token stream is:\n\n$tokens
-END
+        todo_skip "proper formatter not implemented yet", 1;
+
         is $fmt, $expected_fmt, 'format by serailizing lua code ast';
     }
 }
