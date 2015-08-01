@@ -585,7 +585,7 @@ sub parse {
     # add grammar
     $recce_opts->{grammar} = $parser->{grammar};
     my $recce = Marpa::R2::Scanless::R->new( $recce_opts, { ranking_method => 'high_rule_only' } );
-    $parser->{discardables} = MarpaX::Languages::Lua::AST::Discardables->new;
+    $parser->{discardables} = MarpaX::AST::Discardables->new;
     return $parser->read($recce, $source);
 }
 
@@ -776,73 +776,5 @@ sub serialize{
     $depth--;
     return $s;
 }
-
-package MarpaX::Languages::Lua::AST::Discardables;
-
-use v5.14.2;
-use strict;
-use warnings;
-
-use Data::Dumper;
-$Data::Dumper::Indent = 1;
-$Data::Dumper::Terse = 1;
-$Data::Dumper::Deepcopy = 1;
-
-# todo: find and handle contiguous discardables
-
-=pod Overview
-
-A discardable is an input span typically discarded by a parser,
-e.g. whitespace or comment. For a particular input span ($start, $end)
-we need to know if it has a discradable before or after it, i.e.
-starting at $start - 1 or $end + 1
-
-discardables:
-    handle => [ $type, $start, $length, $value ];
-
-$type is node id: 'whitespace' or 'comment'
-$value is input span starting at $start and ending at $start + $length
-
-starts ($pos) -- returns string starting at $pos or empty string if there is none
-
-=cut
-
-sub new{
-    my ($class) = @_;
-    my $self = {};
-    $self->{nodes} = [];
-    $self->{starts} = {};
-    bless $self, $class;
-    return $self;
-}
-
-sub post{
-    my ($self, $type, $start, $length, $discardable) = @_;
-    push @{ $self->{nodes} }, [ $type, $start, $length, $discardable ];
-    my $id = scalar @{ $self->{nodes} } - 1;
-    $self->{starts}->{$start} = $id;
-    $self->{ends}->{$start + $length} = $id;
-    return $id;
-}
-
-sub put{
-    my ($self, $start, $length, $discardable) = @_;
-}
-
-sub get{
-    my ($self, $id) = @_;
-    return $self->{nodes}->[$id];
-}
-
-sub starts{
-    my ($self, $pos) = @_;
-    return $self->{starts}->{$pos};
-}
-
-sub ends{
-    my ($self, $pos) = @_;
-    return $self->{ends}->{$pos};
-}
-
 
 1;
