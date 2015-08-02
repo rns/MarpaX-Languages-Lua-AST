@@ -51,7 +51,7 @@ lexeme default = action => [ name, value ] latm => 1
     chunk ::= laststat
 
 #    {stat [';']}
-    statements ::= stat rank => 0
+    statements ::= stat
                  | stat <semicolon>
                  | statements stat rank => -1
                  | statements stat <semicolon>
