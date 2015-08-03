@@ -4,7 +4,7 @@
 
 package MarpaX::Languages::Lua::AST;
 
-use v5.14.2;
+use v5.10.1;
 use strict;
 use warnings;
 
