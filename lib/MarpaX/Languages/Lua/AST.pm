@@ -19,8 +19,8 @@ use Marpa::R2 2.096;
 use lib qw{/home/Ruslan/MarpaX-AST/lib};
 use MarpaX::AST;
 
-# Lua Grammar
-# ===========
+# Lua 5.1 Grammar
+# ===============
 
 my $grammar = q{
 
@@ -30,19 +30,15 @@ my $grammar = q{
 lexeme default = action => [ name, value ] latm => 1
 
     # source: 8 – The Complete Syntax of Lua, Lua 5.1 Reference Manual
-    # The Lua Book -- http://www.lua.org/pil/contents.html
-    # More parser tests: http://lua-users.org/wiki/LuaGrammar
+    # http://www.lua.org/manual/5.1/manual.html
 
     # {a} means 0 or more a's, and [a] means an optional a
-    # * -- 0 or more: { ... }
-    # ? -- 0 or 1:    [ ... ]
 
-    # keywords and lexemes are symbols in <> having no spaces
-    # original rules are commented if converted; what follows is their converted form
+    # symbols in <> are <keywords> and <lexemes>
+    # original rules are commented above the grammar rules
     # Capitalized symbols (Name) are from the lua grammar cited above
 
-#    chunk ::= {stat [';']} [laststat [';']]
-# e.g. function () end, api.lua:126
+#   chunk ::= {stat [';']} [laststat [';']]
     chunk ::=
     chunk ::= statements
     chunk ::= statements laststat
@@ -50,38 +46,34 @@ lexeme default = action => [ name, value ] latm => 1
     chunk ::= laststat <semicolon>
     chunk ::= laststat
 
-#    {stat [';']}
+#   {stat [';']}
     statements ::= stat
-                 | stat <semicolon>
-                 | statements stat rank => -1
-                 | statements stat <semicolon>
-
-#   [';'] from {stat [';']}
-#   not in line with "There are no empty statements and thus ';;' is not legal"
-#   in http://www.lua.org/manual/5.1/manual.html#2.4.1, but api.lua:163
-#   doesn't parse without that
-#   there is also constructs.lua:58 -- end;
-#   Empty statements are ok in Lua 5.2 http://www.lua.org/manual/5.2/manual.html#3.3.1
-#
-#   possible todo: better optional semicolon
+    statements ::= stat <semicolon>
+    statements ::= statements stat rank => -1
+    statements ::= statements stat <semicolon>
 
     block ::= chunk
 
     stat ::= varlist <assignment> explist
 
-    stat ::= functioncall rank => -1 # to resolve ambiguity with exp, e.g. t = loadstring('s = 1')()
+    # ranks (below and above) resolve ambiguity with exp, e.g. t = loadstring('s = 1')()
+    stat ::= functioncall rank => -1
 
     stat ::= <do> block <end>
     stat ::= <while> exp <do> block <end>
     stat ::= <repeat> block <until> exp
 
-#    <if> exp <then> block {<elseif> exp <then> block} [<else> block] <end> |
+#   <if> exp <then> block {<elseif> exp <then> block} [<else> block] <end>
     stat ::= <if> exp <then> block <end>
     stat ::= <if> exp <then> block <else> block <end>
     stat ::= <if> exp <then> block <one or more elseifs> <else> block <end>
     stat ::= <if> exp <then> block <one or more elseifs> <end>
 
-#    <for> Name <assignment> exp ',' exp [',' exp] <do> block <end> |
+    <one or more elseifs> ::= <one elseif>
+    <one or more elseifs> ::= <one or more elseifs> <one elseif>
+    <one elseif> ::= <elseif> exp <then> block
+
+#   <for> Name <assignment> exp ',' exp [',' exp] <do> block <end>
     stat ::= <for> Name <assignment> exp <comma> exp <comma> exp <do> block <end>
     stat ::= <for> Name <assignment> exp <comma> exp <do> block <end>
     stat ::= <for> namelist <in> explist <do> block <end>
@@ -90,39 +82,35 @@ lexeme default = action => [ name, value ] latm => 1
 
     stat ::= <local> <function> Name funcbody
 
-#    <local> namelist [<assignment> explist]
+#   <local> namelist [<assignment> explist]
     stat ::= <local> namelist <assignment> explist
     stat ::= <local> namelist
 
-    <one or more elseifs> ::= <one elseif>
-    <one or more elseifs> ::= <one or more elseifs> <one elseif>
-    <one elseif> ::= <elseif> exp <then> block
-
-#    laststat ::= <return> [explist] | <break>
+#   laststat ::= <return> [explist] | <break>
     laststat ::= <return>
     laststat ::= <return> explist
     laststat ::= <break>
 
-#    funcname ::= Name {'.' Name} [':' Name]
-    funcname ::= names <colon> Name
-    funcname ::= names
-#    Names ::= Name+ separator => [\.]
-    names ::= Name | names <period> Name
+#   funcname ::= Name {'.' Name} [':' Name]
+    funcname ::= qualifiedname
+    funcname ::= qualifiedname <colon> Name
 
-#    varlist ::= var {',' var}
-#    varlist ::= var+ separator => [,]
+    qualifiedname ::= Name
+    qualifiedname ::= qualifiedname <period> Name
+
+#   varlist ::= var {',' var}
     varlist ::= var
     varlist ::= varlist <comma> var
 
-    var ::=  Name | prefixexp <left bracket> exp <right bracket> | prefixexp <period> Name
+    var ::= Name
+    var ::= prefixexp <left bracket> exp <right bracket>
+    var ::= prefixexp <period> Name
 
-#    namelist ::= Name {',' Name}
-#    namelist ::= Name+ separator => [,]
+#   namelist ::= Name {',' Name}
     namelist ::= Name
     namelist ::= namelist <comma> Name
 
-#    explist ::= {exp ','} exp
-#    explist ::= exp+ separator => [,]
+#   explist ::= {exp ','} exp
     explist ::= exp
     explist ::= explist <comma> exp
 
@@ -140,12 +128,12 @@ lexeme default = action => [ name, value ] latm => 1
          | <ellipsis> name => 'exp'
          | tableconstructor name => 'exp'
          | function funcbody name => 'exp'
-        # based on Jeffrey’s solution
+        # exponentiation based on Jeffrey’s solution
         # -- https://github.com/ronsavage/MarpaX-Languages-Lua-Parser/issues/2
         || exp <exponentiation> exponent assoc => right name => 'binop'
-        || <not> exp name => 'unop'
+        || <subtraction> exp name => 'unop' assoc => right
          | <length> exp name => 'unop'
-         | <subtraction> exp name => 'unop' assoc => right
+         | <not> exp name => 'unop'
         || exp <multiplication> exp name => 'binop'
          | exp <division> exp name => 'binop'
          | exp <modulo> exp name => 'binop'
@@ -160,7 +148,6 @@ lexeme default = action => [ name, value ] latm => 1
          | exp <negation> exp name => 'binop'
         || exp <and> exp name => 'binop'
         || exp <or> exp name => 'binop'
-
 
     exponent ::=
            var name => 'exp'
@@ -182,6 +169,7 @@ lexeme default = action => [ name, value ] latm => 1
     prefixexp ::= var
     prefixexp ::= functioncall
     prefixexp ::= <left paren> exp <right paren>
+
 # todo: As an exception to the free-format syntax of Lua, you cannot put a line break
 # before the '(' in a function call. This restriction avoids some
 # ambiguities in the language.
