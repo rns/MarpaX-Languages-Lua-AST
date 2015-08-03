@@ -177,26 +177,26 @@ lexeme default = action => [ name, value ] latm => 1
     functioncall ::= prefixexp args
     functioncall ::= prefixexp <colon> Name args
 
-#    args ::=  '(' [explist] ')' | tableconstructor | String
+#   args ::=  '(' [explist] ')' | tableconstructor | String
     args ::= <left paren> <right paren>
     args ::= <left paren> explist <right paren>
     args ::= tableconstructor
     args ::= String
 
-#    funcbody ::= '(' [parlist] ')' block <end>
+#   funcbody ::= '(' [parlist] ')' block <end>
     funcbody ::= <left paren> parlist <right paren> block <end>
     funcbody ::= <left paren> <right paren> block <end>
 
-#    parlist ::= namelist [',' '...'] | '...'
+#   parlist ::= namelist [',' '...'] | '...'
     parlist ::= namelist
     parlist ::= namelist <comma> <ellipsis>
     parlist ::= <ellipsis>
 
-#    tableconstructor ::= '{' [fieldlist] '}'
+#   tableconstructor ::= '{' [fieldlist] '}'
     tableconstructor ::= <left curly> <right curly>
     tableconstructor ::= <left curly> fieldlist <right curly>
 
-#    fieldlist ::= field {fieldsep field} [fieldsep]
+#   fieldlist ::= field {fieldsep field} [fieldsep]
     fieldlist ::= field
     fieldlist ::= fieldlist fieldsep field
     fieldlist ::= fieldlist fieldsep field fieldsep
@@ -494,12 +494,14 @@ sub read{
     # build terminals
     my @terminals = @{ $parser->terminals() };
 
+    # todo: line/column info
     my $length = length $string;
     pos $string = 0;
     TOKEN: while (1) {
         my $start_of_lexeme = pos $string;
         last TOKEN if $start_of_lexeme >= $length;
-        if ($string =~ m/\G(\s+)/gcxms){     # skip whitespace
+        # handle whitespace
+        if ($string =~ m/\G(\s+)/gcxms){
             my $whitespace = $1;
             my $length_of_lexeme = length $whitespace;
 #            warn qq{'$whitespace' \@ $start_of_lexeme:$length_of_lexeme};
@@ -523,7 +525,6 @@ sub read{
                     unless $token_name;
             }
 
-            # skip comments
             # todo: make comment skipping an option
             if ($token_name =~ /comment/i){
                 my $length_of_lexeme = length $lexeme;
@@ -550,12 +551,14 @@ sub read{
 #        warn "Showing progress:\n", $recce->show_progress();
         return
     } ## end TOKEN: while (1)
-    # return ast or undef on parse failure
+#   handle ambiguity
     if ($recce->ambiguity_metric() > 1){
+        my $max_values = 100;
         my $i = 0;
         my @v;
-        while (my $v = $recce->value() and $i <= 100){ $i++; push @v, $v }
-        warn "Ambiguous parse: ", ($i > 100 ? "over 100" : $i), " alternatives.";
+        while (my $v = $recce->value() and $i <= $max_values){ $i++; push @v, $v }
+        warn "Ambiguous parse: ",
+            ($i > $max_values ? "over $max_values" : $i), " alternatives.";
         $recce->series_restart();
         warn $recce->ambiguous();
         $recce->series_restart();
@@ -563,6 +566,7 @@ sub read{
             return @v;
         }
     }
+    # return ast or undef on parse failure
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         warn "No parse was found, after reading the entire input.\n";
