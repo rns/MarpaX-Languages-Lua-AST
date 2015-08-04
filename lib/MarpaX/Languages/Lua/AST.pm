@@ -24,10 +24,8 @@ use MarpaX::AST;
 
 my $grammar = q{
 
-#:default ::= action => [ name, start, length, values ]
-#lexeme default = action => [ name, start, length, value ] latm => 1
-:default ::= action => [ name, values ]
-lexeme default = action => [ name, value ] latm => 1
+:default ::= action => [ name, start, length, values ]
+lexeme default = action => [ name, start, length, value ] latm => 1
 
     # source: 8 – The Complete Syntax of Lua, Lua 5.1 Reference Manual
     # http://www.lua.org/manual/5.1/manual.html
@@ -617,7 +615,7 @@ sub do_fmt{
     state @indent_level_blocks; # $indent_level_stats[0] is block node_id at level 0
     # node is a literal or has children?
     if (ref $ast){
-        my ($node_id, @children) = @$ast;
+        my ($node_id, undef, undef, @children) = @$ast;
         # save context for nodes down the ast
         $current_node = $node_id;
         # current node as parent of its children literal nodes
@@ -757,7 +755,7 @@ sub serialize{
     my $s;
     my $indent = "  " x ($depth - 1);
     if (ref $ast){
-        my ($node_id, @children) = @$ast;
+        my ($node_id, undef, undef, @children) = @$ast;
         if (@children == 1 and not ref $children[0]){
             $s .= $indent . "$node_id '$children[0]'" . "\n";
         }
