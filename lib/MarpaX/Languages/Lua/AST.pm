@@ -489,6 +489,7 @@ sub read{
     $recce->read( \$string, 0, 0 );
 
     # todo: line/column info
+    # todo: make roundtripping (post()ing to $parser->{discardables}) an option
 
     # discard special comment on first line
     my $length = length $string;
@@ -531,7 +532,6 @@ sub read{
                     unless $token_name;
             }
 
-            # todo: make comment skipping an option
             if ($token_name =~ /comment/i){
                 my $length_of_lexeme = length $lexeme;
 #                warn qq{'$lexeme' \@ $start_of_lexeme:$length_of_lexeme};
