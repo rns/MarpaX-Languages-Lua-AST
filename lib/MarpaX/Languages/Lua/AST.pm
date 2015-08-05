@@ -577,6 +577,14 @@ sub read{
     if ( not defined $value_ref ) {
         warn "No parse was found, after reading the entire input.\n";
 #        warn "Showing progress:\n", $recce->show_progress();
+        # todo: options for reparse with diagnostics and show progress, e.g.
+=pod
+                $ast = $p->parse(
+                    $lua_slurp,
+                    { trace_terminals => 1 },
+                    { show_progress => 1 }
+                    );
+=cut
         return
     }
     return wantarray ? ( $value_ref ) : ${$value_ref};
