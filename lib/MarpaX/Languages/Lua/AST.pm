@@ -483,18 +483,26 @@ LITERAL: while (my ($literal, undef) = each %literals){
 sub read{
     my ($parser, $recce, $string) = @_;
 
-    # strip 'special comment on the first line'
-    # todo: filter should preserve this
-    $string =~ s{^#.*\n}{};
-
-    $recce->read( \$string, 0, 0 );
-
     # build terminals
     my @terminals = @{ $parser->terminals() };
 
+    $recce->read( \$string, 0, 0 );
+
     # todo: line/column info
+
+    # discard special comment on first line
     my $length = length $string;
-    pos $string = 0;
+    if ($string =~ m{^(#.*)\n}){
+        my $special_comment = $1;
+        my $special_comment_length = length $special_comment;
+        $parser->{discardables}->post(
+            'special comment on first line', 0, $special_comment_length, $special_comment);
+        pos $string = length($special_comment);
+    }
+    else{
+        pos $string = 0;
+    }
+
     TOKEN: while (1) {
         my $start_of_lexeme = pos $string;
         last TOKEN if $start_of_lexeme >= $length;
