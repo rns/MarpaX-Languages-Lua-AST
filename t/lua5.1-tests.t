@@ -59,7 +59,7 @@ my $p = MarpaX::Languages::Lua::AST->new;
 #   ./xt/release - run during "make disttest"
 # -- http://perl-qa.hexten.net/wiki/index.php?title=Best_Practices_for_Testing
 
-my %lua_files = qw{
+my %test_suite_files = qw{
 
     api.lua            1
     attrib.lua         1
@@ -99,68 +99,70 @@ $run_lua_test = File::Spec->catfile( '.', 't', $run_lua_test ) unless $under_pro
 $run_lua_test = './' . $run_lua_test unless $^O eq 'MSWin32';
 
 # test suite dirs
-my $lua_test_suite_dir = 'lua5.1-tests';
-my $lua_ast_test_suite_dir = 'lua5.1-ast-tests';
+my $test_suite_dir = 'lua5.1-tests';
+my $roundtripped_test_suite_dir = 'lua5.1-roundtripped-tests';
 
 # silence "Deep recursion on"
-BEGIN { $SIG{'__WARN__'} = sub { warn $_[0] unless $_[0] =~ /Deep recursion|Redundant argument in sprintf/ } };
+BEGIN { $SIG{'__WARN__'} =
+    sub { warn $_[0] unless $_[0] =~ /Deep recursion|Redundant argument in sprintf/ }
+};
 
-LUA_FILE:
-for my $lua_fn (sort keys %lua_files)
+TEST_SUITE_FILE: # henceforth, tsf
+for my $tsf_name (sort keys %test_suite_files)
 {
     # get flags
-    my $flag = $lua_files{$lua_fn};
+    my $flag = $test_suite_files{$tsf_name};
 
     # prepend test suite path unless a file is from another dir
-    my $lua_ts_fn = File::Spec->catfile( $lua_test_suite_dir, $lua_fn );
-    my $lua_ast_ts_fn = File::Spec->catfile( $lua_ast_test_suite_dir, $lua_fn );
+    my $tsf = File::Spec->catfile( $test_suite_dir, $tsf_name );
+    my $roundtripped_tsf = File::Spec->catfile( $roundtripped_test_suite_dir, $tsf_name );
 
     # prepend t if running under prove
-    $lua_ts_fn = File::Spec->catfile( 't', $lua_ts_fn ) unless $under_prove;
-    $lua_ast_ts_fn = File::Spec->catfile( 't', $lua_ast_ts_fn ) unless $under_prove;
+    $tsf = File::Spec->catfile( 't', $tsf ) unless $under_prove;
+    $roundtripped_tsf = File::Spec->catfile( 't', $roundtripped_tsf ) unless $under_prove;
 
     # As an example, consider the following code:
-    my $lua_slurp = slurp_file( $lua_ts_fn );
+    my $slurped_tsf = slurp_file( $tsf );
 
     # When you run it, it produces the following output:
-    my $expected_stdout = slurp_file( qq{$lua_ts_fn.out} );
+    my $expected_stdout = slurp_file( qq{$tsf.out} );
 
     # roundtrip lua source
-    my $roundtripped = $p->roundtrip($lua_slurp);
-    is $roundtripped, $lua_slurp, "roundtripped $lua_ts_fn";
+    my $roundtripped = $p->roundtrip($slurped_tsf);
+    is $roundtripped, $slurped_tsf, "roundtripped $tsf";
 
     # write roundtripped lua source to file
-    whip_up_lua_file( $lua_ast_ts_fn, $roundtripped );
+    whip_up_lua_file( $roundtripped_tsf, $roundtripped );
 
     # run lua file
-    system("$run_lua_test $lua_ast_test_suite_dir $lua_fn 1>$lua_ast_ts_fn.stdout 2>$lua_ast_ts_fn.stderr");
-    my ($stdout, $stderr) = map { slurp_file($_) } qq{$lua_ast_ts_fn.stdout}, qq{$lua_ast_ts_fn.stderr};
+    system("$run_lua_test $roundtripped_test_suite_dir $tsf_name 1>$roundtripped_tsf.stdout 2>$roundtripped_tsf.stderr");
+    my ($stdout, $stderr) = map { slurp_file($_) } qq{$roundtripped_tsf.stdout}, qq{$roundtripped_tsf.stderr};
 
     # test output of roundtripped lua source with regexes
     if ($flag == 4)
     {
         # turn $expected_stdout to a regex and test against it
-        if ( $lua_ts_fn =~ m{ sort.lua$ }x )
+        if ( $tsf =~ m{ sort.lua$ }x )
         {
             $expected_stdout =~ s{[\d\.]+}{[\\d\\.]+}gx;
-            like $stdout, qr/$expected_stdout/, $lua_ts_fn;
-            next LUA_FILE;
+            like $stdout, qr/$expected_stdout/, $tsf;
+            next TEST_SUITE_FILE;
         }
-        elsif ( $lua_ts_fn =~ m{ files.lua$ }x )
+        elsif ( $tsf =~ m{ files.lua$ }x )
         {
             $expected_stdout =~ s{\d{2}/\d{2}/\d{4}}{__DATE__}gx;
             $expected_stdout =~ s{\d{2}:\d{2}:\d{2}}{__TIME__}gx;
             $stdout =~ s{\d{2}/\d{2}/\d{4}}{__DATE__}gx;
             $stdout =~ s{\d{2}:\d{2}:\d{2}}{__TIME__}gx;
-            eq_or_diff $stdout, $expected_stdout, $lua_ts_fn;
-            next LUA_FILE;
+            eq_or_diff $stdout, $expected_stdout, $tsf;
+            next TEST_SUITE_FILE;
         }
     }
 
     # test output of roundtripped lua source as is
-    eq_or_diff $stdout, $expected_stdout, $lua_ts_fn;
+    eq_or_diff $stdout, $expected_stdout, $tsf;
 
-} ## for my $lua_fn (@lua_files){
+} ## for my $tsf_name (@test_suite_files){
 
 done_testing();
 
@@ -173,8 +175,8 @@ sub slurp_file{
 }
 
 sub whip_up_lua_file{
-    my ($lua_fn, $lua_text) = @_;
-    open my $fh, ">$lua_fn" or die "Can't create $lua_fn: $@.";
+    my ($tsf_name, $lua_text) = @_;
+    open my $fh, ">$tsf_name" or die "Can't create $tsf_name: $@.";
     say $fh $lua_text;
     close $fh;
 }

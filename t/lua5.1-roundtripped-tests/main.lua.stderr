@@ -1,0 +1,7 @@
+Lua 5.1.5  Copyright (C) 1994-2012 Lua.org, PUC-Rio
+lua: main.lua:31: assertion failed!
+stack traceback:
+	[C]: in function 'assert'
+	main.lua:31: in function 'checkout'
+	main.lua:99: in main chunk
+	[C]: ?

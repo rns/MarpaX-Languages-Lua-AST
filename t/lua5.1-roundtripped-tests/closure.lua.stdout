@@ -1,0 +1,6 @@
+testing closures and coroutines
++
+
+ >>> testC not active: skipping yield/hook tests <<<
+
+OK
