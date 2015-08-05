@@ -17,18 +17,9 @@ use File::Spec;
 use Test::Differences;
 
 BEGIN {
-    my $stderr;
     eval {
-        my $luav = "lua -v";
-        # run $luav capturing STDERR (per perlfaq8)
-        use IPC::Open3;
-        use File::Spec;
-        my $in = '';
-        open(NULL, ">", File::Spec->devnull);
-        my $pid = open3($in, ">&NULL", \*PH, $luav);
+        open(PH, "lua -v 2>&1 1>" . File::Spec->devnull . "|");
         my $stderr = <PH>;
-        waitpid($pid, 0);
-        # check lua and its version
         $stderr =~ /^Lua 5.1/ims;
     } or do {
         plan skip_all => "lua 5.1 not installed or can't be run (lua -v fails)";
