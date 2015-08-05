@@ -13,7 +13,8 @@ Build.bat
 /META.yml
 /META.json
 /MYMETA.*
-nytprof.out
+nytprof.out*
+nytprof
 /pm_to_blib
 *.o
 *.bs
