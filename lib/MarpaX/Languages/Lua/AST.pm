@@ -17,6 +17,7 @@ use Marpa::R2 2.096;
 
 # todo: remove once MarpaX-AST is released
 use lib qw{/home/Ruslan/MarpaX-AST/lib};
+use lib qw{c:/cygwin/home/Ruslan/MarpaX-AST/lib};
 use MarpaX::AST;
 
 # Lua 5.1 Grammar
