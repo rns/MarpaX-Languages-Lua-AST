@@ -32,6 +32,7 @@ use MarpaX::Languages::Lua::AST;
 
 my $p = MarpaX::Languages::Lua::AST->new;
 
+# todo: main.lua fails under windows, perl 5.20.1
 
 #   file name                       flags:  1 default: do nothing
 #                                           3 reparse and show ast
