@@ -1,6 +1,0 @@
-lua: attempt to yield across metamethod/C-call boundary
-stack traceback:
-	[C]: in function 'yield'
-	big.lua:359: in function 'xxxx'
-	big.lua:361: in main chunk
-	[C]: ?

@@ -18,7 +18,7 @@ nytprof.out
 *.o
 *.bs
 /etc/
-/t/lua5.1-ast-tests/
+/t/lua5.1-roundtripped-tests/
 *.ast
 *.diff
 
