@@ -102,7 +102,7 @@ $run_lua_test = './' . $run_lua_test unless $^O eq 'MSWin32';
 my $test_suite_dir = 'lua5.1-tests';
 my $roundtripped_test_suite_dir = 'lua5.1-roundtripped-tests';
 
-# silence "Deep recursion on"
+# silence "Deep recursion on" warning
 BEGIN { $SIG{'__WARN__'} =
     sub { warn $_[0] unless $_[0] =~ /Deep recursion|Redundant argument in sprintf/ }
 };
