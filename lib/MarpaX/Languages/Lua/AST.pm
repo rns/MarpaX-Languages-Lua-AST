@@ -593,10 +593,22 @@ sub read{
 sub parse {
     my ( $parser, $source, $recce_opts ) = @_;
     # add grammar
+    $recce_opts //= {};
     $recce_opts->{grammar} = $parser->{grammar};
     my $recce = Marpa::R2::Scanless::R->new( $recce_opts, { ranking_method => 'high_rule_only' } );
     $parser->{discardables} = MarpaX::AST::Discardables->new;
     return $parser->read($recce, $source);
+}
+
+sub roundtrip{
+    my ( $parser, $source, $recce_opts ) = @_;
+    my $ast = $parser->parse( $source, $recce_opts );
+    $ast = MarpaX::AST->new($ast, { CHILDREN_START => 3 } );
+    $ast = $ast->distill({
+        root => 'chunk',
+        skip => [ 'statements', 'chunk' ],
+    });
+    return $ast->roundtrip($parser->{discardables});
 }
 
 sub fmt{
