@@ -6,7 +6,7 @@
 # run roundtripped source with lua interpreter and test its execution results
 # against those of the original source code
 
-# source of programs: http://lua-users.org/wiki/SampleCode
+# lua sources for more tests can be found at http://lua-users.org/wiki/SampleCode
 
 use 5.010;
 use warnings;
@@ -18,8 +18,7 @@ use Test::Differences;
 
 BEGIN {
     my $stderr;
-    eval
-    {
+    eval {
         my $luav = "lua -v";
         # run $luav capturing STDERR (per perlfaq8)
         use IPC::Open3;
@@ -31,8 +30,7 @@ BEGIN {
         waitpid($pid, 0);
         # check lua and its version
         $stderr =~ /^Lua 5.1/ims;
-    } or do
-    {
+    } or do {
         plan skip_all => "lua 5.1 not installed or can't be run (lua -v fails)";
     };
 }
