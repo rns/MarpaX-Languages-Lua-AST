@@ -375,7 +375,7 @@ sub terminals{
 #   keywords -- group matching
     $keywords = { map { $_ => $_ } @keywords };
 #   add new keywords, if any
-    # possible todo: move to capture group based lexing
+    # todo: move to capture group based lexing if it's efficient enough
     while (my ($literal, $symbol) = each %{ $parser->{new_keywords} } ){
         $keywords->{$literal} = $symbol;
     }
@@ -412,6 +412,7 @@ sub new {
     return $parser;
 }
 
+# todo: re-implement extension via SLIF ast transform and capture groups
 sub extend{
     my ($parser, $opts) = @_;
 
