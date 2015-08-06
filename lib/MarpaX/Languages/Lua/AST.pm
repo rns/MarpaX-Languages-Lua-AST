@@ -598,7 +598,8 @@ sub parse {
     $recce_opts->{grammar} = $parser->{grammar};
     my $recce = Marpa::R2::Scanless::R->new( $recce_opts, { ranking_method => 'high_rule_only' } );
     $parser->{discardables} = MarpaX::AST::Discardables->new;
-    return $parser->read($recce, $source);
+    $parser->{parse_tree} = $parser->read($recce, $source);
+    return $parser->{parse_tree};
 }
 
 sub roundtrip{
@@ -609,6 +610,7 @@ sub roundtrip{
         root => 'chunk',
         skip => [ 'statements', 'chunk' ],
     });
+    $parser->{distilled_parse_tree} = $ast;
     return $ast->roundtrip($parser->{discardables});
 }
 
