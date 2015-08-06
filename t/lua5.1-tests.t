@@ -16,6 +16,8 @@ use Test::More;
 use File::Spec;
 use Test::Differences;
 
+# todo: drop tests running lua on roundtripped files
+
 BEGIN {
     eval {
         open(PH, "lua -v 2>&1 1>" . File::Spec->devnull . "|");
@@ -31,8 +33,6 @@ use Cwd qw();
 use MarpaX::Languages::Lua::AST;
 
 my $p = MarpaX::Languages::Lua::AST->new;
-
-# todo: main.lua fails under windows, perl 5.20.1
 
 #   file name                       flags:  1 default: do nothing
 #                                           3 reparse and show ast
@@ -152,7 +152,11 @@ for my $tsf_name (sort keys %test_suite_files)
     }
 
     # test output of roundtripped lua source as is
-    eq_or_diff $stdout, $expected_stdout, $tsf;
+TODO: {
+    todo_skip "$tsf doesn't run properly under cygwin's lua", 1
+        if $tsf =~ m{ main.lua$ }x and $^O eq 'MSWin32';
+    eq_or_diff $stdout, $expected_stdout, "stdout of $tsf";
+}
 
 } ## for my $tsf_name (@test_suite_files){
 
