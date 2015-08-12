@@ -409,6 +409,7 @@ sub new {
     if (ref $opts eq "HASH"){
         $parser->{opts} = $opts;
     }
+    $parser->{start_to_line_column} = {};
     return $parser;
 }
 
@@ -482,6 +483,24 @@ LITERAL: while (my ($literal, undef) = each %literals){
     $parser->{grammar} = grammar( $rules );
 }
 
+sub next_line_column{
+    my ($lexeme, $length_of_lexeme, $line, $column) = @_;
+
+    my $newlines = $lexeme =~ tr/\n//;
+    if ($newlines > 0){
+        $line += $newlines;
+        $column = $length_of_lexeme - rindex($lexeme, "\n");
+    }
+    else { $column += $length_of_lexeme }
+
+    return ($line, $column);
+}
+
+sub line_column{
+    my ($parser, $start) = @_;
+    return @{ $parser->{start_to_line_column}->{$start} };
+}
+
 sub read{
     my ($parser, $recce, $string) = @_;
 
@@ -490,8 +509,11 @@ sub read{
 
     $recce->read( \$string, 0, 0 );
 
-    # todo: line/column info
     # todo: make roundtripping (post()ing to $parser->{discardables}) an option
+
+    # line/column info for $start
+    my $line    = 1;
+    my $column  = 1;
 
     # discard special comment on first line
     my $length = length $string;
@@ -501,6 +523,7 @@ sub read{
         $parser->{discardables}->post(
             'special comment on first line', 0, $special_comment_length, $special_comment);
         pos $string = length($special_comment);
+        $line++;
     }
     else{
         pos $string = 0;
@@ -513,16 +536,24 @@ sub read{
         if ($string =~ m/\G(\s+)/gcxms){
             my $whitespace = $1;
             my $length_of_lexeme = length $whitespace;
-#            warn qq{'$whitespace' \@ $start_of_lexeme:$length_of_lexeme};
+
+#            warn qq{whitespace: '$whitespace' \@$start_of_lexeme:$length_of_lexeme ($line:$column)\n};
+            $parser->{start_to_line_column}->{$start_of_lexeme} = [ $line, $column ];
+            ($line, $column) = next_line_column($whitespace, $length_of_lexeme, $line, $column);
+
             $parser->{discardables}->post('whitespace', $start_of_lexeme, $length_of_lexeme, $whitespace);
             next TOKEN;
         }
-#        warn "# matching at $start_of_lexeme:\n", substr( $string, $start_of_lexeme, 40 );
+
+#        warn "# matching at $start_of_lexeme, line: $line:\n'",
+#            substr( $string, $start_of_lexeme, 40 ), "'";
+
         TOKEN_TYPE: for my $t (@terminals) {
 
             my ( $token_name, $regex ) = @{$t};
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
+            my $length_of_lexeme = length $lexeme;
             # Name cannot be a keyword so treat strings matching Name's regex as keywords
             if ( $token_name eq "Name" and exists $keywords->{$lexeme} ){
                 $token_name = $keywords->{$lexeme};
@@ -534,9 +565,12 @@ sub read{
                     unless $token_name;
             }
 
+#            warn qq{$token_name: '$lexeme' \@$start_of_lexeme:$length_of_lexeme ($line:$column)\n};
+            $parser->{start_to_line_column}->{$start_of_lexeme} = [ $line, $column ];
+            ($line, $column) = next_line_column($lexeme, $length_of_lexeme, $line, $column);
+
             if ($token_name =~ /comment/i){
-                my $length_of_lexeme = length $lexeme;
-#                warn qq{'$lexeme' \@ $start_of_lexeme:$length_of_lexeme};
+#                warn qq{'$lexeme' \@$start_of_lexeme:$length_of_lexeme};
                 $parser->{discardables}->post($token_name, $start_of_lexeme, $length_of_lexeme, $lexeme);
                 next TOKEN;
             }
