@@ -37,19 +37,6 @@ for my $lua_file (@lua_files){
     my $ast = $p->parse( $lua_src );
     $ast = MarpaX::AST->new( $ast, { CHILDREN_START => 3 } );
 
-    # is_nulled() in constructs.lua
-    if ($lua_file =~ m/constructs.lua$/){
-        my $nulled = [];
-        my $expected_nulled = [
-          [ "block", 806, 0, undef ],
-          [ "block", 822, 0, undef ],
-          [ "block", 849, 0, undef ],
-          [ "block", 867, 0, undef ],
-        ];
-        $ast->walk({ visit => sub { push @$nulled, $_[0] if $_[0]->is_nulled() } });
-        is_deeply $nulled, $expected_nulled, "$lua_file: nulled nodes";
-    }
-
     # line_column()
 #    warn MarpaX::AST::dumper($p->{start_to_line_column});
     my $expected_start_to_line_column = {};
