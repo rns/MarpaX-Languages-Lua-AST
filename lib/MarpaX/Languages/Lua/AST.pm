@@ -578,9 +578,8 @@ sub read{
 #            warn "# <$token_name>:\n'$lexeme'";
             if ( not defined $recce->lexeme_alternative($token_name) ) {
                 my ($l, $c) = $parser->line_column($start_of_lexeme);
-                warn
-                    qq{Parser rejected token $token_name ("$lexeme") at $l:$c (position $start_of_lexeme), before "},
-                    substr( $string, $start_of_lexeme + length($lexeme), 40 ), q{"};
+                warn qq{Parser rejected token $token_name ("$lexeme") at $l:$c, before "},
+                        substr( $string, $start_of_lexeme + length($lexeme), 40 ), q{"};
                 warn "Showing progress:\n", $recce->show_progress();
                 return
             }
