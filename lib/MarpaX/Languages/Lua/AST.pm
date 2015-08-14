@@ -24,7 +24,7 @@ use MarpaX::AST::Discardables;
 # Lua 5.1 Grammar
 # ===============
 
-my $grammar = q{
+my $lua_grammar_source = q{
 
 :default ::= action => [ name, start, length, values ]
 lexeme default = action => [ name, start, length, value ] latm => 1
@@ -398,7 +398,7 @@ sub terminals{
 sub grammar{
     my ($extension) = @_;
     $extension //= '';
-    my $source = $grammar . "\n### extension rules ###" . $extension . "\n" . join( "\n", map { qq{$_ ~ unicorn} } @unicorns ) . "\n";
+    my $source = $lua_grammar_source . "\n### extension rules ###" . $extension . "\n" . join( "\n", map { qq{$_ ~ unicorn} } @unicorns ) . "\n";
 #    say $source if $extension;
     return Marpa::R2::Scanless::G->new( { source => \$source } );
 }
