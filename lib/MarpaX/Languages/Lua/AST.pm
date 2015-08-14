@@ -19,6 +19,7 @@ use Marpa::R2 2.096;
 use lib qw{/home/Ruslan/MarpaX-AST/lib};
 use lib qw{c:/cygwin/home/Ruslan/MarpaX-AST/lib};
 use MarpaX::AST;
+use MarpaX::AST::Discardables;
 
 # Lua 5.1 Grammar
 # ===============
