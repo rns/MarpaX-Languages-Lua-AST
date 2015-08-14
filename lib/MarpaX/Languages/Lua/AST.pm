@@ -487,6 +487,7 @@ LITERAL: while (my ($literal, undef) = each %literals){
 sub next_line_column{
     my ($lexeme, $length_of_lexeme, $line, $column) = @_;
 
+    # todo: possibly more realistic newlines, per Unicode 4.0.0, 5.8 Newline Guidelines
     my $newlines = $lexeme =~ tr/\n//;
     if ($newlines > 0){
         $line += $newlines;
