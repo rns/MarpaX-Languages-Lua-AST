@@ -503,6 +503,142 @@ sub line_column{
     return @{ $parser->{start_to_line_column}->{$start} };
 }
 
+# returns completed spans at current position reverse-sorted by position
+sub longest_spans {
+    my ($parser, $recce) = @_;
+    my $grammar = $parser->{grammar};
+    my %unicorns = map { $_ => 1 } map { s/^<(.*?)>$/$1/; $_ } @unicorns;
+#    warn MarpaX::AST::dumper(\%unicorns);
+    return
+        map { "$_->[2] (" . $recce->literal($_->[0], $_->[1]) . ")" .
+                ' @' . join( ':', $recce->line_column($_->[0]) ),
+        }
+        sort { $b->[0] <=> $a->[0] }
+            grep { @$_ == 3 }
+                map { [ $recce->last_completed_span( $_ ), $_ ] }
+                    grep { not exists $unicorns{$_} and $_ !~ /^R\d+$/ }
+                        map { $grammar->symbol_name($_) }
+                            $grammar->rule_ids();
+}
+
+sub traverse_to_terminal{
+    my ($parser, $recce,
+        $terminals_expected, $terminals_expected_at_dot_position,
+        $dot_rule_id, $dot_position, $dot_position_by_rule_id) = @_;
+
+    my $grammar = $parser->{grammar};
+
+    my (undef, @rhs_ids) = $grammar->rule_expand( $dot_rule_id );
+    my $dot_symbol_id = $rhs_ids[ $dot_position ];
+    my $dot_symbol = $grammar->symbol_name( $rhs_ids[ $dot_position ] );
+
+    if (exists $terminals_expected->{ $dot_symbol }){
+        warn "terminal: $dot_symbol" ;
+        push @{ $terminals_expected_at_dot_position->{ $dot_symbol } },
+            $grammar->rule_name($dot_rule_id);
+    }
+    else{
+        # traverse dot rules until expected terminal in dot position
+        # or there is a cycle
+        warn "\n# rule id:\n", $dot_rule_id, ', ', $dot_symbol;
+
+        # find rule with $lhs_id equal to $dot_symbol_id
+        my @next_dot_rule_ids = grep {
+            my ($lhs_id, @rhs_ids) = $grammar->rule_expand( $_ );
+            $lhs_id == $dot_symbol_id
+        } $grammar->rule_ids();
+
+        for my $next_dot_rule_id (@next_dot_rule_ids){
+            my $next_dot_position = $dot_position_by_rule_id->{ $next_dot_rule_id };
+            my ($lhs_id, @rhs_ids) = $grammar->rule_expand( $next_dot_rule_id );
+            my $next_dot_symbol_id = $rhs_ids[ $next_dot_position ];
+            my $next_dot_symbol = $grammar->symbol_name( $next_dot_symbol_id );
+            next if $next_dot_symbol eq $dot_symbol;
+
+            if (exists $terminals_expected->{ $next_dot_symbol }){
+                warn "terminal: $next_dot_symbol" ;
+                push @{ $terminals_expected_at_dot_position->{ $next_dot_symbol } },
+                    $grammar->rule_name($next_dot_rule_id);
+            }
+            else{
+                warn "# next dot rule:\n", $next_dot_rule_id, ': ', $next_dot_position;
+                warn $next_dot_symbol_id, ': ', $next_dot_symbol;
+                $parser->traverse_to_terminal(
+                    $recce,
+                    $terminals_expected, $terminals_expected_at_dot_position,
+                    $next_dot_rule_id, $next_dot_position, $dot_position_by_rule_id
+                );
+            }
+        }
+
+    }
+}
+
+=pod
+    progress-based syntax error reporting
+        filter expected terminals by most completed dot rules --
+        farthest dot position relative to the rule’s length
+
+        input_spec:line:column: expected <filtered expected terminals>,
+        found <rejected token name (value)>
+
+        expected terminal groups, e.g. addition, multiplication ... = operator/operand
+
+=cut
+sub show_error{
+    my ($parser, $recce) = @_;
+    warn "Showing expected terminals:\n", join ', ', @{ $recce->terminals_expected() };
+    warn "Showing progress:\n", $recce->show_progress();
+
+    my $grammar = $parser->{grammar};
+
+    my $report_items = $recce->progress();
+
+    my $rule_id_by_dot_position = {};
+
+    my $dot_position_by_rule_id = {};
+    for my $report_item ( @{$report_items} ) {
+        my ($rule_id, $dot_position, $origin) = @{$report_item};
+        next unless $dot_position >= 0;
+
+        $dot_position_by_rule_id->{$rule_id} = $dot_position;
+
+        my $rule_name = $grammar->rule_name( $rule_id );
+        my (undef, @rhs_ids) = $grammar->rule_expand( $rule_id );
+        my $rhs_length = @rhs_ids;
+
+        warn join ', ', qq{$rule_id:$rule_name}, $dot_position, $origin, $rhs_length;
+
+        push @{ $rule_id_by_dot_position->{$dot_position} }, $rule_id;
+    }
+
+    warn MarpaX::AST::dumper( $dot_position_by_rule_id );
+
+    my $farthest_dot_position = (sort { $b <=> $a } keys %{ $rule_id_by_dot_position })[0];
+
+    warn "farthest dot position: ", $farthest_dot_position;
+
+    # traverse $farthest_dot_rules to reach terminals
+    my $terminals_expected = { map { $_ => 1 } @{ $recce->terminals_expected() } };
+    my $terminals_expected_at_dot_position = {};
+
+    warn "# rules at dot position:\n",
+        join ', ', map { $grammar->rule_name($_) }
+            @{ $rule_id_by_dot_position->{ $farthest_dot_position } };
+
+    for my $farthest_dot_rule_id (@{ $rule_id_by_dot_position->{ $farthest_dot_position } } ){
+
+        $parser->traverse_to_terminal(
+            $recce,
+            $terminals_expected, $terminals_expected_at_dot_position,
+            $farthest_dot_rule_id, $farthest_dot_position, $dot_position_by_rule_id
+        );
+
+    }
+
+    warn MarpaX::AST::dumper( $terminals_expected_at_dot_position );
+}
+
 sub read{
     my ($parser, $recce, $string) = @_;
 
@@ -582,7 +718,7 @@ sub read{
                 my ($l, $c) = $parser->line_column($start_of_lexeme);
                 warn qq{Parser rejected token $token_name ("$lexeme") at $l:$c, before "},
                         substr( $string, $start_of_lexeme + length($lexeme), 40 ), q{"};
-                warn "Showing progress:\n", $recce->show_progress();
+                $parser->show_error($recce);
                 return
             }
             next TOKEN
