@@ -8,20 +8,22 @@ use warnings;
 
     error reporting and recovery based on (1) longest completed span,
     (2) longest predicted span, and mapping between (1) and (2)
-    to define
 
-    what’s expected (terminals and non-terminals),
-    what’s found and error location
-    after and before spans
+    -   to define
 
-    error reporing format
-        line:column: expected: <filtered expected terminals>,
-        found: <rejected token name (value)>, explanation
+        what’s expected (terminals and non-terminals),
+        what’s found and error location
+        after and before spans
 
-    end is needed to close 'if' at line ...
+        error reporing format
+            line:column: expected: <filtered expected terminals>,
+            found: <rejected token name (value)>, explanation
 
-    group expected terminal based on name of rule, e.g.
-        addition, multiplication ... = operator, binop
+        messages like
+            end is needed to close 'if' at line ...
+
+    -   to group expected terminal by category (rule LHS or general):
+        addition, multiplication ... = operator or binop
 
 =cut
 
