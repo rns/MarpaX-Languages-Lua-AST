@@ -79,7 +79,7 @@ sub traverse_to_terminal{
     my $dot_symbol = $grammar->symbol_name( $rhs_ids[ $dot_position ] );
 
     if (exists $terminals_expected->{ $dot_symbol }){
-        warn "terminal: $dot_symbol" ;
+        warn "terminal: $dot_symbol";
         push @{ $terminals_expected_at_dot_position->{ $dot_symbol } },
             $grammar->rule_name($dot_rule_id);
     }
@@ -126,8 +126,9 @@ sub show{
     my $grammar = $err->{grammar};
     my $recce = $err->{recce};
 
-#    warn "Showing expected terminals:\n", join ', ', @{ $recce->terminals_expected() };
-#    warn "Showing progress:\n", $recce->show_progress();
+    warn "Showing expected terminals:\n", join ', ', @{ $recce->terminals_expected() };
+    warn "Showing progress:\n", $recce->show_progress();
+    return;
 
     # todo: implement Overview above
     my $report_items = $recce->progress();

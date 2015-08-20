@@ -50,17 +50,17 @@ for my $lua_file (@lua_files){
         for my $error (@$errors){
             my $lua_src_err = $lua_src;
             $lua_src_err =~ s/\Q$error->[0]\E/$error->[1]/;
-            my $ast = $p->parse( $lua_src_err );
-        TODO: {
-                todo_skip "unimplemented", 1;
+        SKIP: {
+                skip "unimplemented", 1;
+                my $ast = $p->parse( $lua_src_err );
                 ok(0);
             }
         }
     }
     else{
-        my $ast = $p->parse( $lua_src );
-        TODO: {
-                todo_skip "unimplemented", 1;
+        SKIP: {
+                skip "unimplemented", 1;
+                my $ast = $p->parse( $lua_src );
                 ok(0);
             }
     }
@@ -88,10 +88,10 @@ my $snippets = [
 ];
 for my $snippet (@$snippets){
     my $lua_src = $snippet->[0];
-    diag $lua_src;
-    my $ast = $p->parse( $lua_src );
-TODO: {
-        todo_skip "unimplemented", 1;
+SKIP: {
+        skip "unimplemented", 1;
+        diag $lua_src;
+        my $ast = $p->parse( $lua_src );
         ok(0);
     }
 }

@@ -586,7 +586,7 @@ sub read{
                     "after \"", substr( $string, $start_of_lexeme - 40, 40), "\"\n",
                     "before \"", substr( $string, $start_of_lexeme + length($lexeme), 40 ), '"';
                 my $err = MarpaX::Languages::Lua::AST::Error->new($recce, $parser->{grammar});
-                warn join "\n", $err->longest_spans(\@unicorns);
+#                warn join "\n", $err->longest_spans(\@unicorns);
                 $err->show();
                 return
             }
