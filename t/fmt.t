@@ -2,12 +2,12 @@
 # Copyright 2015 Ruslan Shvedov
 
 #
-use v5.14.2;
+use 5.010;
 use warnings;
 use strict;
 
 use Test::More;
-use Test::Differences 0.61;
+use Test::Differences;
 
 use MarpaX::Languages::Lua::AST;
 

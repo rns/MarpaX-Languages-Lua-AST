@@ -1,7 +1,7 @@
 #!perl
 # Copyright 2015 Ruslan Shvedov
 
-use v5.14.2;
+use 5.010;
 use warnings;
 use strict;
 
