@@ -142,7 +142,7 @@ lexeme default = action => [ name, start, length, value ] latm => 1
         || exp <addition> exp name => 'binop'
          | exp <subtraction> exp name => 'binop'
         || exp <concatenation> exp assoc => right name => 'binop'
-        || exp <less than> exp name => 'binop'
+        || exp <less_than> exp name => 'binop'
          | exp <less_or_equal> exp name => 'binop'
          | exp <greater_than> exp name => 'binop'
          | exp <greater_or_equal> exp name => 'binop'
@@ -214,7 +214,7 @@ lexeme default = action => [ name, start, length, value ] latm => 1
 
     String ::= <long_nestable_string>
     String ::= <long_unnestable_string>
-    String ::= <double quoted string>
+    String ::= <double_quoted_string>
     String ::= <single_quoted_string>
 
 #   unicorns
@@ -230,7 +230,7 @@ my @unicorns = (
 
     '<long_nestable_string>',
     '<long_unnestable_string>',
-    '<double quoted string>',
+    '<double_quoted_string>',
     '<single_quoted_string>',
 
     '<addition>',
@@ -260,7 +260,7 @@ my @unicorns = (
     '<left_paren>',
     '<length>',
     '<less_or_equal>',
-    '<less than>',
+    '<less_than>',
     '<local>',
     '<subtraction>',
     '<multiplication>',
@@ -302,7 +302,7 @@ my $op_punc = {
             '<=' => 'less_or_equal',    '>=' => 'greater_or_equal',
             '~=' => 'negation',         '==' => 'equality',
 
-            '.' =>  'concatenation',    '<' =>  'less than',
+            '.' =>  'concatenation',    '<' =>  'less_than',
             '>' =>  'greater_than',     '+' =>  'addition',
             '-' =>  'subtraction',      '*' =>  'multiplication',
             '/' =>  'division',         '%' =>  'modulo',
@@ -319,12 +319,12 @@ my $op_punc = {
 my @terminals = ( # order matters!
 
 #   comments -- short, long (nestable)
-    [ 'long_nestable_comment' => qr/--\[(={4,})\[.*?\]\1\]/xms, ],
-    [ 'long_nestable_comment' => qr/--\[===\[.*?\]===\]/xms,    ],
-    [ 'long_nestable_comment' => qr/--\[==\[.*?\]==\]/xms,      ],
-    [ 'long_nestable_comment' => qr/--\[=\[.*?\]=\]/xms,        ],
-    [ 'long_unnestable_comment' => qr/--\[\[.*?\]\]/xms,        ],
-    [ 'short_comment' => qr/--[^\n]*\n/xms,                     ],
+    [ 'long_nestable_comment' => q/--\[(={4,})\[.*?\]\1\]/, ],
+    [ 'long_nestable_comment' => q/--\[===\[.*?\]===\]/,    ],
+    [ 'long_nestable_comment' => q/--\[==\[.*?\]==\]/,      ],
+    [ 'long_nestable_comment' => q/--\[=\[.*?\]=\]/,        ],
+    [ 'long_unnestable_comment' => q/--\[\[.*?\]\]/,        ],
+    [ 'short_comment' => q/--[^\n]*\n/,                     ],
 
 #   strings -- short, long (nestable)
 # 2.1 – Lexical Conventions, refman
@@ -338,69 +338,57 @@ my @terminals = ( # order matters!
 # is to be followed by a digit, it must be expressed using exactly three digits.) Strings in
 # Lua can contain any 8-bit value, including embedded zeros, which can be specified as '\0'.
 
-    [ 'single_quoted_string' => qr
-        /'(
-            \\(a|b|f|n|r|t|v|"|'|\\) | [^']
-           )*
-         '/xms, ],
+    [ 'single_quoted_string' => q{'(?:[^'\\\\]|\\\\.)*'} ], #'
+    [ 'double_quoted_string' => q{"(?:[^"\\\\]|\\\\.)*"} ], #"
 
-    [ 'double quoted string' => qr
-        /"(
-            \\(a|b|f|n|r|t|v|"|'|\\) | [^"]
-           )*
-         "/xms, ],
-#'
-    [ 'long_unnestable_string' => qr/\[\[.*?\]\]/xms,        ],
-    [ 'long_nestable_string' => qr/\[=\[.*?\]=\]/xms,        ],
-    [ 'long_nestable_string' => qr/\[==\[.*?\]==\]/xms,      ],
-    [ 'long_nestable_string' => qr/\[===\[.*?\]===\]/xms,    ],
-    [ 'long_nestable_string' => qr/\[====\[.*?\]====\]/xms,  ],
-    [ 'long_nestable_string' => qr/\[(={5,})\[.*?\]\1\]/xms, ],
+    [ 'long_unnestable_string' => q/\[\[.*?\]\]/,        ],
+    [ 'long_nestable_string' => q/\[=\[.*?\]=\]/,        ],
+    [ 'long_nestable_string' => q/\[==\[.*?\]==\]/,      ],
+    [ 'long_nestable_string' => q/\[===\[.*?\]===\]/,    ],
+    [ 'long_nestable_string' => q/\[====\[.*?\]====\]/,  ],
+    [ 'long_nestable_string' => q/\[(={5,})\[.*?\]\1\]/, ],
 
 #   numbers -- int, float, and hex
 #   We can write numeric constants with an optional decimal part,
 #   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
-    [ 'Float' => qr/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/xms, "Floating-point number" ],
-    [ 'Float' => qr/[0-9]+[eE][-+]?[0-9]+/xms, "Floating-point number" ],
-    [ 'Float' => qr/[0-9]+\./xms, "Floating-point number" ],
-    [ 'Float' => qr/\.[0-9]+/xms, "Floating-point number" ],
-    [ 'Hex' => qr/0x[0-9a-fA-F]+/xms, "Hexadecimal number" ],
-    [ 'Int' => qr/[\d]+/xms, "Integer number" ],
+    [ 'Float' => q/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/, "Floating-point number" ],
+    [ 'Float' => q/[0-9]+[eE][-+]?[0-9]+/, "Floating-point number" ],
+    [ 'Float' => q/[0-9]+\./, "Floating-point number" ],
+    [ 'Float' => q/\.[0-9]+/, "Floating-point number" ],
+    [ 'Hex' => q/0x[0-9a-fA-F]+/, "Hexadecimal number" ],
+    [ 'Int' => q/[\d]+/, "Integer number" ],
 
 #   identifiers
-    [ 'Name' => qr/\b[a-zA-Z_][\w]*\b/xms, "Name" ],
+    [ 'Name' => q/\b[a-zA-Z_][\w]*\b/, "Name" ],
 
 );
 
 sub _capture_group_regex{
     my ($terminals) = @_;
 
-    my %tokens;
     my @match_regex;
     for my $t ( @{ $terminals } ) {
-        warn $t;
+#        warn $t;
         my ($token, $regex) = @{$t};
-        warn $regex;
-#        $token =~ s/[^a-zA-Z_0-9]/_/g;
-#        $tokens{$token} = $lexeme->[0] if $token ne $lexeme->[0];
-#        push @match_regex, qq{(?<$token>$regex)};
+#        warn $regex;
+        # todo: check if $token is a valid capture group name;
+        my $lexeme_re = '(?<' . $token . '>' . $regex . ')';
+        qr/$lexeme_re/;
+        push @match_regex, $lexeme_re;
     }
-#    my $match_regex = join '|', @match_regex;
-#    say $match_regex;
-#    say %tokens;
+    my $match_regex = join "|", @match_regex;
+    return $match_regex;
 }
 
 sub terminals{
     my ($parser) = @_;
 
     # add keywords
-    push @terminals, [ $_, qr/$_/xms ] for @keywords;
+    push @terminals, [ $_, $_ ] for @keywords;
 
     # add operators and punctuation
-    push @terminals, [ $op_punc->{$_}, qr/\Q$_\E/xms ]
+    push @terminals, [ $op_punc->{$_}, quotemeta($_)]
         for sort { length($b) <=> length($a) } keys %$op_punc;
-
-    # build capture group regexp
 
 #    warn MarpaX::AST::dumper(\@terminals);
     return \@terminals;
@@ -521,6 +509,9 @@ sub read{
     # build terminals
     my @terminals = @{ $parser->terminals() };
 
+    # build capture group regexp
+    my $match_regex = _capture_group_regex(\@terminals);
+
     $recce->read( \$string, 0, 0 );
 
     # line/column info for $start
@@ -587,8 +578,11 @@ sub read{
                 next TOKEN_TYPE unless exists $terminals_expected{$token_name};
             }
 
-            next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
-            my $lexeme = $1;
+            next TOKEN_TYPE if not $string =~ m/\G($match_regex)/gcxms;
+            warn "multiple match" if keys %+ > 1;
+            my $lexeme;
+            ($token_name, $lexeme) = each %+;
+
             my $length_of_lexeme = length $lexeme;
             # Name cannot be a keyword so treat strings matching Name's regex as keywords
             if ( $token_name eq "Name" and exists $keywords->{$lexeme} ){
