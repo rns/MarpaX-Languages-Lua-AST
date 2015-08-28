@@ -556,7 +556,7 @@ sub read{
             @{ $recce->terminals_expected },
             # comments are not in the grammar, so we need to add them
             'long nestable comment', 'long unnestable comment', 'short comment';
-
+# todo: investigate constructs.lua:83:3 failure with terminals_expected
 #        warn "\n# ", join ', ', keys %terminals_expected;
         TOKEN_TYPE: for my $t (@terminals) {
 
