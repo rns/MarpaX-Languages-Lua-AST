@@ -552,13 +552,19 @@ sub read{
 #        warn "# matching at $start_of_lexeme, line: $line:\n'",
 #            substr( $string, $start_of_lexeme, 40 ), "'";
 
-        my %terminals_expected = map { $_ => 1 } @{ $recce->terminals_expected };
-#        warn join ', ', keys %terminals_expected;
+        my %terminals_expected = map { $_ => 1 }
+            @{ $recce->terminals_expected },
+            # comments are not in the grammar, so we need to add them
+            'long nestable comment', 'long unnestable comment', 'short comment';
+
+#        warn "\n# ", join ', ', keys %terminals_expected;
         TOKEN_TYPE: for my $t (@terminals) {
 
             my ( $token_name, $regex ) = @{$t};
 #            warn $token_name;
-#            next TOKEN_TYPE unless exists $terminals_expected{$token_name};
+            if (exists $parser->{opts}->{use_terminals_expected}){
+                next TOKEN_TYPE unless exists $terminals_expected{$token_name};
+            }
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
             my $length_of_lexeme = length $lexeme;
