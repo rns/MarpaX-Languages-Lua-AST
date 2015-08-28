@@ -13,7 +13,7 @@ $Data::Dumper::Indent = 1;
 $Data::Dumper::Terse = 1;
 $Data::Dumper::Deepcopy = 1;
 
-use Marpa::R2 2.096;
+use Marpa::R2;
 
 # todo: remove once MarpaX-AST is released
 use lib qw{/home/Ruslan/MarpaX-AST/lib};
