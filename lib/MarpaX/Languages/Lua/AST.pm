@@ -559,24 +559,30 @@ sub read{
 
             next TOKEN;
         }
-
 #        warn "# matching at $start_of_lexeme, line: $line:\n'",
 #            substr( $string, $start_of_lexeme, 40 ), "'";
 
+        my ( $token_name, $regex, $lexeme );
+#            warn $token_name;
+
+        my $tokens_re;
         if (exists $parser->{opts}->{use_terminals_expected}){
+# todo: investigate constructs.lua:83:3 failure with terminals_expected
+#            warn "\n# ", join ', ', keys %terminals_expected;
             my %terminals_expected = map { $_ => 1 }
                 @{ $recce->terminals_expected },
                 # comments are not in the grammar, so we need to add them
                 'long_nestable_comment', 'long_unnestable_comment', 'short_comment';
-            # todo: build $match_regex based on terminals_expected()
+            # build $match_regex based on terminals_expected()
+            $match_regex = join "|", map { $_->[1] }
+                grep { exists $terminals_expected{$_->[0]} } @$cgre;
+            $tokens_re = qr/$match_regex/xms;
         }
+        else{
+            $tokens_re = qr/$match_regex/xmso;
+        }
+        next TOKEN if not $string =~ m/\G$tokens_re/gc;
 
-# todo: investigate constructs.lua:83:3 failure with terminals_expected
-#        warn "\n# ", join ', ', keys %terminals_expected;
-        my ( $token_name, $regex, $lexeme );
-#            warn $token_name;
-
-        next TOKEN if not $string =~ m/\G($match_regex)/gcxms;
         warn "multiple match" if keys %+ > 1;
         ($token_name, $lexeme) = each %+;
 
@@ -585,19 +591,13 @@ sub read{
         if ( $token_name eq "Name" and exists $keywords->{$lexeme} ){
             $token_name = $keywords->{$lexeme};
         }
-        # check for group matching
-        if (ref $token_name eq "HASH"){
-            $token_name = $token_name->{$lexeme};
-            die "No token defined for lexeme <$lexeme>"
-                unless $token_name;
-        }
 
-#            warn qq{$token_name: '$lexeme' \@$start_of_lexeme:$length_of_lexeme ($line:$column)\n};
+#        warn qq{$token_name: '$lexeme' \@$start_of_lexeme:$length_of_lexeme ($line:$column)\n};
         $parser->{start_to_line_column}->{$start_of_lexeme} = [ $line, $column ];
         ($line, $column) = next_line_column($lexeme, $length_of_lexeme, $line, $column);
 
         if ($token_name =~ /comment/i){
-#                warn qq{'$lexeme' \@$start_of_lexeme:$length_of_lexeme};
+#            warn qq{'$lexeme' \@$start_of_lexeme:$length_of_lexeme};
             if ($roundtrip){
                 $discardables->post(
                     $token_name, $start_of_lexeme, $length_of_lexeme, $lexeme);
@@ -605,14 +605,14 @@ sub read{
             next TOKEN;
         }
 
-#            warn "# <$token_name>:\n'$lexeme'";
+#        warn "# <$token_name>:\n'$lexeme'";
         if ( not defined $recce->lexeme_alternative($token_name) ) {
             my ($l, $c) = $parser->line_column($start_of_lexeme);
             warn qq{Parser rejected token $token_name ("$lexeme") at $l:$c\n},
                 "after \"", substr( $string, $start_of_lexeme - 40, 40), "\"\n",
                 "before \"", substr( $string, $start_of_lexeme + length($lexeme), 40 ), '"';
             my $err = MarpaX::Languages::Lua::AST::Error->new($recce, $parser->{grammar});
-#                warn join "\n", $err->longest_spans(\@unicorns);
+#            warn join "\n", $err->longest_spans(\@unicorns);
             $err->show();
             return
         }
@@ -625,6 +625,7 @@ sub read{
 #        warn "Showing progress:\n", $recce->show_progress();
         return
     } ## end TOKEN: while (1)
+
 #   handle ambiguity
     if ($recce->ambiguity_metric() > 1){
         my $max_values = 100;
