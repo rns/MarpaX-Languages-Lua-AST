@@ -319,12 +319,12 @@ my $op_punc = {
 my @terminals = ( # order matters!
 
 #   comments -- short, long (nestable)
-    [ 'long nestable comment' => qr/--\[(={4,})\[.*?\]\1\]/xms, "long nestable comment" ],
-    [ 'long nestable comment' => qr/--\[===\[.*?\]===\]/xms,    "long nestable comment" ],
-    [ 'long nestable comment' => qr/--\[==\[.*?\]==\]/xms,      "long nestable comment" ],
-    [ 'long nestable comment' => qr/--\[=\[.*?\]=\]/xms,        "long nestable comment" ],
-    [ 'long unnestable comment' => qr/--\[\[.*?\]\]/xms,        "long unnestable comment" ],
-    [ 'short comment' => qr/--[^\n]*\n/xms,                     "short comment" ],
+    [ 'long nestable comment' => qr/--\[(={4,})\[.*?\]\1\]/xmso, "long nestable comment" ],
+    [ 'long nestable comment' => qr/--\[===\[.*?\]===\]/xmso,    "long nestable comment" ],
+    [ 'long nestable comment' => qr/--\[==\[.*?\]==\]/xmso,      "long nestable comment" ],
+    [ 'long nestable comment' => qr/--\[=\[.*?\]=\]/xmso,        "long nestable comment" ],
+    [ 'long unnestable comment' => qr/--\[\[.*?\]\]/xmso,        "long unnestable comment" ],
+    [ 'short comment' => qr/--[^\n]*\n/xmso,                     "short comment" ],
 
 #   strings -- short, long (nestable)
 # 2.1 – Lexical Conventions, refman
@@ -342,33 +342,33 @@ my @terminals = ( # order matters!
         /'(
             \\(a|b|f|n|r|t|v|"|'|\\) | [^']
            )*
-         '/xms, "single quoted string" ],
+         '/xmso, "single quoted string" ],
 
     [ 'double quoted string' => qr
         /"(
             \\(a|b|f|n|r|t|v|"|'|\\) | [^"]
            )*
-         "/xms, "double quoted string" ],
+         "/xmso, "double quoted string" ],
 #'
-    [ 'long unnestable string' => qr/\[\[.*?\]\]/xms,        "long unnestable string" ],
-    [ 'long nestable string' => qr/\[=\[.*?\]=\]/xms,        "long nestable string" ],
-    [ 'long nestable string' => qr/\[==\[.*?\]==\]/xms,      "long nestable string" ],
-    [ 'long nestable string' => qr/\[===\[.*?\]===\]/xms,    "long nestable string" ],
-    [ 'long nestable string' => qr/\[====\[.*?\]====\]/xms,  "long nestable string" ],
-    [ 'long nestable string' => qr/\[(={5,})\[.*?\]\1\]/xms, "long nestable string" ],
+    [ 'long unnestable string' => qr/\[\[.*?\]\]/xmso,        "long unnestable string" ],
+    [ 'long nestable string' => qr/\[=\[.*?\]=\]/xmso,        "long nestable string" ],
+    [ 'long nestable string' => qr/\[==\[.*?\]==\]/xmso,      "long nestable string" ],
+    [ 'long nestable string' => qr/\[===\[.*?\]===\]/xmso,    "long nestable string" ],
+    [ 'long nestable string' => qr/\[====\[.*?\]====\]/xmso,  "long nestable string" ],
+    [ 'long nestable string' => qr/\[(={5,})\[.*?\]\1\]/xmso, "long nestable string" ],
 
 #   numbers -- int, float, and hex
 #   We can write numeric constants with an optional decimal part,
 #   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
-    [ 'Float' => qr/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/xms, "Floating-point number" ],
-    [ 'Float' => qr/[0-9]+[eE][-+]?[0-9]+/xms, "Floating-point number" ],
-    [ 'Float' => qr/[0-9]+\./xms, "Floating-point number" ],
-    [ 'Float' => qr/\.[0-9]+/xms, "Floating-point number" ],
-    [ 'Hex' => qr/0x[0-9a-fA-F]+/xms, "Hexadecimal number" ],
-    [ 'Int' => qr/[\d]+/xms, "Integer number" ],
+    [ 'Float' => qr/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/xmso, "Floating-point number" ],
+    [ 'Float' => qr/[0-9]+[eE][-+]?[0-9]+/xmso, "Floating-point number" ],
+    [ 'Float' => qr/[0-9]+\./xmso, "Floating-point number" ],
+    [ 'Float' => qr/\.[0-9]+/xmso, "Floating-point number" ],
+    [ 'Hex' => qr/0x[0-9a-fA-F]+/xmso, "Hexadecimal number" ],
+    [ 'Int' => qr/[\d]+/xmso, "Integer number" ],
 
 #   identifiers
-    [ 'Name' => qr/\b[a-zA-Z_][\w]*\b/xms, "Name" ],
+    [ 'Name' => qr/\b[a-zA-Z_][\w]*\b/xmso, "Name" ],
 
 );
 
@@ -537,7 +537,7 @@ sub read{
         my $start_of_lexeme = pos $string;
         last TOKEN if $start_of_lexeme >= $length;
         # handle whitespace
-        if ($string =~ m/\G(\s+)/gcxms){
+        if ($string =~ m/\G(\s+)/gcxmso){
             my $whitespace = $1;
             my $length_of_lexeme = length $whitespace;
 
