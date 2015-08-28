@@ -105,7 +105,7 @@ lexeme default = action => [ name, start, length, value ] latm => 1
     varlist ::= varlist <comma> var
 
     var ::= Name
-    var ::= prefixexp <left bracket> exp <right bracket>
+    var ::= prefixexp <left_bracket> exp <right_bracket>
     var ::= prefixexp <period> Name
 
 #   namelist ::= Name {',' Name}
@@ -119,7 +119,7 @@ lexeme default = action => [ name, start, length, value ] latm => 1
 # todo: add more meaningful names than 'exp' once roundtripping works
     exp ::=
            var
-         | <left paren> exp <right paren> assoc => group name => 'exp'
+         | <left_paren> exp <right_paren> assoc => group name => 'exp'
         || exp args assoc => right name => 'functioncall'
         || exp <colon> Name args assoc => right name => 'functioncall'
          | <nil> name => 'exp'
@@ -143,9 +143,9 @@ lexeme default = action => [ name, start, length, value ] latm => 1
          | exp <subtraction> exp name => 'binop'
         || exp <concatenation> exp assoc => right name => 'binop'
         || exp <less than> exp name => 'binop'
-         | exp <less or equal> exp name => 'binop'
-         | exp <greater than> exp name => 'binop'
-         | exp <greater or equal> exp name => 'binop'
+         | exp <less_or_equal> exp name => 'binop'
+         | exp <greater_than> exp name => 'binop'
+         | exp <greater_or_equal> exp name => 'binop'
          | exp <equality> exp name => 'binop'
          | exp <negation> exp name => 'binop'
         || exp <and> exp name => 'binop'
@@ -153,7 +153,7 @@ lexeme default = action => [ name, start, length, value ] latm => 1
 
     exponent ::=
            var name => 'exp'
-         | <left paren> exp <right paren> name => 'exp'
+         | <left_paren> exp <right_paren> name => 'exp'
         || exponent args name => 'exp'
         || exponent <colon> Name args name => 'exp'
          | <nil> name => 'exp'
@@ -170,7 +170,7 @@ lexeme default = action => [ name, start, length, value ] latm => 1
 
     prefixexp ::= var
     prefixexp ::= functioncall
-    prefixexp ::= <left paren> exp <right paren>
+    prefixexp ::= <left_paren> exp <right_paren>
 
 # todo: As an exception to the free-format syntax of Lua, you cannot put a line break
 # before the '(' in a function call. This restriction avoids some
@@ -180,14 +180,14 @@ lexeme default = action => [ name, start, length, value ] latm => 1
     functioncall ::= prefixexp <colon> Name args
 
 #   args ::=  '(' [explist] ')' | tableconstructor | String
-    args ::= <left paren> <right paren>
-    args ::= <left paren> explist <right paren>
+    args ::= <left_paren> <right_paren>
+    args ::= <left_paren> explist <right_paren>
     args ::= tableconstructor
     args ::= String
 
 #   funcbody ::= '(' [parlist] ')' block <end>
-    funcbody ::= <left paren> parlist <right paren> block <end>
-    funcbody ::= <left paren> <right paren> block <end>
+    funcbody ::= <left_paren> parlist <right_paren> block <end>
+    funcbody ::= <left_paren> <right_paren> block <end>
 
 #   parlist ::= namelist [',' '...'] | '...'
     parlist ::= namelist
@@ -195,8 +195,8 @@ lexeme default = action => [ name, start, length, value ] latm => 1
     parlist ::= <ellipsis>
 
 #   tableconstructor ::= '{' [fieldlist] '}'
-    tableconstructor ::= <left curly> <right curly>
-    tableconstructor ::= <left curly> fieldlist <right curly>
+    tableconstructor ::= <left_curly> <right_curly>
+    tableconstructor ::= <left_curly> fieldlist <right_curly>
 
 #   fieldlist ::= field {fieldsep field} [fieldsep]
     fieldlist ::= field
@@ -206,16 +206,16 @@ lexeme default = action => [ name, start, length, value ] latm => 1
     fieldsep ::= <comma>
     fieldsep ::= <semicolon>
 
-    field ::= <left bracket> exp <right bracket> <assignment> exp
+    field ::= <left_bracket> exp <right_bracket> <assignment> exp
     field ::= Name <assignment> exp
     field ::= exp
 
     Number ::= Int | Float | Hex
 
-    String ::= <long nestable string>
-    String ::= <long unnestable string>
+    String ::= <long_nestable_string>
+    String ::= <long_unnestable_string>
     String ::= <double quoted string>
-    String ::= <single quoted string>
+    String ::= <single_quoted_string>
 
 #   unicorns
     # unicorn rules will be added in the constructor
@@ -228,10 +228,10 @@ my @unicorns = (
     'Int', 'Float', 'Hex',
     'Name',
 
-    '<long nestable string>',
-    '<long unnestable string>',
+    '<long_nestable_string>',
+    '<long_unnestable_string>',
     '<double quoted string>',
-    '<single quoted string>',
+    '<single_quoted_string>',
 
     '<addition>',
     '<and>',
@@ -251,15 +251,15 @@ my @unicorns = (
     '<false>',
     '<for>',
     '<function>',
-    '<greater or equal>',
-    '<greater than>',
+    '<greater_or_equal>',
+    '<greater_than>',
     '<if>',
     '<in>',
-    '<left bracket>',
-    '<left curly>',
-    '<left paren>',
+    '<left_bracket>',
+    '<left_curly>',
+    '<left_paren>',
     '<length>',
-    '<less or equal>',
+    '<less_or_equal>',
     '<less than>',
     '<local>',
     '<subtraction>',
@@ -272,9 +272,9 @@ my @unicorns = (
     '<period>',
     '<repeat>',
     '<return>',
-    '<right bracket>',
-    '<right curly>',
-    '<right paren>',
+    '<right_bracket>',
+    '<right_curly>',
+    '<right_paren>',
     '<semicolon>',
     '<then>',
     '<true>',
@@ -299,18 +299,18 @@ my $keywords = { map { $_ => $_ } @keywords };
 my $op_punc = {
             '...' =>'ellipsis',         '..' => 'concatenation',
 
-            '<=' => 'less or equal',    '>=' => 'greater or equal',
+            '<=' => 'less_or_equal',    '>=' => 'greater_or_equal',
             '~=' => 'negation',         '==' => 'equality',
 
             '.' =>  'concatenation',    '<' =>  'less than',
-            '>' =>  'greater than',     '+' =>  'addition',
+            '>' =>  'greater_than',     '+' =>  'addition',
             '-' =>  'subtraction',      '*' =>  'multiplication',
             '/' =>  'division',         '%' =>  'modulo',
             '#' =>  'length',           '^' =>  'exponentiation',
-            ':' =>  'colon',            '[' =>  'left bracket',
-            ']' =>  'right bracket',    '(' =>  'left paren',
-            ')' =>  'right paren',      '{' =>  'left curly',
-            '}' =>  'right curly',      '=' =>  'assignment',
+            ':' =>  'colon',            '[' =>  'left_bracket',
+            ']' =>  'right_bracket',    '(' =>  'left_paren',
+            ')' =>  'right_paren',      '{' =>  'left_curly',
+            '}' =>  'right_curly',      '=' =>  'assignment',
             ';' =>  'semicolon',        ',' =>  'comma',
             '.' =>  'period',
 };
@@ -319,12 +319,12 @@ my $op_punc = {
 my @terminals = ( # order matters!
 
 #   comments -- short, long (nestable)
-    [ 'long nestable comment' => qr/--\[(={4,})\[.*?\]\1\]/xmso, "long nestable comment" ],
-    [ 'long nestable comment' => qr/--\[===\[.*?\]===\]/xmso,    "long nestable comment" ],
-    [ 'long nestable comment' => qr/--\[==\[.*?\]==\]/xmso,      "long nestable comment" ],
-    [ 'long nestable comment' => qr/--\[=\[.*?\]=\]/xmso,        "long nestable comment" ],
-    [ 'long unnestable comment' => qr/--\[\[.*?\]\]/xmso,        "long unnestable comment" ],
-    [ 'short comment' => qr/--[^\n]*\n/xmso,                     "short comment" ],
+    [ 'long_nestable_comment' => qr/--\[(={4,})\[.*?\]\1\]/xms, ],
+    [ 'long_nestable_comment' => qr/--\[===\[.*?\]===\]/xms,    ],
+    [ 'long_nestable_comment' => qr/--\[==\[.*?\]==\]/xms,      ],
+    [ 'long_nestable_comment' => qr/--\[=\[.*?\]=\]/xms,        ],
+    [ 'long_unnestable_comment' => qr/--\[\[.*?\]\]/xms,        ],
+    [ 'short_comment' => qr/--[^\n]*\n/xms,                     ],
 
 #   strings -- short, long (nestable)
 # 2.1 – Lexical Conventions, refman
@@ -338,39 +338,57 @@ my @terminals = ( # order matters!
 # is to be followed by a digit, it must be expressed using exactly three digits.) Strings in
 # Lua can contain any 8-bit value, including embedded zeros, which can be specified as '\0'.
 
-    [ 'single quoted string' => qr
+    [ 'single_quoted_string' => qr
         /'(
             \\(a|b|f|n|r|t|v|"|'|\\) | [^']
            )*
-         '/xmso, "single quoted string" ],
+         '/xms, ],
 
     [ 'double quoted string' => qr
         /"(
             \\(a|b|f|n|r|t|v|"|'|\\) | [^"]
            )*
-         "/xmso, "double quoted string" ],
+         "/xms, ],
 #'
-    [ 'long unnestable string' => qr/\[\[.*?\]\]/xmso,        "long unnestable string" ],
-    [ 'long nestable string' => qr/\[=\[.*?\]=\]/xmso,        "long nestable string" ],
-    [ 'long nestable string' => qr/\[==\[.*?\]==\]/xmso,      "long nestable string" ],
-    [ 'long nestable string' => qr/\[===\[.*?\]===\]/xmso,    "long nestable string" ],
-    [ 'long nestable string' => qr/\[====\[.*?\]====\]/xmso,  "long nestable string" ],
-    [ 'long nestable string' => qr/\[(={5,})\[.*?\]\1\]/xmso, "long nestable string" ],
+    [ 'long_unnestable_string' => qr/\[\[.*?\]\]/xms,        ],
+    [ 'long_nestable_string' => qr/\[=\[.*?\]=\]/xms,        ],
+    [ 'long_nestable_string' => qr/\[==\[.*?\]==\]/xms,      ],
+    [ 'long_nestable_string' => qr/\[===\[.*?\]===\]/xms,    ],
+    [ 'long_nestable_string' => qr/\[====\[.*?\]====\]/xms,  ],
+    [ 'long_nestable_string' => qr/\[(={5,})\[.*?\]\1\]/xms, ],
 
 #   numbers -- int, float, and hex
 #   We can write numeric constants with an optional decimal part,
 #   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
-    [ 'Float' => qr/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/xmso, "Floating-point number" ],
-    [ 'Float' => qr/[0-9]+[eE][-+]?[0-9]+/xmso, "Floating-point number" ],
-    [ 'Float' => qr/[0-9]+\./xmso, "Floating-point number" ],
-    [ 'Float' => qr/\.[0-9]+/xmso, "Floating-point number" ],
-    [ 'Hex' => qr/0x[0-9a-fA-F]+/xmso, "Hexadecimal number" ],
-    [ 'Int' => qr/[\d]+/xmso, "Integer number" ],
+    [ 'Float' => qr/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/xms, "Floating-point number" ],
+    [ 'Float' => qr/[0-9]+[eE][-+]?[0-9]+/xms, "Floating-point number" ],
+    [ 'Float' => qr/[0-9]+\./xms, "Floating-point number" ],
+    [ 'Float' => qr/\.[0-9]+/xms, "Floating-point number" ],
+    [ 'Hex' => qr/0x[0-9a-fA-F]+/xms, "Hexadecimal number" ],
+    [ 'Int' => qr/[\d]+/xms, "Integer number" ],
 
 #   identifiers
-    [ 'Name' => qr/\b[a-zA-Z_][\w]*\b/xmso, "Name" ],
+    [ 'Name' => qr/\b[a-zA-Z_][\w]*\b/xms, "Name" ],
 
 );
+
+sub _capture_group_regex{
+    my ($terminals) = @_;
+
+    my %tokens;
+    my @match_regex;
+    for my $t ( @{ $terminals } ) {
+        warn $t;
+        my ($token, $regex) = @{$t};
+        warn $regex;
+#        $token =~ s/[^a-zA-Z_0-9]/_/g;
+#        $tokens{$token} = $lexeme->[0] if $token ne $lexeme->[0];
+#        push @match_regex, qq{(?<$token>$regex)};
+    }
+#    my $match_regex = join '|', @match_regex;
+#    say $match_regex;
+#    say %tokens;
+}
 
 sub terminals{
     my ($parser) = @_;
@@ -381,6 +399,8 @@ sub terminals{
     # add operators and punctuation
     push @terminals, [ $op_punc->{$_}, qr/\Q$_\E/xms ]
         for sort { length($b) <=> length($a) } keys %$op_punc;
+
+    # build capture group regexp
 
 #    warn MarpaX::AST::dumper(\@terminals);
     return \@terminals;
@@ -555,16 +575,18 @@ sub read{
         my %terminals_expected = map { $_ => 1 }
             @{ $recce->terminals_expected },
             # comments are not in the grammar, so we need to add them
-            'long nestable comment', 'long unnestable comment', 'short comment';
+            'long_nestable_comment', 'long_unnestable_comment', 'short_comment';
 # todo: investigate constructs.lua:83:3 failure with terminals_expected
 #        warn "\n# ", join ', ', keys %terminals_expected;
         TOKEN_TYPE: for my $t (@terminals) {
 
             my ( $token_name, $regex ) = @{$t};
 #            warn $token_name;
+
             if (exists $parser->{opts}->{use_terminals_expected}){
                 next TOKEN_TYPE unless exists $terminals_expected{$token_name};
             }
+
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
             my $length_of_lexeme = length $lexeme;
@@ -753,7 +775,7 @@ sub do_fmt{
 #        say "  previous literal node : '$previous_literal_node'" if $previous_literal_node;
         # append current literal
         if    ( $ast =~ /^(function|for|while|repeat)$/   ){
-            $s .= ( $previous_literal_node !~ /^(short comment)$/ ? "\n" : '' )
+            $s .= ( $previous_literal_node !~ /^(short_comment)$/ ? "\n" : '' )
                 . $indent x $indent_level . $ast . ' '
         }
 
@@ -779,7 +801,7 @@ sub do_fmt{
 #            say "# $current_node: '$ast'";
             $s .= $ast . ' ';
         }
-        elsif ( $current_node eq 'short comment' ){
+        elsif ( $current_node eq 'short_comment' ){
 #            say "# $current_parent_node/$current_node: '$ast'";
 #            chomp $ast;
             $s .= '  ' . $ast;
@@ -793,7 +815,7 @@ sub do_fmt{
             and $previous_literal_node ne 'for'
             and $previous_literal_node ne 'local'
             ){
-            $s .= ( $previous_literal_node !~ /^(short comment|comma)$/ ? "\n" : '' ) .
+            $s .= ( $previous_literal_node !~ /^(short_comment|comma)$/ ? "\n" : '' ) .
                 $indent x $indent_level . $ast;
         }
         elsif ( $current_node =~ m{(^
