@@ -513,8 +513,6 @@ sub read{
 
     $recce->read( \$string, 0, 0 );
 
-    # todo: make roundtripping (post()ing to $parser->{discardables}) an option
-
     # line/column info for $start
     my $line    = 1;
     my $column  = 1;
@@ -533,6 +531,14 @@ sub read{
         pos $string = 0;
     }
 
+    # check if we need to roundtrip and set up if we do
+    my $roundtrip = $parser->{opts}->{roundtrip};
+    my $discardables;
+    if ($roundtrip){
+        $discardables = $parser->{discardables};
+    }
+
+    # match and read tokens
     TOKEN: while (1) {
         my $start_of_lexeme = pos $string;
         last TOKEN if $start_of_lexeme >= $length;
@@ -545,7 +551,11 @@ sub read{
             $parser->{start_to_line_column}->{$start_of_lexeme} = [ $line, $column ];
             ($line, $column) = next_line_column($whitespace, $length_of_lexeme, $line, $column);
 
-            $parser->{discardables}->post('whitespace', $start_of_lexeme, $length_of_lexeme, $whitespace);
+            if ($roundtrip){
+                $discardables->post(
+                    'whitespace', $start_of_lexeme, $length_of_lexeme, $whitespace);
+            }
+
             next TOKEN;
         }
 
@@ -575,7 +585,10 @@ sub read{
 
             if ($token_name =~ /comment/i){
 #                warn qq{'$lexeme' \@$start_of_lexeme:$length_of_lexeme};
-                $parser->{discardables}->post($token_name, $start_of_lexeme, $length_of_lexeme, $lexeme);
+                if ($roundtrip){
+                    $discardables->post(
+                        $token_name, $start_of_lexeme, $length_of_lexeme, $lexeme);
+                }
                 next TOKEN;
             }
 
@@ -635,17 +648,19 @@ sub read{
 
 sub parse {
     my ( $parser, $source, $recce_opts ) = @_;
-    # add grammar
     $recce_opts //= {};
     $recce_opts->{grammar} = $parser->{grammar};
     my $recce = Marpa::R2::Scanless::R->new( $recce_opts, { ranking_method => 'high_rule_only' } );
-    $parser->{discardables} = MarpaX::AST::Discardables->new;
+    if ( $parser->{opts}->{roundtrip} ) {
+        $parser->{discardables} = MarpaX::AST::Discardables->new;
+    }
     $parser->{parse_tree} = $parser->read($recce, $source);
     return $parser->{parse_tree};
 }
 
 sub roundtrip{
     my ( $parser, $source, $recce_opts ) = @_;
+    $parser->{opts}->{roundtrip} //= 1; # roundtripping is off by default
     my $ast = $parser->parse( $source, $recce_opts );
     $ast = MarpaX::AST->new($ast, { CHILDREN_START => 3 } );
     $ast = $ast->distill({
