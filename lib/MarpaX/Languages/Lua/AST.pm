@@ -375,24 +375,14 @@ my @terminals = ( # order matters!
 sub terminals{
     my ($parser) = @_;
 
-#   keywords -- group matching
-    $keywords = { map { $_ => $_ } @keywords };
-#   add new keywords, if any
-    # todo: move to capture group based lexing if it's efficient enough
-    while (my ($literal, $symbol) = each %{ $parser->{new_keywords} } ){
-        $keywords->{$literal} = $symbol;
-    }
+    # add keywords
+    push @terminals, [ $_, qr/$_/xms ] for @keywords;
 
-    my $keyword_re = join( '|', @keywords );
+    # add operators and punctuation
+    push @terminals, [ $op_punc->{$_}, qr/\Q$_\E/xms ]
+        for sort { length($b) <=> length($a) } keys %$op_punc;
 
-    push @terminals, [ $keywords => qr/$keyword_re/xms ];
-
-#   operators and punctuation -- group matching -- longest to shortest, quote and alternate
-    my $op_punc_re = join '|', map { quotemeta } sort { length($b) <=> length($a) }
-        keys %$op_punc;
-
-    push @terminals, [ $op_punc => qr/$op_punc_re/xms ];
-
+#    warn MarpaX::AST::dumper(\@terminals);
     return \@terminals;
 }
 
@@ -562,9 +552,13 @@ sub read{
 #        warn "# matching at $start_of_lexeme, line: $line:\n'",
 #            substr( $string, $start_of_lexeme, 40 ), "'";
 
+        my %terminals_expected = map { $_ => 1 } @{ $recce->terminals_expected };
+#        warn join ', ', keys %terminals_expected;
         TOKEN_TYPE: for my $t (@terminals) {
 
             my ( $token_name, $regex ) = @{$t};
+#            warn $token_name;
+#            next TOKEN_TYPE unless exists $terminals_expected{$token_name};
             next TOKEN_TYPE if not $string =~ m/\G($regex)/gcxms;
             my $lexeme = $1;
             my $length_of_lexeme = length $lexeme;
