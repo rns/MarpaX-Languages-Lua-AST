@@ -363,7 +363,7 @@ my @terminals = ( # order matters!
 
 );
 
-sub _capture_group_regex{
+sub _token_capture_groups{
     my ($terminals) = @_;
 
     my @match_regex;
@@ -374,10 +374,9 @@ sub _capture_group_regex{
         # todo: check if $token is a valid capture group name;
         my $lexeme_re = '(?<' . $token . '>' . $regex . ')';
         qr/$lexeme_re/;
-        push @match_regex, $lexeme_re;
+        push @match_regex, [ $token, $lexeme_re ];
     }
-    my $match_regex = join "|", @match_regex;
-    return $match_regex;
+    return \@match_regex;
 }
 
 sub terminals{
@@ -510,7 +509,8 @@ sub read{
     my @terminals = @{ $parser->terminals() };
 
     # build capture group regexp
-    my $match_regex = _capture_group_regex(\@terminals);
+    my $cgre = _token_capture_groups(\@terminals);
+    my $match_regex = join "|", map { $_->[1] } @$cgre;
 
     $recce->read( \$string, 0, 0 );
 
