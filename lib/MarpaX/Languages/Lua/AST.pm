@@ -383,7 +383,7 @@ sub terminals{
         $keywords->{$literal} = $symbol;
     }
 
-    my $keyword_re = '\b' . join( '\b|\b', @keywords ) . '\b';
+    my $keyword_re = join( '|', @keywords );
 
     push @terminals, [ $keywords => qr/$keyword_re/xms ];
 
