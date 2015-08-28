@@ -565,23 +565,7 @@ sub read{
         my ( $token_name, $regex, $lexeme );
 #            warn $token_name;
 
-        my $tokens_re;
-        if (exists $parser->{opts}->{use_terminals_expected}){
-# todo: investigate constructs.lua:83:3 failure with terminals_expected
-#            warn "\n# ", join ', ', keys %terminals_expected;
-            my %terminals_expected = map { $_ => 1 }
-                @{ $recce->terminals_expected },
-                # comments are not in the grammar, so we need to add them
-                'long_nestable_comment', 'long_unnestable_comment', 'short_comment';
-            # build $match_regex based on terminals_expected()
-            $match_regex = join "|", map { $_->[1] }
-                grep { exists $terminals_expected{$_->[0]} } @$cgre;
-            $tokens_re = qr/$match_regex/xms;
-        }
-        else{
-            $tokens_re = qr/$match_regex/xmso;
-        }
-        next TOKEN if not $string =~ m/\G$tokens_re/gc;
+        next TOKEN if not $string =~ m/\G($match_regex)/gcxmso;
 
         warn "multiple match" if keys %+ > 1;
         ($token_name, $lexeme) = each %+;
