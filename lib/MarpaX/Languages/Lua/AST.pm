@@ -600,9 +600,7 @@ sub read{
             $err->show();
             return
         }
-        next TOKEN
-            if $recce->lexeme_complete( $start_of_lexeme,
-                    ( length $lexeme ) );
+        next TOKEN if $recce->lexeme_complete( $start_of_lexeme, length($lexeme) );
 
         warn qq{No token found at position $start_of_lexeme, before "},
             substr( $string, pos $string, 40 ), q{"};
