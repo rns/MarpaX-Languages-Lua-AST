@@ -352,11 +352,11 @@ sub _token_capture_groups{
     my @token_capture_groups;
     for my $t ( @{ $terminals } ) {
 #        warn $t;
-        my ($token, $regex) = @{$t};
+        my ($token, $regex) = @{ $t };
 #        warn $regex;
-        # todo: check if $token is a valid capture group name;
         my $lexeme_re = '(?<' . $token . '>' . $regex . ')';
-        qr/$lexeme_re/;
+        # check if token regex is valid
+        eval { qr/$lexeme_re/ } or croak qq{Invalid regex for token $token: $@};
         push @token_capture_groups, [ $token, $lexeme_re ];
     }
     return \@token_capture_groups;
