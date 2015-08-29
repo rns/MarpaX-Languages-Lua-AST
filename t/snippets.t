@@ -54,7 +54,7 @@ for my $test (@tests){
         ok 1, "parse";
     }
 
-    my $fmt = $p->serialize( $ast );
+    my $fmt = $p->fmt( $ast );
 
     TODO: {
         todo_skip "proper formatter not implemented yet", 1;

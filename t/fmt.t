@@ -108,11 +108,7 @@ for my $test (@tests){
         fail "Can't parse:\n$lua_src";
     }
 
-    # an ast dump is needed first at times
-#    say $p->serialize( $ast );
-
     my $fmt = $p->fmt( $ast, { indent => '  ' } );
-#    say $fmt;
 
     TODO: {
         todo_skip "real formatter not implemented yet", 1;

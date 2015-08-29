@@ -327,39 +327,28 @@ my @terminals = ( # order matters!
     [ 'short_comment' => q/--[^\n]*\n/,                     ],
 
 #   strings -- short, long (nestable)
-# 2.1 – Lexical Conventions, refman
-# Literal strings can be delimited by matching single or double quotes, and can contain the
-# following C-like escape sequences: '\a' (bell), '\b' (backspace), '\f' (form feed), '\n' (
-# newline), '\r' (carriage return), '\t' (horizontal tab), '\v' (vertical tab), '\\'
-# (backslash), '\"' (quotation mark [double quote]), and '\'' (apostrophe [single quote]).
-# Moreover, a backslash followed by a real newline results in a newline in the string. A
-# character in a string can also be specified by its numerical value using the escape sequence
-# \ddd, where ddd is a sequence of up to three decimal digits. (Note that if a numerical escape
-# is to be followed by a digit, it must be expressed using exactly three digits.) Strings in
-# Lua can contain any 8-bit value, including embedded zeros, which can be specified as '\0'.
+    [ 'single_quoted_string' => q{'(?:[^'\\\\]|\\\\.)*'}    ], #'
+    [ 'double_quoted_string' => q{"(?:[^"\\\\]|\\\\.)*"}    ], #"
 
-    [ 'single_quoted_string' => q{'(?:[^'\\\\]|\\\\.)*'} ], #'
-    [ 'double_quoted_string' => q{"(?:[^"\\\\]|\\\\.)*"} ], #"
-
-    [ 'long_unnestable_string' => q/\[\[.*?\]\]/,        ],
-    [ 'long_nestable_string' => q/\[=\[.*?\]=\]/,        ],
-    [ 'long_nestable_string' => q/\[==\[.*?\]==\]/,      ],
-    [ 'long_nestable_string' => q/\[===\[.*?\]===\]/,    ],
-    [ 'long_nestable_string' => q/\[====\[.*?\]====\]/,  ],
-    [ 'long_nestable_string' => q/\[(={5,})\[.*?\]\1\]/, ],
+    [ 'long_unnestable_string' => q/\[\[.*?\]\]/,           ],
+    [ 'long_nestable_string' => q/\[=\[.*?\]=\]/,           ],
+    [ 'long_nestable_string' => q/\[==\[.*?\]==\]/,         ],
+    [ 'long_nestable_string' => q/\[===\[.*?\]===\]/,       ],
+    [ 'long_nestable_string' => q/\[====\[.*?\]====\]/,     ],
+    [ 'long_nestable_string' => q/\[(={5,})\[.*?\]\1\]/,    ],
 
 #   numbers -- int, float, and hex
 #   We can write numeric constants with an optional decimal part,
 #   plus an optional decimal exponent -- http://www.lua.org/pil/2.3.html
-    [ 'Float' => q/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/, "Floating-point number" ],
-    [ 'Float' => q/[0-9]+[eE][-+]?[0-9]+/, "Floating-point number" ],
-    [ 'Float' => q/[0-9]+\./, "Floating-point number" ],
-    [ 'Float' => q/\.[0-9]+/, "Floating-point number" ],
-    [ 'Hex' => q/0x[0-9a-fA-F]+/, "Hexadecimal number" ],
-    [ 'Int' => q/[\d]+/, "Integer number" ],
+    [ 'Float' => q/[0-9]+\.?[0-9]+([eE][-+]?[0-9]+)?/       ],
+    [ 'Float' => q/[0-9]+[eE][-+]?[0-9]+/                   ],
+    [ 'Float' => q/[0-9]+\./                                ],
+    [ 'Float' => q/\.[0-9]+/                                ],
+    [ 'Hex' => q/0x[0-9a-fA-F]+/                            ],
+    [ 'Int' => q/[\d]+/                                     ],
 
 #   identifiers
-    [ 'Name' => q/\b[a-zA-Z_][\w]*\b/, "Name" ],
+    [ 'Name' => q/\b[a-zA-Z_][\w]*\b/, "Name"               ],
 
 );
 
@@ -596,26 +585,9 @@ sub roundtrip{
     return $ast->roundtrip($parser->{discardables});
 }
 
-sub serialize{
-    my ($parser, $ast) = @_;
-    state $depth++;
-    my $s;
-    my $indent = "  " x ($depth - 1);
-    if (ref $ast){
-        my ($node_id, undef, undef, @children) = @$ast;
-        if (@children == 1 and not ref $children[0]){
-            $s .= $indent . "$node_id '$children[0]'" . "\n";
-        }
-        else{
-            $s .= $indent . "$node_id\n";
-            $s .= join '', map { $parser->serialize( $_ ) } @children;
-        }
-    }
-    else{
-        $s .= $indent . "'$ast'"  . "\n";
-    }
-    $depth--;
-    return $s;
+# todo: pretty printing
+sub fmt {
+
 }
 
 1;
