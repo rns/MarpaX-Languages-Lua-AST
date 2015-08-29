@@ -71,6 +71,10 @@ my $snippets = [
         q{ function and(a, b) return a and b end },
         'keyword used as identifer'
     ],
+    [
+        qq{ r=\nfunc(1,b)},
+        "line break before '(' in a function call"
+    ],
     [   # http://forums.mudlet.org/viewtopic.php?f=9&t=2901
         q{if pilgrim = "off" then echo("Pilgrim trigger off")},
     ],
@@ -92,9 +96,14 @@ my $snippets = [
 ];
 for my $snippet (@$snippets){
     my ($lua_src, $desc) = @{ $snippet };
+    $desc //= '';
     diag $lua_src unless $ENV{HARNESS_ACTIVE};
     eval { my $ast = $p->parse( $lua_src ) };
-    ok $@, 'parse error' . ( defined $desc ? qq{: $desc} : '' );
+    TODO: {
+        todo_skip "'$desc' error not caught yet", 1 if $desc =~ /line break/;
+
+        ok $@, 'parse error' . ( $desc ? ':' : '' ) . $desc;
+    }
 }
 
 done_testing();

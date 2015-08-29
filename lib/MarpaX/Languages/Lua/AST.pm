@@ -64,37 +64,37 @@ lexeme default = action => [ name, start, length, value ] latm => 1
     # ranks (below and above) resolve ambiguity with exp, e.g. t = loadstring('s = 1')()
     stat ::= functioncall rank => -1
 
-    stat ::= <do> block <end>
-    stat ::= <while> exp <do> block <end>
-    stat ::= <repeat> block <until> exp
+    stat ::= <do> block <end> name => 'do'
+    stat ::= <while> exp <do> block <end> name => 'while'
+    stat ::= <repeat> block <until> exp name => 'repeat'
 
 #   <if> exp <then> block {<elseif> exp <then> block} [<else> block] <end>
-    stat ::= <if> exp <then> block <end>
-    stat ::= <if> exp <then> block <else> block <end>
-    stat ::= <if> exp <then> block <one or more elseifs> <else> block <end>
-    stat ::= <if> exp <then> block <one or more elseifs> <end>
+    stat ::= <if> exp <then> block <end>  name => 'if then'
+    stat ::= <if> exp <then> block <else> block <end>  name => 'if then else'
+    stat ::= <if> exp <then> block <one or more elseifs> <else> block <end> name => 'if then elseif else'
+    stat ::= <if> exp <then> block <one or more elseifs> <end> name => 'if then elseif'
 
     <one or more elseifs> ::= <one elseif>
     <one or more elseifs> ::= <one or more elseifs> <one elseif>
     <one elseif> ::= <elseif> exp <then> block
 
 #   <for> Name <assignment> exp ',' exp [',' exp] <do> block <end>
-    stat ::= <for> Name <assignment> exp <comma> exp <comma> exp <do> block <end>
-    stat ::= <for> Name <assignment> exp <comma> exp <do> block <end>
-    stat ::= <for> namelist <in> explist <do> block <end>
+    stat ::= <for> Name <assignment> exp <comma> exp <comma> exp <do> block <end> name => 'for range step'
+    stat ::= <for> Name <assignment> exp <comma> exp <do> block <end> name => 'for range'
+    stat ::= <for> namelist <in> explist <do> block <end> name => 'for in'
 
-    stat ::= <function> funcname funcbody
+    stat ::= <function> funcname funcbody name => 'anonymous function'
 
-    stat ::= <local> <function> Name funcbody
+    stat ::= <local> <function> Name funcbody name => 'function'
 
 #   <local> namelist [<assignment> explist]
-    stat ::= <local> namelist <assignment> explist
-    stat ::= <local> namelist
+    stat ::= <local> namelist <assignment> explist name => 'assignment'
+    stat ::= <local> namelist name => 'namelist'
 
 #   laststat ::= <return> [explist] | <break>
-    laststat ::= <return>
-    laststat ::= <return> explist
-    laststat ::= <break>
+    laststat ::= <return> name => 'return'
+    laststat ::= <return> explist name => 'return explist'
+    laststat ::= <break> name => 'break'
 
 #   funcname ::= Name {'.' Name} [':' Name]
     funcname ::= qualifiedname
@@ -119,57 +119,56 @@ lexeme default = action => [ name, start, length, value ] latm => 1
     explist ::= exp
     explist ::= explist <comma> exp
 
-# todo: add more meaningful names than 'exp' once roundtripping works
     exp ::=
-           var
-         | <left_paren> exp <right_paren> assoc => group name => 'exp'
+           var  name => 'var'
+         | <left_paren> exp <right_paren> assoc => group name => 'parens'
         || exp args assoc => right name => 'functioncall'
         || exp <colon> Name args assoc => right name => 'functioncall'
-         | <nil> name => 'exp'
-         | <false> name => 'exp'
-         | <true> name => 'exp'
-         | Number name => 'exp'
-         | String name => 'exp'
-         | <ellipsis> name => 'exp'
-         | tableconstructor name => 'exp'
-         | function funcbody name => 'exp'
+         | <nil> name => 'nil'
+         | <false> name => 'false'
+         | <true> name => 'true'
+         | Number name => 'Number'
+         | String name => 'String'
+         | <ellipsis> name => 'ellipsis'
+         | tableconstructor name => 'tableconstructor'
+         | function funcbody name => 'function funcbody'
         # exponentiation based on Jeffrey’s solution
         # -- https://github.com/ronsavage/MarpaX-Languages-Lua-Parser/issues/2
-        || exp <exponentiation> exponent assoc => right name => 'binop'
-        || <subtraction> exp name => 'unop' assoc => right
-         | <length> exp name => 'unop'
-         | <not> exp name => 'unop'
-        || exp <multiplication> exp name => 'binop'
-         | exp <division> exp name => 'binop'
-         | exp <modulo> exp name => 'binop'
-        || exp <addition> exp name => 'binop'
-         | exp <subtraction> exp name => 'binop'
-        || exp <concatenation> exp assoc => right name => 'binop'
-        || exp <less_than> exp name => 'binop'
-         | exp <less_or_equal> exp name => 'binop'
-         | exp <greater_than> exp name => 'binop'
-         | exp <greater_or_equal> exp name => 'binop'
-         | exp <equality> exp name => 'binop'
-         | exp <negation> exp name => 'binop'
-        || exp <and> exp name => 'binop'
-        || exp <or> exp name => 'binop'
+        || exp <exponentiation> exponent assoc => right name => 'exponentiation'
+        || <subtraction> exp name => 'subtraction' assoc => right
+         | <length> exp name => 'length'
+         | <not> exp name => 'not'
+        || exp <multiplication> exp name => 'multiplication'
+         | exp <division> exp name => 'division'
+         | exp <modulo> exp name => 'modulo'
+        || exp <addition> exp name => 'addition'
+         | exp <subtraction> exp name => 'subtraction'
+        || exp <concatenation> exp assoc => right name => 'concatenation'
+        || exp <less_than> exp name => 'less_than'
+         | exp <less_or_equal> exp name => 'less_or_equal'
+         | exp <greater_than> exp name => 'greater_than'
+         | exp <greater_or_equal> exp name => 'greater_or_equal'
+         | exp <equality> exp name => 'equality'
+         | exp <negation> exp name => 'negation'
+        || exp <and> exp name => 'and'
+        || exp <or> exp name => 'or'
 
     exponent ::=
-           var name => 'exp'
-         | <left_paren> exp <right_paren> name => 'exp'
-        || exponent args name => 'exp'
-        || exponent <colon> Name args name => 'exp'
-         | <nil> name => 'exp'
-         | <false> name => 'exp'
-         | <true> name => 'exp'
-         | Number name => 'exp'
-         | String name => 'exp'
-         | <ellipsis> name => 'exp'
-         | tableconstructor name => 'exp'
-         | function name => 'exp'
-        || <not> exponent name => 'exp'
-         | <length> exponent name => 'exp'
-         | <subtraction> exponent name => 'exp'
+           var name => 'var'
+         | <left_paren> exp <right_paren> name => 'parens'
+        || exponent args name => 'exponent args'
+        || exponent <colon> Name args name => 'exponent <colon>'
+         | <nil> name => 'nil'
+         | <false> name => 'false'
+         | <true> name => 'true'
+         | Number name => 'Number'
+         | String name => 'String'
+         | <ellipsis> name => 'ellipsis'
+         | tableconstructor name => 'tableconstructor'
+         | function name => 'function'
+        || <not> exponent name => 'not'
+         | <length> exponent name => 'length'
+         | <subtraction> exponent name => 'subtraction'
 
     prefixexp ::= var
     prefixexp ::= functioncall
@@ -433,10 +432,7 @@ sub read{
             croak qq{Parser rejected token $token_name ("$lexeme") at $l:$c\n},
                 "after \"", substr( $string, $start_of_lexeme - 40, 40), "\"\n",
                 "before \"", substr( $string, $start_of_lexeme + length($lexeme), 40 ), '"';
-# todo: better error handling
-#            my $err = MarpaX::Languages::Lua::AST::Error->new($recce, $parser->{grammar});
-#            warn join "\n", $err->longest_spans(\@unicorns);
-#            $err->show();
+# todo: better error handling with MarpaX::Languages::Lua::AST::Error
             return
         }
         next TOKEN if $recce->lexeme_complete( $start_of_lexeme, length($lexeme) );
@@ -449,32 +445,14 @@ sub read{
 
 #   handle ambiguity
     if ($recce->ambiguity_metric() > 1){
-        my $max_values = 100;
-        my $i = 0;
-        my @v;
-        while (my $v = $recce->value() and $i <= $max_values){ $i++; push @v, $v }
-        warn "Ambiguous parse: ",
-            ($i > $max_values ? "over $max_values" : $i), " alternatives.";
+        croak $recce->ambiguous();
         $recce->series_restart();
-        warn $recce->ambiguous();
-        $recce->series_restart();
-        if (wantarray){
-            return @v;
-        }
     }
     # return ast or undef on parse failure
     my $value_ref = $recce->value();
     if ( not defined $value_ref ) {
         warn "No parse was found, after reading the entire input.\n";
-#        warn "Showing progress:\n", $recce->show_progress();
-        # todo: options for reparse with diagnostics and show progress, e.g.
-=pod
-                $ast = $p->parse(
-                    $lua_slurp,
-                    { trace_terminals => 1 },
-                    { show_progress => 1 }
-                    );
-=cut
+        warn "Showing progress:\n", $recce->show_progress();
         return
     }
     return wantarray ? ( $value_ref ) : ${$value_ref};

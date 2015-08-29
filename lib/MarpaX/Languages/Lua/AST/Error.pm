@@ -6,6 +6,13 @@ use warnings;
 
 =pod Overview
 
+    my $err = MarpaX::Languages::Lua::AST::Error->new($recce, $parser->{grammar});
+    crock $err->sprint();
+
+    optionally treat ambiguity as an error
+
+    take input span from the last completed range and reparse with trace_terminals => 1
+
     error reporting and recovery based on (1) longest completed span,
     (2) longest predicted span, and mapping between (1) and (2)
 
@@ -57,7 +64,6 @@ sub longest_spans {
         }
         # sort by start
         sort { $b->[0] <=> $a->[0] }
-# todo: eliminate duplicate LHS
             # skip non-completed spans
             grep { @$_ == 3 }
                 # check if there is a completed span for LHS and append LHS
