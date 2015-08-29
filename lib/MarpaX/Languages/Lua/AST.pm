@@ -174,10 +174,6 @@ lexeme default = action => [ name, start, length, value ] latm => 1
     prefixexp ::= functioncall
     prefixexp ::= <left_paren> exp <right_paren>
 
-# todo: As an exception to the free-format syntax of Lua, you cannot put a line break
-# before the '(' in a function call. This restriction avoids some
-# ambiguities in the language.
-
     functioncall ::= prefixexp args
     functioncall ::= prefixexp <colon> Name args
 
