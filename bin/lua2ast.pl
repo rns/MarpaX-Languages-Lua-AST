@@ -27,6 +27,6 @@ use MarpaX::AST;
 
 use Data::Dumper;
 my $ast = $p->parse( $lua_src );
-say Dumper( $p->parse( $lua_src ) );
+#say Dumper( $p->parse( $lua_src ) );
 
 

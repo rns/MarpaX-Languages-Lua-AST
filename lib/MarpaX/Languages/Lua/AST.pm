@@ -285,13 +285,6 @@ my @unicorns = (
 # Terminals
 # =========
 
-my @keywords = qw {
-    and break do else elseif end false for function if in local nil not
-    or repeat return then true until while
-};
-
-my $keywords = { map { $_ => $_ } @keywords };
-
 # order matters:
 #   whitespace, comments, strings, numbers, identifiers, operators, keywords
 my @terminals = (
@@ -327,9 +320,6 @@ my @terminals = (
     [ 'Hex' => q/0x[0-9a-fA-F]+/                            ],
     [ 'Int' => q/[\d]+/                                     ],
 
-#   identifiers
-    [ 'Name' => q/\b[a-zA-Z_][\w]*\b/, "Name"               ],
-
 #   operators, punctuation longest first
     [ 'ellipsis' => '\.\.\.'    ],  [ 'concatenation' => '\.\.'     ],
     [ 'less_or_equal' => '<='   ],  [ 'greater_or_equal' => '>='    ],
@@ -346,18 +336,25 @@ my @terminals = (
     [ 'semicolon' => ';'        ],  [ 'comma' => ','                ],
     [ 'period' => '\.'          ],
 
+# we match keywords before identifiers and let the recognizer reject them
+# if they are used as identifiers to enforce "keywords are reserved and
+# cannot be used as names"
+
 #   keywords
-    [ 'and' => 'and'            ],  [ 'break' => 'break'            ],
-    [ 'do' => 'do'              ],  [ 'else' => 'else'              ],
-    [ 'elseif' => 'elseif'      ],  [ 'end' => 'end'                ],
-    [ 'false' => 'false'        ],  [ 'for' => 'for'                ],
-    [ 'function' => 'function'  ],  [ 'if' => 'if'                  ],
-    [ 'in' => 'in'              ],  [ 'local' => 'local'            ],
-    [ 'nil' => 'nil'            ],  [ 'not' => 'not'                ],
-    [ 'or' => 'or'              ],  [ 'repeat' => 'repeat'          ],
-    [ 'return' => 'return'      ],  [ 'then' => 'then'              ],
-    [ 'true' => 'true'          ],  [ 'until' => 'until'            ],
-    [ 'while' => 'while'        ],
+    [ 'and' => '\band\b'            ],  [ 'break' => '\bbreak\b'            ],
+    [ 'do' => '\bdo\b'              ],  [ 'else' => '\belse\b'              ],
+    [ 'elseif' => '\belseif\b'      ],  [ 'end' => '\bend\b'                ],
+    [ 'false' => '\bfalse\b'        ],  [ 'for' => '\bfor\b'                ],
+    [ 'function' => '\bfunction\b'  ],  [ 'if' => '\bif\b'                  ],
+    [ 'in' => '\bin\b'              ],  [ 'local' => '\blocal\b'            ],
+    [ 'nil' => '\bnil\b'            ],  [ 'not' => '\bnot\b'                ],
+    [ 'or' => '\bor\b'              ],  [ 'repeat' => '\brepeat\b'          ],
+    [ 'return' => '\breturn\b'      ],  [ 'then' => '\bthen\b'              ],
+    [ 'true' => '\btrue\b'          ],  [ 'until' => '\buntil\b'            ],
+    [ 'while' => '\bwhile\b'        ],
+
+#   identifiers
+    [ 'Name' => q/\b[a-zA-Z_][\w]*\b/, "Name"               ],
 
 );
 
@@ -455,7 +452,7 @@ sub read{
         my $start_of_lexeme = pos $string;
         last TOKEN if $start_of_lexeme >= $length;
         # handle whitespace
-        if ($string =~ m/\G(\s+)/gcxmso){
+        if ($string =~ m/\G(\s+)/gcxms){
             my $whitespace = $1;
             my $length_of_lexeme = length $whitespace;
 
@@ -476,18 +473,11 @@ sub read{
         my ( $token_name, $regex, $lexeme );
 #            warn $token_name;
 
-        next TOKEN if not $string =~ m/\G($match_regex)/gcxmso;
+        next TOKEN if not $string =~ m/\G($match_regex)/gcxms;
 
-        warn "multiple match" if keys %+ > 1;
         ($token_name, $lexeme) = each %+;
 
         my $length_of_lexeme = length $lexeme;
-
-        # Name cannot be a keyword so treat strings matching Name's regex as keywords
-        # todo: enforce "keywords are reserved and cannot be used as names"
-        if ( $token_name eq "Name" and exists $keywords->{$lexeme} ){
-            $token_name = $keywords->{$lexeme};
-        }
 
 #        warn qq{$token_name: '$lexeme' \@$start_of_lexeme:$length_of_lexeme ($line:$column)\n};
         $parser->{start_to_line_column}->{$start_of_lexeme} = [ $line, $column ];
