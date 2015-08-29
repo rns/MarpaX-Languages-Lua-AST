@@ -108,10 +108,10 @@ for my $test (@tests){
         fail "Can't parse:\n$lua_src";
     }
 
-    my $fmt = $p->fmt( $ast, { indent => '  ' } );
-
     TODO: {
         todo_skip "real formatter not implemented yet", 1;
+
+        my $fmt = $p->fmt( $ast, { indent => '  ' } );
         eq_or_diff $fmt, $expected_fmt, 'lua code formatting';
     }
 

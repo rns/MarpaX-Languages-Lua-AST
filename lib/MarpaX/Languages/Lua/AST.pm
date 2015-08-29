@@ -285,9 +285,6 @@ my @unicorns = (
 # Terminals
 # =========
 
-# group matching regexes
-
-# keywords
 my @keywords = qw {
     and break do else elseif end false for function if in local nil not
     or repeat return then true until while
@@ -295,28 +292,11 @@ my @keywords = qw {
 
 my $keywords = { map { $_ => $_ } @keywords };
 
-# operators, punctuation
-my $op_punc = {
-            '...' =>'ellipsis',         '..' => 'concatenation',
+# order matters:
+#   whitespace, comments, strings, numbers, identifiers, operators, keywords
+my @terminals = (
 
-            '<=' => 'less_or_equal',    '>=' => 'greater_or_equal',
-            '~=' => 'negation',         '==' => 'equality',
-
-            '.' =>  'concatenation',    '<' =>  'less_than',
-            '>' =>  'greater_than',     '+' =>  'addition',
-            '-' =>  'subtraction',      '*' =>  'multiplication',
-            '/' =>  'division',         '%' =>  'modulo',
-            '#' =>  'length',           '^' =>  'exponentiation',
-            ':' =>  'colon',            '[' =>  'left_bracket',
-            ']' =>  'right_bracket',    '(' =>  'left_paren',
-            ')' =>  'right_paren',      '{' =>  'left_curly',
-            '}' =>  'right_curly',      '=' =>  'assignment',
-            ';' =>  'semicolon',        ',' =>  'comma',
-            '.' =>  'period',
-};
-
-# terminals are regexes and strings
-my @terminals = ( # order matters!
+#   whitespaces
 
 #   comments -- short, long (nestable)
     [ 'long_nestable_comment' => q/--\[(={4,})\[.*?\]\1\]/, ],
@@ -350,6 +330,35 @@ my @terminals = ( # order matters!
 #   identifiers
     [ 'Name' => q/\b[a-zA-Z_][\w]*\b/, "Name"               ],
 
+#   operators, punctuation longest first
+    [ 'ellipsis' => '\.\.\.'    ],  [ 'concatenation' => '\.\.'     ],
+    [ 'less_or_equal' => '<='   ],  [ 'greater_or_equal' => '>='    ],
+    [ 'negation' => '~='        ],  [ 'equality' => '=='            ],
+    [ 'concatenation' => '\.\.' ],  [ 'less_than' => '<'            ],
+    [ 'greater_than' => '>'     ],  [ 'addition' => '\+'            ],
+    [ 'subtraction' => '-'      ],  [ 'multiplication' => '\*'      ],
+    [ 'division' => '/'         ],  [ 'modulo' => '%'               ],
+    [ 'length' => '\#'          ],  [ 'exponentiation' => '\^'      ],
+    [ 'colon' => ':'            ],  [ 'left_bracket' => '\['        ],
+    [ 'right_bracket' => '\]'   ],  [ 'left_paren' => '\('          ],
+    [ 'right_paren' => '\)'     ],  [ 'left_curly' => '\{'          ],
+    [ 'right_curly' => '\}'     ],  [ 'assignment' => '='           ],
+    [ 'semicolon' => ';'        ],  [ 'comma' => ','                ],
+    [ 'period' => '\.'          ],
+
+#   keywords
+    [ 'and' => 'and'            ],  [ 'break' => 'break'            ],
+    [ 'do' => 'do'              ],  [ 'else' => 'else'              ],
+    [ 'elseif' => 'elseif'      ],  [ 'end' => 'end'                ],
+    [ 'false' => 'false'        ],  [ 'for' => 'for'                ],
+    [ 'function' => 'function'  ],  [ 'if' => 'if'                  ],
+    [ 'in' => 'in'              ],  [ 'local' => 'local'            ],
+    [ 'nil' => 'nil'            ],  [ 'not' => 'not'                ],
+    [ 'or' => 'or'              ],  [ 'repeat' => 'repeat'          ],
+    [ 'return' => 'return'      ],  [ 'then' => 'then'              ],
+    [ 'true' => 'true'          ],  [ 'until' => 'until'            ],
+    [ 'while' => 'while'        ],
+
 );
 
 sub _token_capture_groups{
@@ -366,20 +375,6 @@ sub _token_capture_groups{
         push @match_regex, [ $token, $lexeme_re ];
     }
     return \@match_regex;
-}
-
-sub terminals{
-    my ($parser) = @_;
-
-    # add keywords
-    push @terminals, [ $_, $_ ] for @keywords;
-
-    # add operators and punctuation
-    push @terminals, [ $op_punc->{$_}, quotemeta($_)]
-        for sort { length($b) <=> length($a) } keys %$op_punc;
-
-#    warn MarpaX::AST::dumper(\@terminals);
-    return \@terminals;
 }
 
 # add unicorns to grammar source and construct the grammar
@@ -423,9 +418,6 @@ sub line_column{
 
 sub read{
     my ($parser, $recce, $string) = @_;
-
-    # build terminals
-    my @terminals = @{ $parser->terminals() };
 
     # build capture group regexp
     my $cgre = _token_capture_groups(\@terminals);
@@ -490,7 +482,9 @@ sub read{
         ($token_name, $lexeme) = each %+;
 
         my $length_of_lexeme = length $lexeme;
+
         # Name cannot be a keyword so treat strings matching Name's regex as keywords
+        # todo: enforce "keywords are reserved and cannot be used as names"
         if ( $token_name eq "Name" and exists $keywords->{$lexeme} ){
             $token_name = $keywords->{$lexeme};
         }
@@ -586,8 +580,6 @@ sub roundtrip{
 }
 
 # todo: pretty printing
-sub fmt {
-
-}
+sub fmt { ... }
 
 1;

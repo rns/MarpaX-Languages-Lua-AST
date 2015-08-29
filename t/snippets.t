@@ -54,11 +54,10 @@ for my $test (@tests){
         ok 1, "parse";
     }
 
-    my $fmt = $p->fmt( $ast );
-
     TODO: {
         todo_skip "proper formatter not implemented yet", 1;
 
+        my $fmt = $p->fmt( $ast );
         is $fmt, $expected_fmt, 'format by serailizing lua code ast';
     }
 }

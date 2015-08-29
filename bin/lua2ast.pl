@@ -9,9 +9,9 @@ use strict;
 
 my ($fn) = @ARGV;
 
-do { say "Usage: $0 filespec"; exit 1 } unless $fn;
+#do { say "Usage: $0 filespec"; exit 1 } unless $fn;
 
-#$fn = '../t/lua5.1-tests/api.lua';
+$fn = '../t/lua5.1-tests/api.lua';
 
 open my $fh, $fn or die "Can't open $fn: $@.";
 my $lua_src = do { local $/ = undef; <$fh> };

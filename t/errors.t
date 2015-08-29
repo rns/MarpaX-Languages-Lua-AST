@@ -36,7 +36,7 @@ for my $lua_file (@lua_files){
 
     my $lua_src = slurp_file( qq{$lua_file} );
 
-    diag $lua_file;
+    diag $lua_file unless $ENV{HARNESS_ACTIVE};
 
     if ( $lua_file eq q{errors.lua} ){
         my $errors = [
