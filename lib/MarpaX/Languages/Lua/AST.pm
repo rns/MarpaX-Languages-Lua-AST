@@ -83,18 +83,18 @@ lexeme default = action => [ name, start, length, value ] latm => 1
     stat ::= <for> Name <assignment> exp <comma> exp <do> block <end> name => 'for range'
     stat ::= <for> namelist <in> explist <do> block <end> name => 'for in'
 
-    stat ::= <function> funcname funcbody name => 'anonymous function'
+    stat ::= <function> funcname funcbody name => 'function'
 
-    stat ::= <local> <function> Name funcbody name => 'function'
+    stat ::= <local> <function> Name funcbody name => 'local function'
 
 #   <local> namelist [<assignment> explist]
-    stat ::= <local> namelist <assignment> explist name => 'assignment'
-    stat ::= <local> namelist name => 'namelist'
+    stat ::= <local> namelist <assignment> explist
+    stat ::= <local> namelist
 
 #   laststat ::= <return> [explist] | <break>
-    laststat ::= <return> name => 'return'
-    laststat ::= <return> explist name => 'return explist'
-    laststat ::= <break> name => 'break'
+    laststat ::= <return>
+    laststat ::= <return> explist
+    laststat ::= <break>
 
 #   funcname ::= Name {'.' Name} [':' Name]
     funcname ::= qualifiedname
@@ -134,24 +134,24 @@ lexeme default = action => [ name, start, length, value ] latm => 1
          | function funcbody name => 'function funcbody'
         # exponentiation based on Jeffrey’s solution
         # -- https://github.com/ronsavage/MarpaX-Languages-Lua-Parser/issues/2
-        || exp <exponentiation> exponent assoc => right name => 'exponentiation'
-        || <subtraction> exp name => 'subtraction' assoc => right
-         | <length> exp name => 'length'
-         | <not> exp name => 'not'
-        || exp <multiplication> exp name => 'multiplication'
-         | exp <division> exp name => 'division'
-         | exp <modulo> exp name => 'modulo'
-        || exp <addition> exp name => 'addition'
-         | exp <subtraction> exp name => 'subtraction'
-        || exp <concatenation> exp assoc => right name => 'concatenation'
-        || exp <less_than> exp name => 'less_than'
-         | exp <less_or_equal> exp name => 'less_or_equal'
-         | exp <greater_than> exp name => 'greater_than'
-         | exp <greater_or_equal> exp name => 'greater_or_equal'
-         | exp <equality> exp name => 'equality'
-         | exp <negation> exp name => 'negation'
-        || exp <and> exp name => 'and'
-        || exp <or> exp name => 'or'
+        || exp <exponentiation> exponent assoc => right name => 'binop'
+        || <subtraction> exp name => 'unop' assoc => right
+         | <length> exp name => 'unop'
+         | <not> exp name => 'unop'
+        || exp <multiplication> exp name => 'binop'
+         | exp <division> exp name => 'binop'
+         | exp <modulo> exp name => 'binop'
+        || exp <addition> exp name => 'binop'
+         | exp <subtraction> exp name => 'binop'
+        || exp <concatenation> exp assoc => right name => 'binop'
+        || exp <less_than> exp name => 'binop'
+         | exp <less_or_equal> exp name => 'binop'
+         | exp <greater_than> exp name => 'binop'
+         | exp <greater_or_equal> exp name => 'binop'
+         | exp <equality> exp name => 'binop'
+         | exp <negation> exp name => 'binop'
+        || exp <and> exp name => 'binop'
+        || exp <or> exp name => 'binop'
 
     exponent ::=
            var name => 'var'
