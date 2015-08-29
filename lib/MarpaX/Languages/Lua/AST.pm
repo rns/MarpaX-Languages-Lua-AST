@@ -1,6 +1,7 @@
 # Copyright 2015 Ruslan Shvedov
 
-# Lua 5.1 Parser in SLIF with left recursion instead of sequences and external scanning
+# Roundtrip Lua 5.1 Parser in SLIF with left recursion instead of sequences
+# and external scanning
 
 package MarpaX::Languages::Lua::AST;
 
@@ -225,70 +226,11 @@ lexeme default = action => [ name, start, length, value ] latm => 1
 
 };
 
-my @unicorns = (
-
-    'Int', 'Float', 'Hex',
-    'Name',
-
-    '<long_nestable_string>',
-    '<long_unnestable_string>',
-    '<double_quoted_string>',
-    '<single_quoted_string>',
-
-    '<addition>',
-    '<and>',
-    '<assignment>',
-    '<break>',
-    '<colon>',
-    '<comma>',
-    '<concatenation>',
-    '<division>',
-    '<do>',
-    '<ellipsis>',
-    '<else>',
-    '<elseif>',
-    '<end>',
-    '<equality>',
-    '<exponentiation>',
-    '<false>',
-    '<for>',
-    '<function>',
-    '<greater_or_equal>',
-    '<greater_than>',
-    '<if>',
-    '<in>',
-    '<left_bracket>',
-    '<left_curly>',
-    '<left_paren>',
-    '<length>',
-    '<less_or_equal>',
-    '<less_than>',
-    '<local>',
-    '<subtraction>',
-    '<multiplication>',
-    '<negation>',
-    '<nil>',
-    '<not>',
-    '<or>',
-    '<modulo>',
-    '<period>',
-    '<repeat>',
-    '<return>',
-    '<right_bracket>',
-    '<right_curly>',
-    '<right_paren>',
-    '<semicolon>',
-    '<then>',
-    '<true>',
-    '<until>',
-    '<while>',
-);
-
 # Terminals
 # =========
 
 # order matters:
-#   whitespace, comments, strings, numbers, identifiers, operators, keywords
+#   whitespace, comments, strings, numbers, operators, keywords, identifiers
 my @terminals = (
 
 #   whitespaces
@@ -361,23 +303,26 @@ my @terminals = (
 
 );
 
-# add unicorns to grammar source and construct the grammar
-sub grammar{
-    my ($extension) = @_;
-    $extension //= '';
-    my $source = $lua_grammar_source . "\n### extension rules ###" . $extension . "\n" . join( "\n", map { qq{$_ ~ unicorn} } @unicorns ) . "\n";
-#    say $source if $extension;
-    return Marpa::R2::Scanless::G->new( { source => \$source } );
-}
-
 sub new {
     my ($class, $opts) = @_;
+
     my $parser = bless {}, $class;
-    $parser->{grammar} = grammar();
+
+    state $unicorns = {
+        map { $_->[0] => 1 }
+            grep { defined $_->[2] ? $_->[2] ne 'discardable' : 1 } @terminals };
+
+    my $source = $lua_grammar_source .
+        join( "\n", map { qq{$_ ~ unicorn} } keys %{ $unicorns }) . "\n";
+
+    $parser->{grammar} = Marpa::R2::Scanless::G->new( { source => \$source } );
+
     if (ref $opts eq "HASH"){
         $parser->{opts} = $opts;
     }
+
     $parser->{start_to_line_column} = {};
+
     return $parser;
 }
 
