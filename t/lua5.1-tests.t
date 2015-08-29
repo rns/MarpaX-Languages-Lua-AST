@@ -1,8 +1,9 @@
 #!perl
 # Copyright 2015 Ruslan Shvedov
 
-# take a lua file, from lua 5.1. test suite, roundtrip it through parser
-# test roundtripped lua source vs. the original
+# take a lua file from lua 5.1. test suite, roundtrip it through parser
+# test if the roundtripped lua source is the same as the original
+
 # run roundtripped source with lua interpreter and test its execution results
 # against those of the original source code
 
@@ -15,8 +16,6 @@ use strict;
 use Test::More;
 use File::Spec;
 use Test::Differences;
-
-# todo: drop tests running lua on roundtripped files
 
 BEGIN {
     eval {
@@ -34,13 +33,7 @@ use MarpaX::Languages::Lua::AST;
 
 my $p = MarpaX::Languages::Lua::AST->new;
 
-#   file name                       flags:  1 default: do nothing
-#                                           3 reparse and show ast
-#                                           4 test stdout with like()
-#                                           5 stderr is expected -- test stdout anyway
-#                                           7 skip
-
-# todo: move this and other in xt (author test)
+# todo: move tests running lua on roundtripped files in xt (author test) like this:
 #       as in http://elliotlovesperl.com/2009/11/24/explicitly-running-author-tests/
 # If you have .pm files in your module's distribution
 # that are used only for tests, put them in 't/lib' and add the line
@@ -51,6 +44,11 @@ my $p = MarpaX::Languages::Lua::AST->new;
 #   ./xt/release - run during "make disttest"
 # -- http://perl-qa.hexten.net/wiki/index.php?title=Best_Practices_for_Testing
 
+#   file name                       flags:  1 default: do nothing
+#                                           3 reparse and show ast
+#                                           4 test stdout with like()
+#                                           5 stderr is expected -- test stdout anyway
+#                                           7 skip
 my %test_suite_files = qw{
 
     api.lua            1
@@ -78,10 +76,9 @@ my %test_suite_files = qw{
     verybig.lua        1
 };
 
-# current dir
 my $pwd = Cwd::cwd();
 
-# shell script run lua interpreter on ast serialized to tokens
+# shell script to run lua interpreter on lua source reproduced after parseing
 my $run_lua_test = $^O eq 'MSWin32' ? 'run_lua_test.bat' : 'run_lua_test.sh';
 
 # prepend t if running under prove
