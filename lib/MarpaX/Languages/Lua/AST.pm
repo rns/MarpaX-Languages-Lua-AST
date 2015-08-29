@@ -292,14 +292,15 @@ my @unicorns = (
 my @terminals = (
 
 #   whitespaces
+    [ 'whitespace' => '\s+', discardable => 1 ],
 
 #   comments -- short, long (nestable)
-    [ 'long_nestable_comment' => q/--\[(={4,})\[.*?\]\1\]/, ],
-    [ 'long_nestable_comment' => q/--\[===\[.*?\]===\]/,    ],
-    [ 'long_nestable_comment' => q/--\[==\[.*?\]==\]/,      ],
-    [ 'long_nestable_comment' => q/--\[=\[.*?\]=\]/,        ],
-    [ 'long_unnestable_comment' => q/--\[\[.*?\]\]/,        ],
-    [ 'short_comment' => q/--[^\n]*\n/,                     ],
+    [ 'long_nestable_comment' => q/--\[(={4,})\[.*?\]\1\]/, discardable => 1 ],
+    [ 'long_nestable_comment' => q/--\[===\[.*?\]===\]/,    discardable => 1 ],
+    [ 'long_nestable_comment' => q/--\[==\[.*?\]==\]/,      discardable => 1 ],
+    [ 'long_nestable_comment' => q/--\[=\[.*?\]=\]/,        discardable => 1 ],
+    [ 'long_unnestable_comment' => q/--\[\[.*?\]\]/,        discardable => 1 ],
+    [ 'short_comment' => q/--[^\n]*\n/,                     discardable => 1 ],
 
 #   strings -- short, long (nestable)
     [ 'single_quoted_string' => q{'(?:[^'\\\\]|\\\\.)*'}    ], #'
@@ -323,19 +324,19 @@ my @terminals = (
     [ 'Int' => q/[\d]+/                                     ],
 
 #   operators, punctuation longest first
-    [ 'ellipsis' => '\.\.\.'    ],  [ 'concatenation' => '\.\.'     ],
-    [ 'less_or_equal' => '<='   ],  [ 'greater_or_equal' => '>='    ],
-    [ 'negation' => '~='        ],  [ 'equality' => '=='            ],
-    [ 'concatenation' => '\.\.' ],  [ 'less_than' => '<'            ],
-    [ 'greater_than' => '>'     ],  [ 'addition' => '\+'            ],
-    [ 'subtraction' => '-'      ],  [ 'multiplication' => '\*'      ],
-    [ 'division' => '/'         ],  [ 'modulo' => '%'               ],
-    [ 'length' => '\#'          ],  [ 'exponentiation' => '\^'      ],
-    [ 'colon' => ':'            ],  [ 'left_bracket' => '\['        ],
-    [ 'right_bracket' => '\]'   ],  [ 'left_paren' => '\('          ],
-    [ 'right_paren' => '\)'     ],  [ 'left_curly' => '\{'          ],
-    [ 'right_curly' => '\}'     ],  [ 'assignment' => '='           ],
-    [ 'semicolon' => ';'        ],  [ 'comma' => ','                ],
+    [ 'ellipsis' => '\.\.\.'    ],  [ 'concatenation' => '\.\.'   ],
+    [ 'less_or_equal' => '<='   ],  [ 'greater_or_equal' => '>='  ],
+    [ 'negation' => '~='        ],  [ 'equality' => '=='          ],
+    [ 'concatenation' => '\.\.' ],  [ 'less_than' => '<'          ],
+    [ 'greater_than' => '>'     ],  [ 'addition' => '\+'          ],
+    [ 'subtraction' => '-'      ],  [ 'multiplication' => '\*'    ],
+    [ 'division' => '/'         ],  [ 'modulo' => '%'             ],
+    [ 'length' => '\#'          ],  [ 'exponentiation' => '\^'    ],
+    [ 'colon' => ':'            ],  [ 'left_bracket' => '\['      ],
+    [ 'right_bracket' => '\]'   ],  [ 'left_paren' => '\('        ],
+    [ 'right_paren' => '\)'     ],  [ 'left_curly' => '\{'        ],
+    [ 'right_curly' => '\}'     ],  [ 'assignment' => '='         ],
+    [ 'semicolon' => ';'        ],  [ 'comma' => ','              ],
     [ 'period' => '\.'          ],
 
 # we match keywords before identifiers and let the recognizer reject them
@@ -343,38 +344,22 @@ my @terminals = (
 # cannot be used as names"
 
 #   keywords
-    [ 'and' => '\band\b'            ],  [ 'break' => '\bbreak\b'            ],
-    [ 'do' => '\bdo\b'              ],  [ 'else' => '\belse\b'              ],
-    [ 'elseif' => '\belseif\b'      ],  [ 'end' => '\bend\b'                ],
-    [ 'false' => '\bfalse\b'        ],  [ 'for' => '\bfor\b'                ],
-    [ 'function' => '\bfunction\b'  ],  [ 'if' => '\bif\b'                  ],
-    [ 'in' => '\bin\b'              ],  [ 'local' => '\blocal\b'            ],
-    [ 'nil' => '\bnil\b'            ],  [ 'not' => '\bnot\b'                ],
-    [ 'or' => '\bor\b'              ],  [ 'repeat' => '\brepeat\b'          ],
-    [ 'return' => '\breturn\b'      ],  [ 'then' => '\bthen\b'              ],
-    [ 'true' => '\btrue\b'          ],  [ 'until' => '\buntil\b'            ],
+    [ 'and' => '\band\b'            ],  [ 'break' => '\bbreak\b'  ],
+    [ 'do' => '\bdo\b'              ],  [ 'else' => '\belse\b'    ],
+    [ 'elseif' => '\belseif\b'      ],  [ 'end' => '\bend\b'      ],
+    [ 'false' => '\bfalse\b'        ],  [ 'for' => '\bfor\b'      ],
+    [ 'function' => '\bfunction\b'  ],  [ 'if' => '\bif\b'        ],
+    [ 'in' => '\bin\b'              ],  [ 'local' => '\blocal\b'  ],
+    [ 'nil' => '\bnil\b'            ],  [ 'not' => '\bnot\b'      ],
+    [ 'or' => '\bor\b'              ],  [ 'repeat' => '\brepeat\b'],
+    [ 'return' => '\breturn\b'      ],  [ 'then' => '\bthen\b'    ],
+    [ 'true' => '\btrue\b'          ],  [ 'until' => '\buntil\b'  ],
     [ 'while' => '\bwhile\b'        ],
 
 #   identifiers
-    [ 'Name' => q/\b[a-zA-Z_][\w]*\b/, "Name"               ],
+    [ 'Name' => q/\b[a-zA-Z_][\w]*\b/, "Name"                     ],
 
 );
-
-sub _token_capture_groups{
-    my ($terminals) = @_;
-
-    my @match_regex;
-    for my $t ( @{ $terminals } ) {
-#        warn $t;
-        my ($token, $regex) = @{$t};
-#        warn $regex;
-        # todo: check if $token is a valid capture group name;
-        my $lexeme_re = '(?<' . $token . '>' . $regex . ')';
-        qr/$lexeme_re/;
-        push @match_regex, [ $token, $lexeme_re ];
-    }
-    return \@match_regex;
-}
 
 # add unicorns to grammar source and construct the grammar
 sub grammar{
@@ -396,6 +381,12 @@ sub new {
     return $parser;
 }
 
+sub line_column{
+    my ($parser, $start) = @_;
+    return @{ $parser->{start_to_line_column}->{$start} };
+}
+
+# returns $line and $column for next input position defined by $lexeme and $length_of_lexeme
 sub next_line_column{
     my ($lexeme, $length_of_lexeme, $line, $column) = @_;
 
@@ -410,18 +401,29 @@ sub next_line_column{
     return ($line, $column);
 }
 
-sub line_column{
-    my ($parser, $start) = @_;
-    return @{ $parser->{start_to_line_column}->{$start} };
+sub _token_capture_groups{
+    my ($terminals) = @_;
+
+    my @token_capture_groups;
+    for my $t ( @{ $terminals } ) {
+#        warn $t;
+        my ($token, $regex) = @{$t};
+#        warn $regex;
+        # todo: check if $token is a valid capture group name;
+        my $lexeme_re = '(?<' . $token . '>' . $regex . ')';
+        qr/$lexeme_re/;
+        push @token_capture_groups, [ $token, $lexeme_re ];
+    }
+    return \@token_capture_groups;
 }
 
 sub read{
     my ($parser, $recce, $string) = @_;
 
-    # build capture group regexp
-    my $cgre = _token_capture_groups(\@terminals);
-    my $match_regex = join "|", map { $_->[1] } @$cgre;
+    # build token regexp from capture groups
+    my $token_regex = join "|", map { $_->[1] } @{ _token_capture_groups(\@terminals) };
 
+    # set external lexing mode
     $recce->read( \$string, 0, 0 );
 
     # line/column info for $start
@@ -442,42 +444,24 @@ sub read{
         pos $string = 0;
     }
 
-    # check if we need to roundtrip and set up if we do
+    # check if we need to roundtrip and set up discardables if we do
     my $roundtrip = $parser->{opts}->{roundtrip};
     my $discardables;
     if ($roundtrip){
         $discardables = $parser->{discardables};
     }
 
-    # match and read tokens
+    # match tokens and feed them recognizer
     TOKEN: while (1) {
         my $start_of_lexeme = pos $string;
         last TOKEN if $start_of_lexeme >= $length;
-        # handle whitespace
-        if ($string =~ m/\G(\s+)/gcxms){
-            my $whitespace = $1;
-            my $length_of_lexeme = length $whitespace;
 
-#            warn qq{whitespace: '$whitespace' \@$start_of_lexeme:$length_of_lexeme ($line:$column)\n};
-            $parser->{start_to_line_column}->{$start_of_lexeme} = [ $line, $column ];
-            ($line, $column) = next_line_column($whitespace, $length_of_lexeme, $line, $column);
-
-            if ($roundtrip){
-                $discardables->post(
-                    'whitespace', $start_of_lexeme, $length_of_lexeme, $whitespace);
-            }
-
-            next TOKEN;
-        }
 #        warn "# matching at $start_of_lexeme, line: $line:\n'",
 #            substr( $string, $start_of_lexeme, 40 ), "'";
 
-        my ( $token_name, $regex, $lexeme );
-#            warn $token_name;
-
-        next TOKEN if not $string =~ m/\G($match_regex)/gcxms;
-
-        ($token_name, $lexeme) = each %+;
+        next TOKEN if not $string =~ m/\G($token_regex)/gcxms;
+        # $token_regex is alternation, so only the first match will be there
+        my ($token_name, $lexeme) = each %+;
 
         my $length_of_lexeme = length $lexeme;
 
@@ -485,7 +469,11 @@ sub read{
         $parser->{start_to_line_column}->{$start_of_lexeme} = [ $line, $column ];
         ($line, $column) = next_line_column($lexeme, $length_of_lexeme, $line, $column);
 
-        if ($token_name =~ /comment/i){
+        state $discardable_tokens =
+            { map { $_->[0] => 1 }
+                grep { defined $_->[2] and $_->[2] eq 'discardable' } @terminals };
+
+        if (exists $discardable_tokens->{$token_name} ){ # =~ /comment|whitespace/i){
 #            warn qq{'$lexeme' \@$start_of_lexeme:$length_of_lexeme};
             if ($roundtrip){
                 $discardables->post(
