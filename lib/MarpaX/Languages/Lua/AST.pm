@@ -466,6 +466,8 @@ sub parse {
     return $parser->{parse_tree};
 }
 
+sub discardables { $_[0]->{discardables} }
+
 sub roundtrip{
     my ( $parser, $source, $recce_opts ) = @_;
     $parser->{opts}->{roundtrip} //= 1; # roundtripping is off by default
