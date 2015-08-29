@@ -67,6 +67,10 @@ for my $lua_file (@lua_files){
 }
 
 my $snippets = [
+    [
+        q{ function and(a, b) return a and b end },
+        'keyword used as identifer'
+    ],
     [   # http://forums.mudlet.org/viewtopic.php?f=9&t=2901
         q{if pilgrim = "off" then echo("Pilgrim trigger off")},
     ],
@@ -76,24 +80,21 @@ my $snippets = [
     [   # https://github.com/mschuldt/configs/blob/master/lisp/flycheck/test/resources/checkers/lua-syntax-snippet.lua
         q{print "oh no; print "hello world" -- "},
     ],
-    # todo: fix endless recursion
+    # todo: fix endless recursion in Lua::AST::Error module for 2 below cases
 #    [
 #        # http://stackoverflow.com/questions/17626855/my-if-then-else-end-statement-is-failing-in-lua-how-can-i-fix-it
 #        q|{ "quit", if os.getenv("DE") == "gnome" then os.execute("/usr/bin/gnome-session-quit") else awesome.quit end }|,
 #    ],
-    [
-        # http://stackoverflow.com/questions/25121020/lua-email-syntax-snippet
-        q{mail(technicalte@gmail.com, testSubject, testMailBody)},
-    ],
+#    [
+#        # http://stackoverflow.com/questions/25121020/lua-email-syntax-snippet
+#        q{mail(technicalte@gmail.com, testSubject, testMailBody)},
+#    ],
 ];
 for my $snippet (@$snippets){
-    my $lua_src = $snippet->[0];
-SKIP: {
-        skip "unimplemented", 1;
-        diag $lua_src;
-        my $ast = $p->parse( $lua_src );
-        ok(0);
-    }
+    my ($lua_src, $desc) = @{ $snippet };
+    diag $lua_src unless $ENV{HARNESS_ACTIVE};
+    eval { my $ast = $p->parse( $lua_src ) };
+    ok $@, 'parse error' . ( defined $desc ? qq{: $desc} : '' );
 }
 
 done_testing();

@@ -8,6 +8,8 @@ use v5.10.1;
 use strict;
 use warnings;
 
+use Carp;
+
 use Data::Dumper;
 $Data::Dumper::Indent = 1;
 $Data::Dumper::Terse = 1;
@@ -495,17 +497,18 @@ sub read{
 #        warn "# <$token_name>:\n'$lexeme'";
         if ( not defined $recce->lexeme_alternative($token_name) ) {
             my ($l, $c) = $parser->line_column($start_of_lexeme);
-            warn qq{Parser rejected token $token_name ("$lexeme") at $l:$c\n},
+            croak qq{Parser rejected token $token_name ("$lexeme") at $l:$c\n},
                 "after \"", substr( $string, $start_of_lexeme - 40, 40), "\"\n",
                 "before \"", substr( $string, $start_of_lexeme + length($lexeme), 40 ), '"';
-            my $err = MarpaX::Languages::Lua::AST::Error->new($recce, $parser->{grammar});
+# todo: better error handling
+#            my $err = MarpaX::Languages::Lua::AST::Error->new($recce, $parser->{grammar});
 #            warn join "\n", $err->longest_spans(\@unicorns);
-            $err->show();
+#            $err->show();
             return
         }
         next TOKEN if $recce->lexeme_complete( $start_of_lexeme, length($lexeme) );
 
-        warn qq{No token found at position $start_of_lexeme, before "},
+        croak qq{No token found at position $start_of_lexeme, before "},
             substr( $string, pos $string, 40 ), q{"};
 #        warn "Showing progress:\n", $recce->show_progress();
         return
